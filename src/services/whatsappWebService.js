@@ -21,7 +21,17 @@ function startWhatsAppWeb() {
     authStrategy: new LocalAuth(),
     puppeteer: {
       headless: false,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
+      executablePath: 'C:\\Users\\Hon. EUGENE\\.cache\\puppeteer\\chrome\\win64-125.0.6422.141\\chrome-win64\\chrome.exe',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-blink-features=AutomationControlled',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ],
     },
   });
 
@@ -92,5 +102,9 @@ function getQRCode() {
 function getStatus() {
   return { isReady, hasQRCode: !!currentQRCode };
 }
+
+process.on('exit', () => { if (client) client.destroy(); });
+process.on('SIGINT', () => { if (client) client.destroy(); process.exit(); });
+process.on('SIGTERM', () => { if (client) client.destroy(); process.exit(); });
 
 module.exports = { startWhatsAppWeb, sendMessage, getQRCode, getStatus };
