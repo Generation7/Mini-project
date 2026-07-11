@@ -71,9 +71,75 @@ function startTelegramBot() {
   bot.onText(/\/start/, (msg) => {
     const name = msg.from.first_name || 'Student';
     bot.sendMessage(msg.chat.id,
-      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant!\n\nI can help you with:\n📚 Lecture timetable\n⏰ Reminders\n📝 Assignments\n📅 Exams\n\nJust talk to me naturally!`,
+      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant!\n\nI can help you with:\n📚 Lecture timetable\n⏰ Reminders\n📝 Assignments\n📅 Exams\n\nJust talk to me naturally or send a photo of your timetable!`,
       { parse_mode: 'Markdown' }
     );
+  });
+
+  bot.on('photo', async (msg) => {
+    const chatId = msg.chat.id;
+
+    try {
+      await bot.sendChatAction(chatId, 'typing');
+      await bot.sendMessage(chatId, "📸 Got your timetable! Let me read it...");
+
+      const fileId = msg.photo[msg.photo.length - 1].file_id;
+      const file = await bot.getFile(fileId);
+      const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+
+      const completion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `This is a student timetable. Extract ALL lectures and return ONLY a JSON array like this:
+[{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"08:00"},...]
+Use 24-hour format for times. Only include rows with actual course codes.`
+              },
+              {
+                type: 'image_url',
+                image_url: { url: fileUrl }
+              }
+            ]
+          }
+        ],
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      });
+
+      const response = completion.choices[0]?.message?.content?.trim();
+      console.log('Vision response:', response);
+
+      const jsonMatch = response.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        return bot.sendMessage(chatId, "Sorry, I couldn't read the timetable clearly. Try a clearer photo!");
+      }
+
+      const lecturesList = JSON.parse(jsonMatch[0]);
+      const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+      let added = 0;
+
+      for (const lecture of lecturesList) {
+        const result = lectureService.createLecture({
+          userId: user.id,
+          courseCode: lecture.courseCode,
+          courseName: lecture.courseCode,
+          lectureDay: lecture.lectureDay,
+          lectureTime: lecture.lectureTime,
+        });
+        if (result.created) added++;
+      }
+
+      bot.sendMessage(chatId,
+        `✅ Done! I found *${lecturesList.length}* lectures and added *${added}* new ones to your timetable!\n\nSend "What lectures do I have?" to see them all.`,
+        { parse_mode: 'Markdown' }
+      );
+
+    } catch (err) {
+      console.error('Photo error:', err.message);
+      bot.sendMessage(chatId, "Sorry, I had trouble reading that image. Please try again!");
+    }
   });
 
   bot.on('message', async (msg) => {
