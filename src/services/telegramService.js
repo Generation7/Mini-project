@@ -15,9 +15,11 @@ async function processMessage(chatId, userMessage) {
           role: 'system',
           content: `You are Acadia, a friendly AI assistant for students at KNUST Ghana.
 You help students manage lectures, assignments, exams and reminders.
+When a student sends a timetable photo, ask which group they are in (Group 1 or Group 2) before extracting lectures.
 When a student wants to add a lecture, respond with ONLY this JSON (nothing else):
 {"action":"ADD_LECTURE","courseCode":"X","lectureDay":"X","lectureTime":"HH:MM"}
 For listing lectures respond with ONLY: {"action":"LIST_LECTURES"}
+When a student says they are in Group 1 or Group 2, respond with ONLY: {"action":"SET_GROUP","group":"1"} or {"action":"SET_GROUP","group":"2"}
 For everything else, just reply normally in plain friendly English.`
         },
         {
@@ -94,9 +96,11 @@ function startTelegramBot() {
             content: [
               {
                 type: 'text',
-                text: `This is a student timetable. Extract ALL lectures and return ONLY a JSON array like this:
+                text: `This is a KNUST student timetable with Group 1 and Group 2 rows for each day.
+Extract ONLY Group 1 lectures and return ONLY a JSON array like this:
 [{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"08:00"},...]
-Use 24-hour format for times. Only include rows with actual course codes.`
+Use 24-hour format for times based on the period numbers (1=08:00, 2=09:00, 3=10:30, 4=11:30, 5=13:00, 6=14:00, 7=15:00, 8=16:00, 9=17:00, 10=18:00).
+Only include rows labeled Group 1. Ignore Group 2 rows.`
               },
               {
                 type: 'image_url',
