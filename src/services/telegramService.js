@@ -1,29 +1,35 @@
 const TelegramBot = require('node-telegram-bot-api').default || require('node-telegram-bot-api');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 const lectureService = require('./lectureService');
 const userService = require('./userService');
 const logger = require('../utils/logger');
 
 let bot;
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function processMessage(chatId, userMessage) {
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-    const prompt = `You are Acadia, a friendly AI assistant for students at KNUST Ghana.
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: `You are Acadia, a friendly AI assistant for students at KNUST Ghana.
 You help students manage lectures, assignments, exams and reminders.
 When a student wants to add a lecture, respond with ONLY this JSON (nothing else):
 {"action":"ADD_LECTURE","courseCode":"X","lectureDay":"X","lectureTime":"HH:MM"}
 For listing lectures respond with ONLY: {"action":"LIST_LECTURES"}
-For everything else, just reply normally in plain friendly English.
+For everything else, just reply normally in plain friendly English.`
+        },
+        {
+          role: 'user',
+          content: userMessage
+        }
+      ],
+      model: 'llama3-8b-8192',
+    });
 
-Student says: ${userMessage}`;
-
-    const result = await model.generateContent(prompt);
-    const response = result.response.text().trim();
-
-    console.log('Gemini response:', response);
+    const response = completion.choices[0]?.message?.content?.trim();
+    console.log('Groq response:', response);
 
     try {
       const parsed = JSON.parse(response);
@@ -54,7 +60,7 @@ Student says: ${userMessage}`;
 
     return response;
   } catch (err) {
-    console.error('Gemini error:', err);
+    console.error('Groq error:', err.message);
     throw err;
   }
 }
