@@ -9,7 +9,7 @@ let bot;
 async function processMessage(chatId, userMessage) {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const prompt = `You are Acadia, a friendly AI assistant for students at KNUST Ghana.
 You help students manage lectures, assignments, exams and reminders.
