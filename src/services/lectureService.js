@@ -57,6 +57,14 @@ function getLecturesByUserId(userId) {
   return db.select().from(lectures).where(eq(lectures.userId, Number(userId))).all();
 }
 
+function updateLecture(id, { lectureDay, lectureTime }) {
+  return db
+    .update(lectures)
+    .set({ lectureDay, lectureTime })
+    .where(eq(lectures.id, Number(id)))
+    .run();
+}
+
 module.exports = {
   createLecture,
   findDuplicate,
@@ -65,4 +73,5 @@ module.exports = {
   deleteLecture,
   getLecturesByDay,
   getLecturesByUserId,
+  updateLecture,
 };
