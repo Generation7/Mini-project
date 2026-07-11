@@ -25,7 +25,7 @@ For everything else, just reply normally in plain friendly English.`
           content: userMessage
         }
       ],
-      model: 'llama3-8b-8192',
+      model: 'llama-3.3-70b-versatile',
     });
 
     const response = completion.choices[0]?.message?.content?.trim();
