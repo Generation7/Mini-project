@@ -83,7 +83,9 @@ function startTelegramBot() {
 
     try {
       await bot.sendChatAction(chatId, 'typing');
-      await bot.sendMessage(chatId, "📸 Got your timetable! Let me read it...");
+      await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' }).catch(() => {
+  bot.sendMessage(chatId, response);
+});
 
       const fileId = msg.photo[msg.photo.length - 1].file_id;
       const file = await bot.getFile(fileId);
