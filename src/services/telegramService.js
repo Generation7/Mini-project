@@ -17,7 +17,7 @@ async function processMessage(chatId, userMessage) {
 You help students manage lectures, assignments, exams and reminders.
 When a student wants to add a lecture, respond with ONLY this JSON:
 {"action":"ADD_LECTURE","courseCode":"X","lectureDay":"X","lectureTime":"HH:MM"}
-When a student asks about their lectures or timetable (e.g. "what lectures do I have", "show my timetable", "my schedule"), respond with ONLY:
+When a student asks about their lectures or timetable, respond with ONLY:
 {"action":"LIST_LECTURES"}
 For everything else, reply normally in plain friendly English.`
         },
@@ -29,11 +29,11 @@ For everything else, reply normally in plain friendly English.`
       model: 'llama-3.3-70b-versatile',
     });
 
-    const visionResponse = completion.choices[0]?.message?.content?.trim();
-console.log('Vision response:', visionResponse);
+    const textResponse = completion.choices[0]?.message?.content?.trim();
+    console.log('Groq response:', textResponse);
 
     try {
-      const parsed = JSON.parse(response);
+      const parsed = JSON.parse(textResponse);
 
       if (parsed.action === 'ADD_LECTURE') {
         const user = userService.findOrCreateByPhoneNumber(chatId.toString());
@@ -52,14 +52,14 @@ console.log('Vision response:', visionResponse);
         const lectures = lectureService.getLecturesByUserId
           ? lectureService.getLecturesByUserId(user.id)
           : [];
-        if (!lectures.length) return "You have no lectures yet. Tell me your timetable!";
+        if (!lectures.length) return "You have no lectures yet. Send me a photo of your timetable!";
         return `📚 *Your Lectures:*\n${lectures.map(l => `• ${l.courseCode} - ${l.lectureDay} at ${l.lectureTime}`).join('\n')}`;
       }
     } catch (e) {
-      return response;
+      return textResponse;
     }
 
-    return response;
+    return textResponse;
   } catch (err) {
     console.error('Groq error:', err.message);
     throw err;
@@ -82,15 +82,16 @@ function startTelegramBot() {
 
     try {
       await bot.sendChatAction(chatId, 'typing');
-      await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' }).catch(() => {
-  bot.sendMessage(chatId, response);
-});
+      await bot.sendMessage(chatId, "📸 Got your timetable! Let me read it...");
 
       const fileId = msg.photo[msg.photo.length - 1].file_id;
       const file = await bot.getFile(fileId);
       const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
 
-      const completion = await groq.chat.completions.create({
+      const caption = msg.caption || '';
+      const group = caption.toLowerCase().includes('2') ? '2' : '1';
+
+      const visionCompletion = await groq.chat.completions.create({
         messages: [
           {
             role: 'user',
@@ -98,10 +99,11 @@ function startTelegramBot() {
               {
                 type: 'text',
                 text: `This is a KNUST student timetable with Group 1 and Group 2 rows for each day.
-Extract ONLY Group 1 lectures and return ONLY a JSON array like this:
+Extract ONLY Group ${group} lectures AND joint lectures (those with no group label) and return ONLY a JSON array like this:
 [{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"08:00"},...]
 Use 24-hour format for times based on the period numbers (1=08:00, 2=09:00, 3=10:30, 4=11:30, 5=13:00, 6=14:00, 7=15:00, 8=16:00, 9=17:00, 10=18:00).
-Only include rows labeled Group 1. Ignore Group 2 rows.`
+Include Group ${group} rows AND any rows without a group label (joint classes).
+Ignore Group ${group === '1' ? '2' : '1'} rows only.`
               },
               {
                 type: 'image_url',
@@ -113,15 +115,15 @@ Only include rows labeled Group 1. Ignore Group 2 rows.`
         model: 'meta-llama/llama-4-scout-17b-16e-instruct',
       });
 
-      const response = completion.choices[0]?.message?.content?.trim();
-      console.log('Vision response:', response);
+      const visionResponse = visionCompletion.choices[0]?.message?.content?.trim();
+      console.log('Vision response:', visionResponse);
 
-const jsonMatch = visionResponse.match(/\[[\s\S]*\]/);
-if (!jsonMatch) {
-  return bot.sendMessage(chatId, "Sorry, I couldn't read the timetable clearly. Try a clearer photo!");
-}
+      const jsonMatch = visionResponse.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        return bot.sendMessage(chatId, "Sorry, I couldn't read the timetable clearly. Try a clearer photo!");
+      }
 
-const lecturesList = JSON.parse(jsonMatch[0]);
+      const lecturesList = JSON.parse(jsonMatch[0]);
       const user = userService.findOrCreateByPhoneNumber(chatId.toString());
       let added = 0;
 
@@ -153,8 +155,10 @@ const lecturesList = JSON.parse(jsonMatch[0]);
     console.log('Received message:', msg.text);
     try {
       await bot.sendChatAction(chatId, 'typing');
-      const response = await processMessage(chatId, msg.text);
-      await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+      const textResponse = await processMessage(chatId, msg.text);
+      await bot.sendMessage(chatId, textResponse, { parse_mode: 'Markdown' }).catch(() => {
+        bot.sendMessage(chatId, textResponse);
+      });
     } catch (err) {
       console.error('Bot error:', err.message);
       bot.sendMessage(chatId, "Sorry, I ran into an issue. Please try again!");
