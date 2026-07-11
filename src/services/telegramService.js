@@ -15,10 +15,19 @@ async function processMessage(chatId, userMessage) {
           role: 'system',
           content: `You are Acadia, a friendly AI assistant for students at KNUST Ghana.
 You help students manage lectures, assignments, exams and reminders.
-When a student wants to add a lecture, respond with ONLY this JSON:
+
+When a student wants to ADD a lecture, respond with ONLY this JSON:
 {"action":"ADD_LECTURE","courseCode":"X","lectureDay":"X","lectureTime":"HH:MM"}
+
+When a student wants to DELETE/REMOVE a lecture, respond with ONLY this JSON:
+{"action":"DELETE_LECTURE","courseCode":"X","lectureDay":"X"}
+
+When a student wants to EDIT/UPDATE/CHANGE a lecture time or day, respond with ONLY this JSON:
+{"action":"EDIT_LECTURE","courseCode":"X","oldLectureDay":"X","newLectureDay":"X","newLectureTime":"HH:MM"}
+
 When a student asks about their lectures or timetable, respond with ONLY:
 {"action":"LIST_LECTURES"}
+
 For everything else, reply normally in plain friendly English.`
         },
         {
@@ -45,6 +54,30 @@ For everything else, reply normally in plain friendly English.`
           lectureTime: parsed.lectureTime,
         });
         return `✅ Added *${parsed.courseCode}* on *${parsed.lectureDay}* at *${parsed.lectureTime}*! You'll get a reminder the day before.`;
+      }
+
+      if (parsed.action === 'DELETE_LECTURE') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        const allLectures = lectureService.getLecturesByUserId(user.id);
+        const lecture = allLectures.find(l =>
+          l.courseCode.replace(/\s/g, '').toLowerCase() === parsed.courseCode.replace(/\s/g, '').toLowerCase() &&
+          l.lectureDay.toLowerCase() === parsed.lectureDay.toLowerCase()
+        );
+        if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.lectureDay}*. Check your lectures with "What lectures do I have?"`;
+        lectureService.deleteLecture(lecture.id);
+        return `🗑️ Removed *${parsed.courseCode}* on *${parsed.lectureDay}* from your timetable.`;
+      }
+
+      if (parsed.action === 'EDIT_LECTURE') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        const allLectures = lectureService.getLecturesByUserId(user.id);
+        const lecture = allLectures.find(l =>
+          l.courseCode.replace(/\s/g, '').toLowerCase() === parsed.courseCode.replace(/\s/g, '').toLowerCase() &&
+          l.lectureDay.toLowerCase() === parsed.oldLectureDay.toLowerCase()
+        );
+        if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.oldLectureDay}*. Check your lectures with "What lectures do I have?"`;
+        lectureService.updateLecture(lecture.id, { lectureDay: parsed.newLectureDay, lectureTime: parsed.newLectureTime });
+        return `✏️ Updated *${parsed.courseCode}* to *${parsed.newLectureDay}* at *${parsed.newLectureTime}*!`;
       }
 
       if (parsed.action === 'LIST_LECTURES') {
