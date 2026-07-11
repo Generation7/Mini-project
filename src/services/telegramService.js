@@ -116,12 +116,12 @@ Only include rows labeled Group 1. Ignore Group 2 rows.`
       const response = completion.choices[0]?.message?.content?.trim();
       console.log('Vision response:', response);
 
-      const jsonMatch = response.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-        return bot.sendMessage(chatId, "Sorry, I couldn't read the timetable clearly. Try a clearer photo!");
-      }
+const jsonMatch = visionResponse.match(/\[[\s\S]*\]/);
+if (!jsonMatch) {
+  return bot.sendMessage(chatId, "Sorry, I couldn't read the timetable clearly. Try a clearer photo!");
+}
 
-      const lecturesList = JSON.parse(jsonMatch[0]);
+const lecturesList = JSON.parse(jsonMatch[0]);
       const user = userService.findOrCreateByPhoneNumber(chatId.toString());
       let added = 0;
 
