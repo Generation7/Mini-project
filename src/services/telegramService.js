@@ -29,8 +29,8 @@ For everything else, reply normally in plain friendly English.`
       model: 'llama-3.3-70b-versatile',
     });
 
-    const response = completion.choices[0]?.message?.content?.trim();
-    console.log('Groq response:', response);
+    const visionResponse = completion.choices[0]?.message?.content?.trim();
+console.log('Vision response:', visionResponse);
 
     try {
       const parsed = JSON.parse(response);
