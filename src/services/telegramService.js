@@ -98,12 +98,20 @@ function startTelegramBot() {
             content: [
               {
                 type: 'text',
-                text: `This is a KNUST student timetable with Group 1 and Group 2 rows for each day.
-Extract ONLY Group ${group} lectures AND joint lectures (those with no group label) and return ONLY a JSON array like this:
-[{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"08:00"},...]
-Use 24-hour format for times based on the period numbers (1=08:00, 2=09:00, 3=10:30, 4=11:30, 5=13:00, 6=14:00, 7=15:00, 8=16:00, 9=17:00, 10=18:00).
-Include Group ${group} rows AND any rows without a group label (joint classes).
-Ignore Group ${group === '1' ? '2' : '1'} rows only.`
+                text: `This is a KNUST B.Sc Computer Science timetable. Each day has TWO rows - top row is Group 1, bottom row is Group 2. Some classes span both rows (joint classes for ALL LECTURERS).
+
+Extract EVERY lecture for Group ${group} by going through each day and each period carefully:
+- Include top row (Group 1) entries
+- Include any entry labeled "ALL LECTURERS" or with no group label (joint classes)
+- Skip bottom row (Group 2) entries only
+
+Return ONLY a JSON array with no explanation:
+[{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"10:30"},...]
+
+Period to time mapping:
+1=08:00, 2=09:00, 3=10:30, 4=11:30, 5=13:00, 6=14:00, 7=15:00, 8=16:00, 9=17:00, 10=18:00
+
+Be thorough - check every single cell in the timetable carefully.`
               },
               {
                 type: 'image_url',
