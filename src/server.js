@@ -1,5 +1,20 @@
-logger.info('Telegram bot started');
-  return bot;
-}
+require('./db/init');
 
-module.exports = { startTelegramBot };
+const app = require('./app');
+const env = require('./config/env');
+const logger = require('./utils/logger');
+const { startScheduler, setBotInstance } = require('./services/schedulerService');
+const { startWhatsAppWeb } = require('./services/whatsappWebService');
+const { startTelegramBot } = require('./services/telegramService');
+
+//startWhatsAppWeb();
+startScheduler();
+const bot = startTelegramBot();
+if (bot) setBotInstance(bot);
+
+const server = app.listen(env.port, () => {
+  logger.info(`Server running on port ${env.port}`);
+});
+
+process.on('SIGTERM', () => { server.close(); });
+process.on('SIGINT', () => { server.close(); process.exit(); });
