@@ -3,6 +3,7 @@ const Groq = require('groq-sdk');
 const lectureService = require('./lectureService');
 const userService = require('./userService');
 const assignmentService = require('./assignmentService');
+const examService = require('./examService');
 const logger = require('../utils/logger');
 
 let bot;
@@ -41,6 +42,19 @@ When a student says they submitted or completed an assignment, respond with ONLY
 
 When a student wants to delete/remove an assignment, respond with ONLY this JSON:
 {"action":"DELETE_ASSIGNMENT","courseCode":"X"}
+
+When a student mentions an exam on a date/time, respond with ONLY this JSON:
+{"action":"ADD_EXAM","courseCode":"X","examDate":"YYYY-MM-DD","examTime":"HH:MM","venue":"X"}
+If no time is mentioned use "08:00". If no venue is mentioned use null.
+
+When a student asks about their exams, respond with ONLY:
+{"action":"LIST_EXAMS"}
+
+When a student says they completed/finished an exam, respond with ONLY this JSON:
+{"action":"COMPLETE_EXAM","courseCode":"X"}
+
+When a student wants to delete/remove an exam, respond with ONLY this JSON:
+{"action":"DELETE_EXAM","courseCode":"X"}
 
 For everything else, reply normally in plain friendly English.
 Today's date is ${new Date().toISOString().slice(0, 10)}.`
@@ -103,22 +117,22 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
       }
 
       if (parsed.action === 'ADD_ASSIGNMENT') {
-      const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-      assignmentService.createAssignment({
-      userId: user.id,
-      courseCode: parsed.courseCode,
-      title: parsed.title,
-      dueDate: parsed.dueDate,
-      dueTime: parsed.dueTime || '23:59',
-      });
-      return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        assignmentService.createAssignment({
+          userId: user.id,
+          courseCode: parsed.courseCode,
+          title: parsed.title,
+          dueDate: parsed.dueDate,
+          dueTime: parsed.dueTime || '23:59',
+        });
+        return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
       }
 
       if (parsed.action === 'LIST_ASSIGNMENTS') {
         const user = userService.findOrCreateByPhoneNumber(chatId.toString());
         const pending = assignmentService.getPendingAssignments(user.id);
         if (!pending.length) return "🎉 You have no pending assignments!";
-        return `📝 *Your Pending Assignments:*\n${pending.map(a => `• *${a.courseCode}* - ${a.title}\n  📅 Due: ${a.dueDate}`).join('\n')}`;
+        return `📝 *Your Pending Assignments:*\n${pending.map(a => `• *${a.courseCode}* - ${a.title}\n  📅 Due: ${a.dueDate} at ${a.due_time || '23:59'}`).join('\n')}`;
       }
 
       if (parsed.action === 'COMPLETE_ASSIGNMENT') {
@@ -133,6 +147,40 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
         const assignment = assignmentService.deleteAssignment(user.id, parsed.courseCode);
         if (!assignment) return `❌ I couldn't find an assignment for *${parsed.courseCode}*.`;
         return `🗑️ Removed the *${parsed.courseCode}* assignment.`;
+      }
+
+      if (parsed.action === 'ADD_EXAM') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        examService.createExam({
+          userId: user.id,
+          courseCode: parsed.courseCode,
+          examDate: parsed.examDate,
+          examTime: parsed.examTime || '08:00',
+          venue: parsed.venue || null,
+        });
+        const venueText = parsed.venue ? `\n📍 Venue: *${parsed.venue}*` : '';
+        return `🎓 Added *${parsed.courseCode}* exam!\n📅 Date: *${parsed.examDate}*\n⏰ Time: *${parsed.examTime || '08:00'}*${venueText}\n\nI'll remind you 7 days, 3 days, 1 day and 3 hours before!`;
+      }
+
+      if (parsed.action === 'LIST_EXAMS') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        const upcoming = examService.getUpcomingExams(user.id);
+        if (!upcoming.length) return "🎉 You have no upcoming exams!";
+        return `🎓 *Your Upcoming Exams:*\n${upcoming.map(e => `• *${e.courseCode}*\n  📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? `\n  📍 ${e.venue}` : ''}`).join('\n')}`;
+      }
+
+      if (parsed.action === 'COMPLETE_EXAM') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        const exam = examService.markExamDone(user.id, parsed.courseCode);
+        if (!exam) return `❌ I couldn't find an upcoming exam for *${parsed.courseCode}*.`;
+        return `✅ Great job completing your *${parsed.courseCode}* exam! Hope it went well! 🍀`;
+      }
+
+      if (parsed.action === 'DELETE_EXAM') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        const exam = examService.deleteExam(user.id, parsed.courseCode);
+        if (!exam) return `❌ I couldn't find an exam for *${parsed.courseCode}*.`;
+        return `🗑️ Removed the *${parsed.courseCode}* exam.`;
       }
 
     } catch (e) {
@@ -155,7 +203,7 @@ function startTelegramBot() {
     const user = userService.findOrCreateByPhoneNumber(chatId.toString());
     userService.saveTelegramChatId(user.id, chatId);
     bot.sendMessage(chatId,
-      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant!\n\nI can help you with:\n📚 Lecture timetable\n📝 Assignment tracking\n⏰ Reminders\n📅 Exams\n\nJust talk to me naturally or send a photo of your timetable!`,
+      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant!\n\nI can help you with:\n📚 Lecture timetable\n📝 Assignment tracking\n🎓 Exam reminders\n⏰ Smart notifications\n\nJust talk to me naturally or send a photo of your timetable!`,
       { parse_mode: 'Markdown' }
     );
   });
