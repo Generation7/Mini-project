@@ -2,10 +2,10 @@ const { eq, and } = require('drizzle-orm');
 const { db } = require('../db/client');
 const { assignments } = require('../db/schema');
 
-function createAssignment({ userId, courseCode, title, dueDate }) {
+function createAssignment({ userId, courseCode, title, dueDate, dueTime = '23:59' }) {
   return db
     .insert(assignments)
-    .values({ userId, courseCode, title, dueDate, status: 'pending' })
+    .values({ userId, courseCode, title, dueDate, dueTime, status: 'pending' })
     .returning()
     .get();
 }
@@ -47,10 +47,17 @@ function deleteAssignment(userId, courseCode) {
   return assignment;
 }
 
+function getAllPendingAssignments() {
+  return db.select().from(assignments)
+    .where(eq(assignments.status, 'pending'))
+    .all();
+}
+
 module.exports = {
   createAssignment,
   getAssignmentsByUserId,
   getPendingAssignments,
   markAssignmentDone,
   deleteAssignment,
+  getAllPendingAssignments,
 };
