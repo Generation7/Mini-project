@@ -1,8 +1,6 @@
 const cron = require('node-cron');
 const reminderService = require('./reminderService');
-const { db } = require('../db/client');
-const { assignments } = require('../db/schema');
-const { eq } = require('drizzle-orm');
+const assignmentService = require('./assignmentService');
 const userService = require('./userService');
 const logger = require('../utils/logger');
 
@@ -14,33 +12,46 @@ function setBotInstance(botInstance) {
 
 function checkAssignmentReminders() {
   try {
-    const today = new Date().toISOString().slice(0, 10);
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+    if (!bot) return;
 
-    const pendingAssignments = db.select().from(assignments)
-      .where(eq(assignments.status, 'pending'))
-      .all();
+    const now = new Date();
+    const pendingAssignments = assignmentService.getAllPendingAssignments();
 
     for (const assignment of pendingAssignments) {
       const assignmentUser = userService.findById(assignment.userId);
       if (!assignmentUser?.telegram_chat_id) continue;
 
-      if (assignment.dueDate === tomorrowStr) {
+      const dueTime = assignment.due_time || '23:59';
+      const dueDateTime = new Date(`${assignment.dueDate}T${dueTime}:00`);
+
+      const msUntilDue = dueDateTime - now;
+      const hoursUntilDue = msUntilDue / (1000 * 60 * 60);
+
+      // 2 days before (between 47.9 and 48.1 hours)
+      if (hoursUntilDue > 47.9 && hoursUntilDue < 48.1) {
         bot.sendMessage(assignmentUser.telegram_chat_id,
-          `⚠️ *Assignment Reminder!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n📅 Due: *Tomorrow (${assignment.dueDate})*\n\nDon't forget to submit!`,
+          `📅 *Assignment Reminder!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n⏳ 2 days to go — start planning!`,
           { parse_mode: 'Markdown' }
         );
-        logger.info('Assignment reminder sent', { courseCode: assignment.courseCode });
+        logger.info('Assignment 2-day reminder sent', { courseCode: assignment.courseCode });
       }
 
-      if (assignment.dueDate === today) {
+      // 1 day before (between 23.9 and 24.1 hours)
+      if (hoursUntilDue > 23.9 && hoursUntilDue < 24.1) {
         bot.sendMessage(assignmentUser.telegram_chat_id,
-          `🚨 *Due Today!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n📅 Due: *Today (${assignment.dueDate})*\n\nMake sure to submit!`,
+          `⚠️ *Assignment Due Tomorrow!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n📝 Make sure you're on track!`,
           { parse_mode: 'Markdown' }
         );
-        logger.info('Assignment due today reminder sent', { courseCode: assignment.courseCode });
+        logger.info('Assignment 1-day reminder sent', { courseCode: assignment.courseCode });
+      }
+
+      // 3 hours before (between 2.9 and 3.1 hours)
+      if (hoursUntilDue > 2.9 && hoursUntilDue < 3.1) {
+        bot.sendMessage(assignmentUser.telegram_chat_id,
+          `🚨 *Due in 3 Hours!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n⚡ Final stretch — submit now!`,
+          { parse_mode: 'Markdown' }
+        );
+        logger.info('Assignment 3-hour reminder sent', { courseCode: assignment.courseCode });
       }
     }
   } catch (err) {
