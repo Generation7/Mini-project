@@ -41,4 +41,14 @@ const reminders = sqliteTable('reminders', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-module.exports = { users, rules, events, lectures, reminders };
+const assignments = sqliteTable('assignments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  courseCode: text('course_code').notNull(),
+  title: text('title').notNull(),
+  dueDate: text('due_date').notNull(),
+  status: text('status').notNull().default('pending'),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+module.exports = { users, rules, events, lectures, reminders, assignments };
