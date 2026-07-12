@@ -103,16 +103,16 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
       }
 
       if (parsed.action === 'ADD_ASSIGNMENT') {
-  const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-  assignmentService.createAssignment({
-    userId: user.id,
-    courseCode: parsed.courseCode,
-    title: parsed.title,
-    dueDate: parsed.dueDate,
-    dueTime: parsed.dueTime || '23:59',
-  });
-  return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
-}
+      const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+      assignmentService.createAssignment({
+      userId: user.id,
+      courseCode: parsed.courseCode,
+      title: parsed.title,
+      dueDate: parsed.dueDate,
+      dueTime: parsed.dueTime || '23:59',
+      });
+      return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
+      }
 
       if (parsed.action === 'LIST_ASSIGNMENTS') {
         const user = userService.findOrCreateByPhoneNumber(chatId.toString());
