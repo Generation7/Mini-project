@@ -149,7 +149,10 @@ function startTelegramBot() {
 
   bot.onText(/\/start/, (msg) => {
     const name = msg.from.first_name || 'Student';
-    bot.sendMessage(msg.chat.id,
+    const chatId = msg.chat.id;
+    const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+    userService.saveTelegramChatId(user.id, chatId);
+    bot.sendMessage(chatId,
       `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant!\n\nI can help you with:\n📚 Lecture timetable\n📝 Assignment tracking\n⏰ Reminders\n📅 Exams\n\nJust talk to me naturally or send a photo of your timetable!`,
       { parse_mode: 'Markdown' }
     );
@@ -157,6 +160,8 @@ function startTelegramBot() {
 
   bot.on('photo', async (msg) => {
     const chatId = msg.chat.id;
+    const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+    userService.saveTelegramChatId(user.id, chatId);
 
     try {
       await bot.sendChatAction(chatId, 'typing');
@@ -210,7 +215,6 @@ Be thorough - check every single cell in the timetable carefully.`
       }
 
       const lecturesList = JSON.parse(jsonMatch[0]);
-      const user = userService.findOrCreateByPhoneNumber(chatId.toString());
       let added = 0;
 
       for (const lecture of lecturesList) {
@@ -238,6 +242,8 @@ Be thorough - check every single cell in the timetable carefully.`
   bot.on('message', async (msg) => {
     if (!msg.text || msg.text.startsWith('/')) return;
     const chatId = msg.chat.id;
+    const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+    userService.saveTelegramChatId(user.id, chatId);
     console.log('Received message:', msg.text);
     try {
       await bot.sendChatAction(chatId, 'typing');
@@ -255,7 +261,7 @@ Be thorough - check every single cell in the timetable carefully.`
     console.error('Polling error:', err.message);
   });
 
-logger.info('Telegram bot started');
+  logger.info('Telegram bot started');
   return bot;
 }
 
