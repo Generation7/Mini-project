@@ -6,11 +6,15 @@ const logger = require('./utils/logger');
 const { startScheduler, setBotInstance } = require('./services/schedulerService');
 const { startWhatsAppWeb } = require('./services/whatsappWebService');
 const { startTelegramBot } = require('./services/telegramService');
+const { setTelegramBot } = require('./services/actionService');
 
 //startWhatsAppWeb();
 startScheduler();
 const bot = startTelegramBot();
-if (bot) setBotInstance(bot);
+if (bot) {
+  setBotInstance(bot);
+  setTelegramBot(bot);
+}
 
 const server = app.listen(env.port, () => {
   logger.info(`Server running on port ${env.port}`);
