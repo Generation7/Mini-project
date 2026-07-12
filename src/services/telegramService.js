@@ -29,8 +29,9 @@ When a student wants to EDIT/UPDATE/CHANGE a lecture time or day, respond with O
 When a student asks about their lectures or timetable, respond with ONLY:
 {"action":"LIST_LECTURES"}
 
-When a student mentions an assignment or homework due on a date, respond with ONLY this JSON:
-{"action":"ADD_ASSIGNMENT","courseCode":"X","title":"X","dueDate":"YYYY-MM-DD"}
+When a student mentions an assignment or homework due on a date/time, respond with ONLY this JSON:
+{"action":"ADD_ASSIGNMENT","courseCode":"X","title":"X","dueDate":"YYYY-MM-DD","dueTime":"HH:MM"}
+If no time is mentioned, use "23:59" as the default dueTime.
 
 When a student asks about their assignments or what is due, respond with ONLY:
 {"action":"LIST_ASSIGNMENTS"}
@@ -102,15 +103,16 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
       }
 
       if (parsed.action === 'ADD_ASSIGNMENT') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        assignmentService.createAssignment({
-          userId: user.id,
-          courseCode: parsed.courseCode,
-          title: parsed.title,
-          dueDate: parsed.dueDate,
-        });
-        return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate}*\n\nI'll remind you before the deadline!`;
-      }
+  const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+  assignmentService.createAssignment({
+    userId: user.id,
+    courseCode: parsed.courseCode,
+    title: parsed.title,
+    dueDate: parsed.dueDate,
+    dueTime: parsed.dueTime || '23:59',
+  });
+  return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
+}
 
       if (parsed.action === 'LIST_ASSIGNMENTS') {
         const user = userService.findOrCreateByPhoneNumber(chatId.toString());

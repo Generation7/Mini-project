@@ -47,6 +47,7 @@ const assignments = sqliteTable('assignments', {
   courseCode: text('course_code').notNull(),
   title: text('title').notNull(),
   dueDate: text('due_date').notNull(),
+  dueTime: text('due_time').notNull().default('23:59'),
   status: text('status').notNull().default('pending'),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
