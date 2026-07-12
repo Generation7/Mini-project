@@ -24,24 +24,23 @@ function checkAssignmentReminders() {
       .all();
 
     for (const assignment of pendingAssignments) {
+      const assignmentUser = userService.findById(assignment.userId);
+      if (!assignmentUser?.telegram_chat_id) continue;
+
       if (assignment.dueDate === tomorrowStr) {
-        if (bot) {
-          bot.sendMessage(assignment.userId,
-            `⚠️ *Assignment Reminder!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n📅 Due: *Tomorrow (${assignment.dueDate})*\n\nDon't forget to submit!`,
-            { parse_mode: 'Markdown' }
-          );
-          logger.info('Assignment reminder sent', { courseCode: assignment.courseCode });
-        }
+        bot.sendMessage(assignmentUser.telegram_chat_id,
+          `⚠️ *Assignment Reminder!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n📅 Due: *Tomorrow (${assignment.dueDate})*\n\nDon't forget to submit!`,
+          { parse_mode: 'Markdown' }
+        );
+        logger.info('Assignment reminder sent', { courseCode: assignment.courseCode });
       }
 
       if (assignment.dueDate === today) {
-        if (bot) {
-          bot.sendMessage(assignment.userId,
-            `🚨 *Due Today!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n📅 Due: *Today (${assignment.dueDate})*\n\nMake sure to submit!`,
-            { parse_mode: 'Markdown' }
-          );
-          logger.info('Assignment due today reminder sent', { courseCode: assignment.courseCode });
-        }
+        bot.sendMessage(assignmentUser.telegram_chat_id,
+          `🚨 *Due Today!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n📅 Due: *Today (${assignment.dueDate})*\n\nMake sure to submit!`,
+          { parse_mode: 'Markdown' }
+        );
+        logger.info('Assignment due today reminder sent', { courseCode: assignment.courseCode });
       }
     }
   } catch (err) {
