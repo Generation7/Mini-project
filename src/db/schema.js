@@ -52,4 +52,15 @@ const assignments = sqliteTable('assignments', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-module.exports = { users, rules, events, lectures, reminders, assignments };
+const exams = sqliteTable('exams', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  courseCode: text('course_code').notNull(),
+  examDate: text('exam_date').notNull(),
+  examTime: text('exam_time').notNull().default('08:00'),
+  venue: text('venue'),
+  status: text('status').notNull().default('upcoming'),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+module.exports = { users, rules, events, lectures, reminders, assignments, exams };
