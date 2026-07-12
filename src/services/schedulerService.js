@@ -30,7 +30,7 @@ function checkAssignmentReminders() {
       // 2 days before (between 47.9 and 48.1 hours)
       if (hoursUntilDue > 47.9 && hoursUntilDue < 48.1) {
         bot.sendMessage(assignmentUser.telegram_chat_id,
-          `📅 *Assignment Reminder!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n⏳ 2 days to go — start planning!`,
+          `❗❗❗ *Assignment Reminder!* ❗❗❗\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n⏳ 2 days to go — start planning!`,
           { parse_mode: 'Markdown' }
         );
         logger.info('Assignment 2-day reminder sent', { courseCode: assignment.courseCode });
@@ -39,7 +39,7 @@ function checkAssignmentReminders() {
       // 1 day before (between 23.9 and 24.1 hours)
       if (hoursUntilDue > 23.9 && hoursUntilDue < 24.1) {
         bot.sendMessage(assignmentUser.telegram_chat_id,
-          `⚠️ *Assignment Due Tomorrow!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n📝 Make sure you're on track!`,
+          `❗❗❗ *Assignment Due Tomorrow!* ❗❗❗\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n📝 Make sure you're on track!`,
           { parse_mode: 'Markdown' }
         );
         logger.info('Assignment 1-day reminder sent', { courseCode: assignment.courseCode });
@@ -48,7 +48,7 @@ function checkAssignmentReminders() {
       // 3 hours before (between 2.9 and 3.1 hours)
       if (hoursUntilDue > 2.9 && hoursUntilDue < 3.1) {
         bot.sendMessage(assignmentUser.telegram_chat_id,
-          `🚨 *Due in 3 Hours!*\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n⚡ Final stretch — submit now!`,
+          `❗❗❗❗❗ *DUE IN 3 HOURS!* ❗❗❗❗❗\n\n📚 *${assignment.courseCode}* - ${assignment.title}\n⏰ Due: *${assignment.dueDate} at ${dueTime}*\n\n⚡ Final stretch — submit NOW!`,
           { parse_mode: 'Markdown' }
         );
         logger.info('Assignment 3-hour reminder sent', { courseCode: assignment.courseCode });
