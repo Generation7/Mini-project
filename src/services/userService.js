@@ -21,4 +21,19 @@ function findOrCreateByPhoneNumber(phoneNumber) {
   return createUser(phoneNumber);
 }
 
-module.exports = { findById, findByPhoneNumber, createUser, findOrCreateByPhoneNumber };
+function saveTelegramChatId(userId, chatId) {
+  db.run(`UPDATE users SET telegram_chat_id = '${chatId}' WHERE id = ${userId}`);
+}
+
+function findByTelegramChatId(chatId) {
+  return db.get(`SELECT * FROM users WHERE telegram_chat_id = '${chatId}'`);
+}
+
+module.exports = { 
+  findById, 
+  findByPhoneNumber, 
+  createUser, 
+  findOrCreateByPhoneNumber,
+  saveTelegramChatId,
+  findByTelegramChatId,
+};
