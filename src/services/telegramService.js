@@ -255,7 +255,8 @@ Be thorough - check every single cell in the timetable carefully.`
     console.error('Polling error:', err.message);
   });
 
-  logger.info('Telegram bot started');
+logger.info('Telegram bot started');
+  return bot;
 }
 
 module.exports = { startTelegramBot };
