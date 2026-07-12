@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acadia — Academic Assistant</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* LOGIN PAGE */
+    #loginPage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0f1a, #1a1a2e);
+    }
+
+    .login-card {
+      background: #1e1e2e;
+      border-radius: 20px;
+      padding: 40px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      border: 1px solid #2a2a3e;
+    }
+
+    .logo { font-size: 48px; margin-bottom: 10px; }
+
+    .login-card h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .login-card p {
+      color: #888;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      background: #2a2a3e;
+      border: 1px solid #3a3a4e;
+      border-radius: 10px;
+      color: #e0e0e0;
+      font-size: 15px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #6c63ff; }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff6363, #fa8b8b);
+      width: auto;
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      width: auto;
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    .btn-small {
+      width: auto;
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    /* DASHBOARD */
+    #dashboard { display: none; }
+
+    .topbar {
+      background: #1e1e2e;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #2a2a3e;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar h1 {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .user-badge {
+      background: #2a2a3e;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #a78bfa;
+    }
+
+    .logout-btn {
+      background: #2a2a3e;
+      border: none;
+      color: #888;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .logout-btn:hover { color: #e0e0e0; }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 16px 24px 0;
+      border-bottom: 1px solid #2a2a3e;
+      background: #1e1e2e;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      border-radius: 10px 10px 0 0;
+      cursor: pointer;
+      font-size: 14px;
+      color: #888;
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: #2a2a3e;
+      color: #a78bfa;
+      font-weight: 600;
+    }
+
+    .tab:hover:not(.active) { color: #e0e0e0; }
+
+    /* CONTENT */
+    .content {
+      padding: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* CARDS */
+    .card {
+      background: #1e1e2e;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 12px;
+      border: 1px solid #2a2a3e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-info { flex: 1; }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e0e0e0;
+      margin-bottom: 4px;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .card-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-purple { background: #2d2450; color: #a78bfa; }
+    .badge-green { background: #1a3a2a; color: #4ade80; }
+    .badge-red { background: #3a1a1a; color: #fa8b8b; }
+    .badge-yellow { background: #3a3a1a; color: #fbbf24; }
+
+    .card-actions { display: flex; gap: 8px; }
+
+    /* FORM */
+    .form-card {
+      background: #1e1e2e;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid #2a2a3e;
+    }
+
+    .form-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #a78bfa;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      background: #2a2a3e;
+      border: 1px solid #3a3a4e;
+      border-radius: 10px;
+      color: #e0e0e0;
+      font-size: 15px;
+      outline: none;
+    }
+
+    select:focus { border-color: #6c63ff; }
+
+    /* TODAY SUMMARY */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: #1e1e2e;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid #2a2a3e;
+    }
+
+    .summary-card h3 {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .summary-card .count {
+      font-size: 36px;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+      font-size: 15px;
+    }
+
+    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+
+    .day-lectures {
+      background: #1e1e2e;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 12px;
+      border: 1px solid #2a2a3e;
+    }
+
+    .day-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #a78bfa;
+      margin-bottom: 12px;
+    }
+
+    .lecture-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #2a2a3e;
+    }
+
+    .lecture-item:last-child { border-bottom: none; }
+
+    .lecture-time {
+      font-size: 13px;
+      color: #888;
+      min-width: 50px;
+    }
+
+    .lecture-code {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #22c55e;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+
+    .toast.show { opacity: 1; }
+    .toast.error { background: #ef4444; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="logo">🎓</div>
+    <h1>Acadia</h1>
+    <p>Your AI Academic Assistant</p>
+    <input type="tel" id="phoneInput" placeholder="Phone number (e.g. 233536349690)" />
+    <input type="text" id="nameInput" placeholder="Your name" />
+    <button class="btn" onclick="login()">Get Started</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:24px">🎓</span>
+      <h1>Acadia</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="user-badge" id="userBadge"></span>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('today')">☀️ Today</button>
+    <button class="tab" onclick="showTab('lectures')">📚 Lectures</button>
+    <button class="tab" onclick="showTab('assignments')">📝 Assignments</button>
+    <button class="tab" onclick="showTab('exams')">🎓 Exams</button>
+  </div>
+
+  <div class="content">
+
+    <!-- TODAY -->
+    <div class="section active" id="todaySection">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <h3>Today's Lectures</h3>
+          <div class="count" id="todayLectureCount">0</div>
+        </div>
+        <div class="summary-card">
+          <h3>Pending Assignments</h3>
+          <div class="count" id="pendingAssignmentCount">0</div>
+        </div>
+        <div class="summary-card">
+          <h3>Upcoming Exams</h3>
+          <div class="count" id="upcomingExamCount">0</div>
+        </div>
+      </div>
+      <div id="todayLectures"></div>
+      <div id="todayAssignments"></div>
+      <div id="todayExams"></div>
+    </div>
+
+    <!-- LECTURES -->
+    <div class="section" id="lecturesSection">
+      <div class="form-card">
+        <h3>➕ Add Lecture</h3>
+        <div class="form-row">
+          <input type="text" id="lCourseCode" placeholder="Course code (e.g. CSM388)" />
+          <select id="lDay">
+            <option value="">Select day</option>
+            <option>Monday</option>
+            <option>Tuesday</option>
+            <option>Wednesday</option>
+            <option>Thursday</option>
+            <option>Friday</option>
+            <option>Saturday</option>
+          </select>
+          <input type="time" id="lTime" />
+        </div>
+        <button class="btn btn-small" onclick="addLecture()">Add Lecture</button>
+      </div>
+      <div class="section-header">
+        <h2>📚 All Lectures</h2>
+      </div>
+      <div id="lecturesList"></div>
+    </div>
+
+    <!-- ASSIGNMENTS -->
+    <div class="section" id="assignmentsSection">
+      <div class="form-card">
+        <h3>➕ Add Assignment</h3>
+        <div class="form-row">
+          <input type="text" id="aCourseCode" placeholder="Course code" />
+          <input type="text" id="aTitle" placeholder="Assignment title" />
+          <input type="date" id="aDueDate" />
+          <input type="time" id="aDueTime" />
+        </div>
+        <button class="btn btn-small" onclick="addAssignment()">Add Assignment</button>
+      </div>
+      <div class="section-header">
+        <h2>📝 Pending Assignments</h2>
+      </div>
+      <div id="assignmentsList"></div>
+    </div>
+
+    <!-- EXAMS -->
+    <div class="section" id="examsSection">
+      <div class="form-card">
+        <h3>➕ Add Exam</h3>
+        <div class="form-row">
+          <input type="text" id="eCourseCode" placeholder="Course code" />
+          <input type="date" id="eDate" />
+          <input type="time" id="eTime" />
+          <input type="text" id="eVenue" placeholder="Venue (optional)" />
+        </div>
+        <button class="btn btn-small" onclick="addExam()">Add Exam</button>
+      </div>
+      <div class="section-header">
+        <h2>🎓 Upcoming Exams</h2>
+      </div>
+      <div id="examsList"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'http://localhost:3000';
+  let currentUser = null;
+
+  // Load saved user
+  window.onload = () => {
+    const saved = localStorage.getItem('acadiaUser');
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      showDashboard();
+    }
+  };
+
+  async function login() {
+    const phone = document.getElementById('phoneInput').value.trim();
+    const name = document.getElementById('nameInput').value.trim();
+    if (!phone) return showToast('Please enter your phone number', true);
+
+    try {
+      const res = await fetch(`${API}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: phone, name })
+      });
+      const data = await res.json();
+      currentUser = data.user || { phoneNumber: phone, name };
+      localStorage.setItem('acadiaUser', JSON.stringify(currentUser));
+      showDashboard();
+    } catch (err) {
+      // If API fails just use phone number locally
+      currentUser = { phoneNumber: phone, name };
+      localStorage.setItem('acadiaUser', JSON.stringify(currentUser));
+      showDashboard();
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('acadiaUser');
+    currentUser = null;
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('loginPage').style.display = 'flex';
+  }
+
+  function showDashboard() {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('userBadge').textContent = currentUser.name || currentUser.phoneNumber;
+    loadAll();
+  }
+
+  function showTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(tab + 'Section').classList.add('active');
+  }
+
+  async function loadAll() {
+    await Promise.all([loadLectures(), loadAssignments(), loadExams()]);
+    loadToday();
+  }
+
+  // LECTURES
+  async function loadLectures() {
+    try {
+      const res = await fetch(`${API}/lectures`);
+      const data = await res.json();
+      const lectures = data.lectures || data || [];
+      const userId = currentUser?.id;
+      const myLectures = userId ? lectures.filter(l => l.userId == userId) : lectures;
+
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const grouped = {};
+      days.forEach(d => grouped[d] = []);
+      myLectures.forEach(l => {
+        if (grouped[l.lectureDay]) grouped[l.lectureDay].push(l);
+      });
+
+      const container = document.getElementById('lecturesList');
+      container.innerHTML = '';
+
+      let hasAny = false;
+      days.forEach(day => {
+        if (grouped[day].length === 0) return;
+        hasAny = true;
+        const sorted = grouped[day].sort((a, b) => a.lectureTime.localeCompare(b.lectureTime));
+        container.innerHTML += `
+          <div class="day-lectures">
+            <div class="day-title">${day}</div>
+            ${sorted.map(l => `
+              <div class="lecture-item">
+                <span class="lecture-time">${l.lectureTime}</span>
+                <span class="lecture-code">${l.courseCode}</span>
+                <button class="btn btn-danger" style="margin-left:auto" onclick="deleteLecture(${l.id})">Remove</button>
+              </div>
+            `).join('')}
+          </div>`;
+      });
+
+      if (!hasAny) container.innerHTML = '<div class="empty-state"><div class="emoji">📚</div>No lectures yet. Add your first one!</div>';
+
+      window._lectures = myLectures;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function addLecture() {
+    const courseCode = document.getElementById('lCourseCode').value.trim();
+    const lectureDay = document.getElementById('lDay').value;
+    const lectureTime = document.getElementById('lTime').value;
+    if (!courseCode || !lectureDay || !lectureTime) return showToast('Please fill all fields', true);
+
+    try {
+      await fetch(`${API}/lectures`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser?.id || 1,
+          courseCode,
+          courseName: courseCode,
+          lectureDay,
+          lectureTime
+        })
+      });
+      showToast('Lecture added!');
+      document.getElementById('lCourseCode').value = '';
+      document.getElementById('lDay').value = '';
+      document.getElementById('lTime').value = '';
+      loadLectures();
+    } catch (err) {
+      showToast('Error adding lecture', true);
+    }
+  }
+
+  async function deleteLecture(id) {
+    if (!confirm('Remove this lecture?')) return;
+    try {
+      await fetch(`${API}/lectures/${id}`, { method: 'DELETE' });
+      showToast('Lecture removed!');
+      loadLectures();
+    } catch (err) {
+      showToast('Error removing lecture', true);
+    }
+  }
+
+  // ASSIGNMENTS
+  async function loadAssignments() {
+    try {
+      const res = await fetch(`${API}/assignments`);
+      const data = await res.json();
+      const assignments = data.assignments || [];
+
+      const container = document.getElementById('assignmentsList');
+      const pending = assignments.filter(a => a.status === 'pending');
+      document.getElementById('pendingAssignmentCount').textContent = pending.length;
+
+      if (!pending.length) {
+        container.innerHTML = '<div class="empty-state"><div class="emoji">🎉</div>No pending assignments!</div>';
+        return;
+      }
+
+      container.innerHTML = pending.map(a => {
+        const daysLeft = Math.ceil((new Date(a.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+        const badge = daysLeft <= 1 ? 'badge-red' : daysLeft <= 3 ? 'badge-yellow' : 'badge-green';
+        const label = daysLeft < 0 ? 'Overdue' : daysLeft === 0 ? 'Due today' : `${daysLeft} days left`;
+        return `
+          <div class="card">
+            <div class="card-info">
+              <div class="card-title">${a.courseCode} — ${a.title}</div>
+              <div class="card-subtitle">Due: ${a.dueDate} at ${a.due_time || '23:59'}</div>
+            </div>
+            <span class="card-badge ${badge}">${label}</span>
+            <div class="card-actions">
+              <button class="btn btn-success" onclick="completeAssignment(${a.id}, '${a.courseCode}')">✓ Done</button>
+              <button class="btn btn-danger" onclick="deleteAssignment(${a.id}, '${a.courseCode}')">Remove</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      window._assignments = assignments;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function addAssignment() {
+    const courseCode = document.getElementById('aCourseCode').value.trim();
+    const title = document.getElementById('aTitle').value.trim();
+    const dueDate = document.getElementById('aDueDate').value;
+    const dueTime = document.getElementById('aDueTime').value || '23:59';
+    if (!courseCode || !title || !dueDate) return showToast('Please fill all required fields', true);
+
+    try {
+      await fetch(`${API}/assignments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser?.id || 1, courseCode, title, dueDate, dueTime })
+      });
+      showToast('Assignment added!');
+      document.getElementById('aCourseCode').value = '';
+      document.getElementById('aTitle').value = '';
+      document.getElementById('aDueDate').value = '';
+      document.getElementById('aDueTime').value = '';
+      loadAssignments();
+    } catch (err) {
+      showToast('Error adding assignment', true);
+    }
+  }
+
+  async function completeAssignment(id, courseCode) {
+    try {
+      await fetch(`${API}/assignments/${id}/complete`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser?.id || 1, courseCode })
+      });
+      showToast('Assignment marked as done! 🎉');
+      loadAssignments();
+    } catch (err) {
+      showToast('Error updating assignment', true);
+    }
+  }
+
+  async function deleteAssignment(id, courseCode) {
+    if (!confirm('Remove this assignment?')) return;
+    try {
+      await fetch(`${API}/assignments/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser?.id || 1, courseCode })
+      });
+      showToast('Assignment removed!');
+      loadAssignments();
+    } catch (err) {
+      showToast('Error removing assignment', true);
+    }
+  }
+
+  // EXAMS
+  async function loadExams() {
+    try {
+      const res = await fetch(`${API}/exams`);
+      const data = await res.json();
+      const exams = data.exams || [];
+
+      const upcoming = exams.filter(e => e.status === 'upcoming');
+      document.getElementById('upcomingExamCount').textContent = upcoming.length;
+
+      const container = document.getElementById('examsList');
+      if (!upcoming.length) {
+        container.innerHTML = '<div class="empty-state"><div class="emoji">🎉</div>No upcoming exams!</div>';
+        return;
+      }
+
+      container.innerHTML = upcoming.map(e => {
+        const daysLeft = Math.ceil((new Date(e.examDate) - new Date()) / (1000 * 60 * 60 * 24));
+        const badge = daysLeft <= 1 ? 'badge-red' : daysLeft <= 7 ? 'badge-yellow' : 'badge-green';
+        const label = daysLeft < 0 ? 'Past' : daysLeft === 0 ? 'Today!' : `${daysLeft} days left`;
+        return `
+          <div class="card">
+            <div class="card-info">
+              <div class="card-title">${e.courseCode} Exam</div>
+              <div class="card-subtitle">📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? ` • 📍 ${e.venue}` : ''}</div>
+            </div>
+            <span class="card-badge ${badge}">${label}</span>
+            <div class="card-actions">
+              <button class="btn btn-success" onclick="completeExam(${e.id}, '${e.courseCode}')">✓ Done</button>
+              <button class="btn btn-danger" onclick="deleteExam(${e.id}, '${e.courseCode}')">Remove</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      window._exams = exams;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function addExam() {
+    const courseCode = document.getElementById('eCourseCode').value.trim();
+    const examDate = document.getElementById('eDate').value;
+    const examTime = document.getElementById('eTime').value || '08:00';
+    const venue = document.getElementById('eVenue').value.trim();
+    if (!courseCode || !examDate) return showToast('Please fill all required fields', true);
+
+    try {
+      await fetch(`${API}/exams`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser?.id || 1, courseCode, examDate, examTime, venue })
+      });
+      showToast('Exam added!');
+      document.getElementById('eCourseCode').value = '';
+      document.getElementById('eDate').value = '';
+      document.getElementById('eTime').value = '';
+      document.getElementById('eVenue').value = '';
+      loadExams();
+    } catch (err) {
+      showToast('Error adding exam', true);
+    }
+  }
+
+  async function completeExam(id, courseCode) {
+    try {
+      await fetch(`${API}/exams/${id}/complete`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser?.id || 1, courseCode })
+      });
+      showToast('Exam marked as done! 🍀');
+      loadExams();
+    } catch (err) {
+      showToast('Error updating exam', true);
+    }
+  }
+
+  async function deleteExam(id, courseCode) {
+    if (!confirm('Remove this exam?')) return;
+    try {
+      await fetch(`${API}/exams/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser?.id || 1, courseCode })
+      });
+      showToast('Exam removed!');
+      loadExams();
+    } catch (err) {
+      showToast('Error removing exam', true);
+    }
+  }
+
+  // TODAY SUMMARY
+  function loadToday() {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = days[new Date().getDay()];
+
+    const lectures = window._lectures || [];
+    const todayLectures = lectures.filter(l => l.lectureDay === today)
+      .sort((a, b) => a.lectureTime.localeCompare(b.lectureTime));
+
+    document.getElementById('todayLectureCount').textContent = todayLectures.length;
+
+    const lectureContainer = document.getElementById('todayLectures');
+    if (todayLectures.length) {
+      lectureContainer.innerHTML = `
+        <div class="day-lectures">
+          <div class="day-title">📚 Today's Lectures — ${today}</div>
+          ${todayLectures.map(l => `
+            <div class="lecture-item">
+              <span class="lecture-time">${l.lectureTime}</span>
+              <span class="lecture-code">${l.courseCode}</span>
+            </div>
+          `).join('')}
+        </div>`;
+    } else {
+      lectureContainer.innerHTML = '<div class="empty-state"><div class="emoji">🎉</div>No lectures today!</div>';
+    }
+
+    // Upcoming assignments
+    const assignments = window._assignments || [];
+    const pending = assignments.filter(a => a.status === 'pending').slice(0, 3);
+    const assignContainer = document.getElementById('todayAssignments');
+    if (pending.length) {
+      assignContainer.innerHTML = `
+        <div class="day-lectures">
+          <div class="day-title">📝 Pending Assignments</div>
+          ${pending.map(a => `
+            <div class="lecture-item">
+              <span class="lecture-time">${a.dueDate}</span>
+              <span class="lecture-code">${a.courseCode} — ${a.title}</span>
+            </div>
+          `).join('')}
+        </div>`;
+    }
+
+    // Upcoming exams
+    const exams = window._exams || [];
+    const upcoming = exams.filter(e => e.status === 'upcoming').slice(0, 3);
+    const examContainer = document.getElementById('todayExams');
+    if (upcoming.length) {
+      examContainer.innerHTML = `
+        <div class="day-lectures">
+          <div class="day-title">🎓 Upcoming Exams</div>
+          ${upcoming.map(e => `
+            <div class="lecture-item">
+              <span class="lecture-time">${e.examDate}</span>
+              <span class="lecture-code">${e.courseCode}</span>
+            </div>
+          `).join('')}
+        </div>`;
+    }
+  }
+
+  function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => toast.className = 'toast', 3000);
+  }
+</script>
+</body>
+</html>
