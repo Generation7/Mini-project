@@ -76,7 +76,6 @@ function checkExamReminders() {
 
       const venue = exam.venue ? `\n📍 Venue: *${exam.venue}*` : '';
 
-      // 7 days before
       if (hoursUntilExam > 167.9 && hoursUntilExam < 168.1) {
         bot.sendMessage(examUser.telegram_chat_id,
           `❗❗❗ *Exam Coming Up!* ❗❗❗\n\n📚 *${exam.courseCode}* Exam\n📅 Date: *${exam.examDate}*\n⏰ Time: *${examTime}*${venue}\n\n⏳ 7 days to go — start studying!`,
@@ -85,7 +84,6 @@ function checkExamReminders() {
         logger.info('Exam 7-day reminder sent', { courseCode: exam.courseCode });
       }
 
-      // 3 days before
       if (hoursUntilExam > 71.9 && hoursUntilExam < 72.1) {
         bot.sendMessage(examUser.telegram_chat_id,
           `❗❗❗ *Exam in 3 Days!* ❗❗❗\n\n📚 *${exam.courseCode}* Exam\n📅 Date: *${exam.examDate}*\n⏰ Time: *${examTime}*${venue}\n\n📖 Step up your revision!`,
@@ -94,7 +92,6 @@ function checkExamReminders() {
         logger.info('Exam 3-day reminder sent', { courseCode: exam.courseCode });
       }
 
-      // 1 day before
       if (hoursUntilExam > 23.9 && hoursUntilExam < 24.1) {
         bot.sendMessage(examUser.telegram_chat_id,
           `❗❗❗ *Exam Tomorrow!* ❗❗❗\n\n📚 *${exam.courseCode}* Exam\n📅 Date: *${exam.examDate}*\n⏰ Time: *${examTime}*${venue}\n\n😤 Final revision tonight — you've got this!`,
@@ -103,7 +100,6 @@ function checkExamReminders() {
         logger.info('Exam 1-day reminder sent', { courseCode: exam.courseCode });
       }
 
-      // 3 hours before
       if (hoursUntilExam > 2.9 && hoursUntilExam < 3.1) {
         bot.sendMessage(examUser.telegram_chat_id,
           `❗❗❗❗❗ *EXAM IN 3 HOURS!* ❗❗❗❗❗\n\n📚 *${exam.courseCode}* Exam\n📅 Date: *${exam.examDate}*\n⏰ Time: *${examTime}*${venue}\n\n🍀 Good luck — you've prepared for this!`,
@@ -120,13 +116,19 @@ function checkExamReminders() {
 function startScheduler(botInstance) {
   if (botInstance) bot = botInstance;
 
-  cron.schedule('* * * * *', () => {
+  // Check lecture reminders once daily at 8pm
+  cron.schedule('0 20 * * *', () => {
     reminderService.createLectureReminderEvents();
+    logger.info('Daily lecture reminder check completed');
+  });
+
+  // Check assignment and exam reminders every 5 minutes
+  cron.schedule('*/5 * * * *', () => {
     checkAssignmentReminders();
     checkExamReminders();
   });
 
-  logger.info('Lecture reminder scheduler started');
+  logger.info('Scheduler started');
 }
 
 module.exports = { startScheduler, setBotInstance };
