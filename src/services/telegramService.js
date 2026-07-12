@@ -2,6 +2,7 @@ const TelegramBot = require('node-telegram-bot-api').default || require('node-te
 const Groq = require('groq-sdk');
 const lectureService = require('./lectureService');
 const userService = require('./userService');
+const assignmentService = require('./assignmentService');
 const logger = require('../utils/logger');
 
 let bot;
@@ -28,7 +29,20 @@ When a student wants to EDIT/UPDATE/CHANGE a lecture time or day, respond with O
 When a student asks about their lectures or timetable, respond with ONLY:
 {"action":"LIST_LECTURES"}
 
-For everything else, reply normally in plain friendly English.`
+When a student mentions an assignment or homework due on a date, respond with ONLY this JSON:
+{"action":"ADD_ASSIGNMENT","courseCode":"X","title":"X","dueDate":"YYYY-MM-DD"}
+
+When a student asks about their assignments or what is due, respond with ONLY:
+{"action":"LIST_ASSIGNMENTS"}
+
+When a student says they submitted or completed an assignment, respond with ONLY this JSON:
+{"action":"COMPLETE_ASSIGNMENT","courseCode":"X"}
+
+When a student wants to delete/remove an assignment, respond with ONLY this JSON:
+{"action":"DELETE_ASSIGNMENT","courseCode":"X"}
+
+For everything else, reply normally in plain friendly English.
+Today's date is ${new Date().toISOString().slice(0, 10)}.`
         },
         {
           role: 'user',
@@ -63,7 +77,7 @@ For everything else, reply normally in plain friendly English.`
           l.courseCode.replace(/\s/g, '').toLowerCase() === parsed.courseCode.replace(/\s/g, '').toLowerCase() &&
           l.lectureDay.toLowerCase() === parsed.lectureDay.toLowerCase()
         );
-        if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.lectureDay}*. Check your lectures with "What lectures do I have?"`;
+        if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.lectureDay}*.`;
         lectureService.deleteLecture(lecture.id);
         return `🗑️ Removed *${parsed.courseCode}* on *${parsed.lectureDay}* from your timetable.`;
       }
@@ -75,19 +89,50 @@ For everything else, reply normally in plain friendly English.`
           l.courseCode.replace(/\s/g, '').toLowerCase() === parsed.courseCode.replace(/\s/g, '').toLowerCase() &&
           l.lectureDay.toLowerCase() === parsed.oldLectureDay.toLowerCase()
         );
-        if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.oldLectureDay}*. Check your lectures with "What lectures do I have?"`;
+        if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.oldLectureDay}*.`;
         lectureService.updateLecture(lecture.id, { lectureDay: parsed.newLectureDay, lectureTime: parsed.newLectureTime });
         return `✏️ Updated *${parsed.courseCode}* to *${parsed.newLectureDay}* at *${parsed.newLectureTime}*!`;
       }
 
       if (parsed.action === 'LIST_LECTURES') {
         const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const lectures = lectureService.getLecturesByUserId
-          ? lectureService.getLecturesByUserId(user.id)
-          : [];
+        const lectures = lectureService.getLecturesByUserId(user.id);
         if (!lectures.length) return "You have no lectures yet. Send me a photo of your timetable!";
         return `📚 *Your Lectures:*\n${lectures.map(l => `• ${l.courseCode} - ${l.lectureDay} at ${l.lectureTime}`).join('\n')}`;
       }
+
+      if (parsed.action === 'ADD_ASSIGNMENT') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        assignmentService.createAssignment({
+          userId: user.id,
+          courseCode: parsed.courseCode,
+          title: parsed.title,
+          dueDate: parsed.dueDate,
+        });
+        return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate}*\n\nI'll remind you before the deadline!`;
+      }
+
+      if (parsed.action === 'LIST_ASSIGNMENTS') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        const pending = assignmentService.getPendingAssignments(user.id);
+        if (!pending.length) return "🎉 You have no pending assignments!";
+        return `📝 *Your Pending Assignments:*\n${pending.map(a => `• *${a.courseCode}* - ${a.title}\n  📅 Due: ${a.dueDate}`).join('\n')}`;
+      }
+
+      if (parsed.action === 'COMPLETE_ASSIGNMENT') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        const assignment = assignmentService.markAssignmentDone(user.id, parsed.courseCode);
+        if (!assignment) return `❌ I couldn't find a pending assignment for *${parsed.courseCode}*.`;
+        return `✅ Great work! Marked your *${parsed.courseCode}* assignment as submitted!`;
+      }
+
+      if (parsed.action === 'DELETE_ASSIGNMENT') {
+        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+        const assignment = assignmentService.deleteAssignment(user.id, parsed.courseCode);
+        if (!assignment) return `❌ I couldn't find an assignment for *${parsed.courseCode}*.`;
+        return `🗑️ Removed the *${parsed.courseCode}* assignment.`;
+      }
+
     } catch (e) {
       return textResponse;
     }
@@ -105,7 +150,7 @@ function startTelegramBot() {
   bot.onText(/\/start/, (msg) => {
     const name = msg.from.first_name || 'Student';
     bot.sendMessage(msg.chat.id,
-      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant!\n\nI can help you with:\n📚 Lecture timetable\n⏰ Reminders\n📝 Assignments\n📅 Exams\n\nJust talk to me naturally or send a photo of your timetable!`,
+      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant!\n\nI can help you with:\n📚 Lecture timetable\n📝 Assignment tracking\n⏰ Reminders\n📅 Exams\n\nJust talk to me naturally or send a photo of your timetable!`,
       { parse_mode: 'Markdown' }
     );
   });
