@@ -2,8 +2,8 @@ const examService = require('../services/examService');
 
 function createExam(req, res) {
   try {
-    const { userId, courseCode, examDate, examTime, venue } = req.body;
-    const exam = examService.createExam({ userId, courseCode, examDate, examTime, venue });
+    const { courseCode, examDate, examTime, venue } = req.body;
+    const exam = examService.createExam({ userId: req.userId, courseCode, examDate, examTime, venue });
     return res.status(201).json({ success: true, exam });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -12,10 +12,7 @@ function createExam(req, res) {
 
 function listExams(req, res) {
   try {
-    const { userId } = req.query;
-    const exams = userId
-      ? examService.getUpcomingExams(userId)
-      : examService.getAllUpcomingExams();
+    const exams = examService.getUpcomingExams(req.userId);
     return res.json({ success: true, exams });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -24,8 +21,8 @@ function listExams(req, res) {
 
 function completeExam(req, res) {
   try {
-    const { userId, courseCode } = req.body;
-    const exam = examService.markExamDone(userId, courseCode);
+    const { courseCode } = req.body;
+    const exam = examService.markExamDone(req.userId, courseCode);
     if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
     return res.json({ success: true, exam });
   } catch (err) {
@@ -35,8 +32,8 @@ function completeExam(req, res) {
 
 function deleteExam(req, res) {
   try {
-    const { userId, courseCode } = req.body;
-    const exam = examService.deleteExam(userId, courseCode);
+    const { courseCode } = req.body;
+    const exam = examService.deleteExam(req.userId, courseCode);
     if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
     return res.json({ success: true, exam });
   } catch (err) {
