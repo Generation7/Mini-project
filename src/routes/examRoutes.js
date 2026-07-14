@@ -1,11 +1,12 @@
 const express = require('express');
 const examController = require('../controllers/examController');
+const { requireAuth } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.post('/', examController.createExam);
-router.get('/', examController.listExams);
-router.put('/:id/complete', examController.completeExam);
-router.delete('/:id', examController.deleteExam);
+router.post('/', requireAuth, examController.createExam);
+router.get('/', requireAuth, examController.listExams);
+router.put('/:id/complete', requireAuth, examController.completeExam);
+router.delete('/:id', requireAuth, examController.deleteExam);
 
 module.exports = router;
