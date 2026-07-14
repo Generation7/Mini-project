@@ -21,30 +21,29 @@ function getPendingAssignments(userId) {
 }
 
 function markAssignmentDone(userId, courseCode) {
-  const userAssignments = getAssignmentsByUserId(userId);
-  const assignment = userAssignments.find(a =>
-    a.courseCode.replace(/\s/g, '').toLowerCase() === courseCode.replace(/\s/g, '').toLowerCase() &&
-    a.status === 'pending'
-  );
+  // Find the most recent pending assignment for that course
+  const assignment = db.select().from(assignments).where(
+    and(
+      eq(assignments.userId, Number(userId)),
+      eq(assignments.courseCode, courseCode),
+      eq(assignments.status, 'pending')
+    )
+  ).orderBy(assignments.id).get(); // or orderBy(desc(assignments.dueDate))
+
   if (!assignment) return null;
 
-  db.update(assignments)
+  return db.update(assignments)
     .set({ status: 'submitted' })
     .where(eq(assignments.id, assignment.id))
-    .run();
-
-  return assignment;
+    .returning().get();
 }
 
 function deleteAssignment(userId, courseCode) {
-  const userAssignments = getAssignmentsByUserId(userId);
-  const assignment = userAssignments.find(a =>
-    a.courseCode.replace(/\s/g, '').toLowerCase() === courseCode.replace(/\s/g, '').toLowerCase()
-  );
+  // This will delete the first matching assignment. Consider how to handle multiple.
+  const assignment = db.select().from(assignments).where(and(eq(assignments.userId, Number(userId)), eq(assignments.courseCode, courseCode))).get();
   if (!assignment) return null;
 
-  db.delete(assignments).where(eq(assignments.id, assignment.id)).run();
-  return assignment;
+  return db.delete(assignments).where(eq(assignments.id, assignment.id)).returning().get();
 }
 
 function getAllPendingAssignments() {

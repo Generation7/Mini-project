@@ -72,117 +72,108 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
 
     try {
       const parsed = JSON.parse(textResponse);
+      const user = userService.findOrCreateByPhoneNumber(chatId.toString());
+      if (!user) return "Sorry, I'm having trouble accessing your account. Please try again.";
 
-      if (parsed.action === 'ADD_LECTURE') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        lectureService.createLecture({
-          userId: user.id,
-          courseCode: parsed.courseCode,
-          courseName: parsed.courseCode,
-          lectureDay: parsed.lectureDay,
-          lectureTime: parsed.lectureTime,
-        });
-        return `✅ Added *${parsed.courseCode}* on *${parsed.lectureDay}* at *${parsed.lectureTime}*! You'll get a reminder the day before.`;
+      switch (parsed.action) {
+        case 'ADD_LECTURE': {
+          lectureService.createLecture({
+            userId: user.id,
+            courseCode: parsed.courseCode,
+            courseName: parsed.courseCode,
+            lectureDay: parsed.lectureDay,
+            lectureTime: parsed.lectureTime,
+          });
+          return `✅ Added *${parsed.courseCode}* on *${parsed.lectureDay}* at *${parsed.lectureTime}*! You'll get a reminder the day before.`;
+        }
+
+        case 'DELETE_LECTURE': {
+          const allLectures = lectureService.getLecturesByUserId(user.id);
+          const lecture = allLectures.find(l =>
+            l.courseCode.replace(/\s/g, '').toLowerCase() === parsed.courseCode.replace(/\s/g, '').toLowerCase() &&
+            l.lectureDay.toLowerCase() === parsed.lectureDay.toLowerCase()
+          );
+          if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.lectureDay}*.`;
+          lectureService.deleteLecture(lecture.id);
+          return `🗑️ Removed *${parsed.courseCode}* on *${parsed.lectureDay}* from your timetable.`;
+        }
+
+        case 'EDIT_LECTURE': {
+          const allLectures = lectureService.getLecturesByUserId(user.id);
+          const lecture = allLectures.find(l =>
+            l.courseCode.replace(/\s/g, '').toLowerCase() === parsed.courseCode.replace(/\s/g, '').toLowerCase() &&
+            l.lectureDay.toLowerCase() === parsed.oldLectureDay.toLowerCase()
+          );
+          if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.oldLectureDay}*.`;
+          lectureService.updateLecture(lecture.id, { lectureDay: parsed.newLectureDay, lectureTime: parsed.newLectureTime });
+          return `✏️ Updated *${parsed.courseCode}* to *${parsed.newLectureDay}* at *${parsed.newLectureTime}*!`;
+        }
+
+        case 'LIST_LECTURES': {
+          const lectures = lectureService.getLecturesByUserId(user.id);
+          if (!lectures.length) return "You have no lectures yet. Send me a photo of your timetable!";
+          return `📚 *Your Lectures:*\n${lectures.map(l => `• ${l.courseCode} - ${l.lectureDay} at ${l.lectureTime}`).join('\n')}`;
+        }
+
+        case 'ADD_ASSIGNMENT': {
+          assignmentService.createAssignment({
+            userId: user.id,
+            courseCode: parsed.courseCode,
+            title: parsed.title,
+            dueDate: parsed.dueDate,
+            dueTime: parsed.dueTime || '23:59',
+          });
+          return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
+        }
+
+        case 'LIST_ASSIGNMENTS': {
+          const pending = assignmentService.getPendingAssignments(user.id);
+          if (!pending.length) return "🎉 You have no pending assignments!";
+          return `📝 *Your Pending Assignments:*\n${pending.map(a => `• *${a.courseCode}* - ${a.title}\n  📅 Due: ${a.dueDate} at ${a.due_time || '23:59'}`).join('\n')}`;
+        }
+
+        case 'COMPLETE_ASSIGNMENT': {
+          const assignment = assignmentService.markAssignmentDone(user.id, parsed.courseCode);
+          if (!assignment) return `❌ I couldn't find a pending assignment for *${parsed.courseCode}*.`;
+          return `✅ Great work! Marked your *${parsed.courseCode}* assignment as submitted!`;
+        }
+
+        case 'DELETE_ASSIGNMENT': {
+          const assignment = assignmentService.deleteAssignment(user.id, parsed.courseCode);
+          if (!assignment) return `❌ I couldn't find an assignment for *${parsed.courseCode}*.`;
+          return `🗑️ Removed the *${parsed.courseCode}* assignment.`;
+        }
+
+        case 'ADD_EXAM': {
+          examService.createExam({
+            userId: user.id,
+            courseCode: parsed.courseCode,
+            examDate: parsed.examDate,
+            examTime: parsed.examTime || '08:00',
+            venue: parsed.venue || null,
+          });
+          const venueText = parsed.venue ? `\n📍 Venue: *${parsed.venue}*` : '';
+          return `🎓 Added *${parsed.courseCode}* exam!\n📅 Date: *${parsed.examDate}*\n⏰ Time: *${parsed.examTime || '08:00'}*${venueText}\n\nI'll remind you 7 days, 3 days, 1 day and 3 hours before!`;
+        }
+
+        case 'LIST_EXAMS': {
+          const upcoming = examService.getUpcomingExams(user.id);
+          if (!upcoming.length) return "🎉 You have no upcoming exams!";
+          return `🎓 *Your Upcoming Exams:*\n${upcoming.map(e => `• *${e.courseCode}*\n  📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? `\n  📍 ${e.venue}` : ''}`).join('\n')}`;
+        }
+
+        case 'COMPLETE_EXAM': {
+          const exam = examService.markExamDone(user.id, parsed.courseCode);
+          if (!exam) return `❌ I couldn't find an upcoming exam for *${parsed.courseCode}*.`;
+          return `✅ Great job completing your *${parsed.courseCode}* exam! Hope it went well! 🍀`;
+        }
+
+        case 'DELETE_EXAM': {
+          const exam = examService.deleteExam(user.id, parsed.courseCode);
+          if (!exam) return `❌ I couldn't find an exam for *${parsed.courseCode}*.`;
+          return `🗑️ Removed the *${parsed.courseCode}* exam.`;
+        }
       }
-
-      if (parsed.action === 'DELETE_LECTURE') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const allLectures = lectureService.getLecturesByUserId(user.id);
-        const lecture = allLectures.find(l =>
-          l.courseCode.replace(/\s/g, '').toLowerCase() === parsed.courseCode.replace(/\s/g, '').toLowerCase() &&
-          l.lectureDay.toLowerCase() === parsed.lectureDay.toLowerCase()
-        );
-        if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.lectureDay}*.`;
-        lectureService.deleteLecture(lecture.id);
-        return `🗑️ Removed *${parsed.courseCode}* on *${parsed.lectureDay}* from your timetable.`;
-      }
-
-      if (parsed.action === 'EDIT_LECTURE') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const allLectures = lectureService.getLecturesByUserId(user.id);
-        const lecture = allLectures.find(l =>
-          l.courseCode.replace(/\s/g, '').toLowerCase() === parsed.courseCode.replace(/\s/g, '').toLowerCase() &&
-          l.lectureDay.toLowerCase() === parsed.oldLectureDay.toLowerCase()
-        );
-        if (!lecture) return `❌ I couldn't find *${parsed.courseCode}* on *${parsed.oldLectureDay}*.`;
-        lectureService.updateLecture(lecture.id, { lectureDay: parsed.newLectureDay, lectureTime: parsed.newLectureTime });
-        return `✏️ Updated *${parsed.courseCode}* to *${parsed.newLectureDay}* at *${parsed.newLectureTime}*!`;
-      }
-
-      if (parsed.action === 'LIST_LECTURES') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const lectures = lectureService.getLecturesByUserId(user.id);
-        if (!lectures.length) return "You have no lectures yet. Send me a photo of your timetable!";
-        return `📚 *Your Lectures:*\n${lectures.map(l => `• ${l.courseCode} - ${l.lectureDay} at ${l.lectureTime}`).join('\n')}`;
-      }
-
-      if (parsed.action === 'ADD_ASSIGNMENT') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        assignmentService.createAssignment({
-          userId: user.id,
-          courseCode: parsed.courseCode,
-          title: parsed.title,
-          dueDate: parsed.dueDate,
-          dueTime: parsed.dueTime || '23:59',
-        });
-        return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
-      }
-
-      if (parsed.action === 'LIST_ASSIGNMENTS') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const pending = assignmentService.getPendingAssignments(user.id);
-        if (!pending.length) return "🎉 You have no pending assignments!";
-        return `📝 *Your Pending Assignments:*\n${pending.map(a => `• *${a.courseCode}* - ${a.title}\n  📅 Due: ${a.dueDate} at ${a.due_time || '23:59'}`).join('\n')}`;
-      }
-
-      if (parsed.action === 'COMPLETE_ASSIGNMENT') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const assignment = assignmentService.markAssignmentDone(user.id, parsed.courseCode);
-        if (!assignment) return `❌ I couldn't find a pending assignment for *${parsed.courseCode}*.`;
-        return `✅ Great work! Marked your *${parsed.courseCode}* assignment as submitted!`;
-      }
-
-      if (parsed.action === 'DELETE_ASSIGNMENT') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const assignment = assignmentService.deleteAssignment(user.id, parsed.courseCode);
-        if (!assignment) return `❌ I couldn't find an assignment for *${parsed.courseCode}*.`;
-        return `🗑️ Removed the *${parsed.courseCode}* assignment.`;
-      }
-
-      if (parsed.action === 'ADD_EXAM') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        examService.createExam({
-          userId: user.id,
-          courseCode: parsed.courseCode,
-          examDate: parsed.examDate,
-          examTime: parsed.examTime || '08:00',
-          venue: parsed.venue || null,
-        });
-        const venueText = parsed.venue ? `\n📍 Venue: *${parsed.venue}*` : '';
-        return `🎓 Added *${parsed.courseCode}* exam!\n📅 Date: *${parsed.examDate}*\n⏰ Time: *${parsed.examTime || '08:00'}*${venueText}\n\nI'll remind you 7 days, 3 days, 1 day and 3 hours before!`;
-      }
-
-      if (parsed.action === 'LIST_EXAMS') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const upcoming = examService.getUpcomingExams(user.id);
-        if (!upcoming.length) return "🎉 You have no upcoming exams!";
-        return `🎓 *Your Upcoming Exams:*\n${upcoming.map(e => `• *${e.courseCode}*\n  📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? `\n  📍 ${e.venue}` : ''}`).join('\n')}`;
-      }
-
-      if (parsed.action === 'COMPLETE_EXAM') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const exam = examService.markExamDone(user.id, parsed.courseCode);
-        if (!exam) return `❌ I couldn't find an upcoming exam for *${parsed.courseCode}*.`;
-        return `✅ Great job completing your *${parsed.courseCode}* exam! Hope it went well! 🍀`;
-      }
-
-      if (parsed.action === 'DELETE_EXAM') {
-        const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-        const exam = examService.deleteExam(user.id, parsed.courseCode);
-        if (!exam) return `❌ I couldn't find an exam for *${parsed.courseCode}*.`;
-        return `🗑️ Removed the *${parsed.courseCode}* exam.`;
-      }
-
     } catch (e) {
       return textResponse;
     }

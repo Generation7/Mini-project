@@ -42,6 +42,7 @@
       font-weight: 700;
       background: linear-gradient(135deg, #6c63ff, #a78bfa);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
     }
@@ -81,6 +82,20 @@
     }
 
     .btn:hover { opacity: 0.9; }
+
+    .form-switcher {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #888;
+    }
+
+    .form-switcher a {
+      color: #a78bfa;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .form-switcher a:hover { text-decoration: underline; }
 
     .btn-danger {
       background: linear-gradient(135deg, #ff6363, #fa8b8b);
@@ -128,6 +143,7 @@
       font-weight: 700;
       background: linear-gradient(135deg, #6c63ff, #a78bfa);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -372,19 +388,17 @@
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
 <div id="loginPage">
   <div class="login-card">
     <div class="logo">🎓</div>
     <h1>Acadia</h1>
-    <p>Your AI Academic Assistant</p>
+    <p>Your AI Academic Assistant</p>    
     <input type="tel" id="phoneInput" placeholder="Phone number (e.g. 233536349690)" />
     <input type="text" id="nameInput" placeholder="Your name" />
     <button class="btn" onclick="login()">Get Started</button>
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard">
   <div class="topbar">
     <div class="topbar-left">
@@ -406,7 +420,6 @@
 
   <div class="content">
 
-    <!-- TODAY -->
     <div class="section active" id="todaySection">
       <div class="summary-grid">
         <div class="summary-card">
@@ -427,7 +440,6 @@
       <div id="todayExams"></div>
     </div>
 
-    <!-- LECTURES -->
     <div class="section" id="lecturesSection">
       <div class="form-card">
         <h3>➕ Add Lecture</h3>
@@ -452,7 +464,6 @@
       <div id="lecturesList"></div>
     </div>
 
-    <!-- ASSIGNMENTS -->
     <div class="section" id="assignmentsSection">
       <div class="form-card">
         <h3>➕ Add Assignment</h3>
@@ -470,7 +481,6 @@
       <div id="assignmentsList"></div>
     </div>
 
-    <!-- EXAMS -->
     <div class="section" id="examsSection">
       <div class="form-card">
         <h3>➕ Add Exam</h3>
@@ -498,10 +508,10 @@
   let currentUser = null;
 
   // Load saved user
-  window.onload = () => {
-    const saved = localStorage.getItem('acadiaUser');
-    if (saved) {
-      currentUser = JSON.parse(saved);
+  window.onload = async () => {
+    const savedUser = localStorage.getItem('acadiaUser');
+    if (savedUser) {
+      if (savedUser) currentUser = JSON.parse(savedUser);
       showDashboard();
     }
   };
@@ -539,7 +549,9 @@
   function showDashboard() {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('userBadge').textContent = currentUser.name || currentUser.phoneNumber;
+    const savedUser = JSON.parse(localStorage.getItem('acadiaUser'));
+    currentUser = savedUser;
+    if (currentUser) document.getElementById('userBadge').textContent = currentUser.name || currentUser.phoneNumber;
     loadAll();
   }
 
@@ -557,6 +569,7 @@
 
   // LECTURES
   async function loadLectures() {
+    if (!currentUser?.id) return;
     try {
       const res = await fetch(`${API}/lectures`);
       const data = await res.json();
@@ -605,11 +618,14 @@
     const lectureDay = document.getElementById('lDay').value;
     const lectureTime = document.getElementById('lTime').value;
     if (!courseCode || !lectureDay || !lectureTime) return showToast('Please fill all fields', true);
+    if (!currentUser?.id) return showToast('You are not logged in. Please log out and log in again.', true); // This check remains but is less effective without proper auth
 
     try {
       await fetch(`${API}/lectures`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           userId: currentUser?.id || 1,
           courseCode,
@@ -631,7 +647,9 @@
   async function deleteLecture(id) {
     if (!confirm('Remove this lecture?')) return;
     try {
-      await fetch(`${API}/lectures/${id}`, { method: 'DELETE' });
+      await fetch(`${API}/lectures/${id}`, {
+        method: 'DELETE'
+      });
       showToast('Lecture removed!');
       loadLectures();
     } catch (err) {
@@ -641,13 +659,15 @@
 
   // ASSIGNMENTS
   async function loadAssignments() {
+    if (!currentUser?.id) return;
     try {
       const res = await fetch(`${API}/assignments`);
       const data = await res.json();
       const assignments = data.assignments || [];
 
       const container = document.getElementById('assignmentsList');
-      const pending = assignments.filter(a => a.status === 'pending');
+      // Filter for pending assignments for the current user
+      const pending = assignments.filter(a => a.status === 'pending' && a.userId == currentUser.id);
       document.getElementById('pendingAssignmentCount').textContent = pending.length;
 
       if (!pending.length) {
@@ -685,11 +705,14 @@
     const dueDate = document.getElementById('aDueDate').value;
     const dueTime = document.getElementById('aDueTime').value || '23:59';
     if (!courseCode || !title || !dueDate) return showToast('Please fill all required fields', true);
+    if (!currentUser?.id) return showToast('You are not logged in. Please log out and log in again.', true); // This check remains but is less effective without proper auth
 
     try {
       await fetch(`${API}/assignments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ userId: currentUser?.id || 1, courseCode, title, dueDate, dueTime })
       });
       showToast('Assignment added!');
@@ -704,10 +727,13 @@
   }
 
   async function completeAssignment(id, courseCode) {
+    if (!currentUser?.id) return showToast('You are not logged in.', true);
     try {
       await fetch(`${API}/assignments/${id}/complete`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ userId: currentUser?.id || 1, courseCode })
       });
       showToast('Assignment marked as done! 🎉');
@@ -719,10 +745,13 @@
 
   async function deleteAssignment(id, courseCode) {
     if (!confirm('Remove this assignment?')) return;
+    if (!currentUser?.id) return showToast('You are not logged in.', true);
     try {
       await fetch(`${API}/assignments/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ userId: currentUser?.id || 1, courseCode })
       });
       showToast('Assignment removed!');
@@ -734,12 +763,14 @@
 
   // EXAMS
   async function loadExams() {
+    if (!currentUser?.id) return;
     try {
       const res = await fetch(`${API}/exams`);
       const data = await res.json();
       const exams = data.exams || [];
 
-      const upcoming = exams.filter(e => e.status === 'upcoming');
+      // Filter for upcoming exams for the current user
+      const upcoming = exams.filter(e => e.status === 'upcoming' && e.userId == currentUser.id);
       document.getElementById('upcomingExamCount').textContent = upcoming.length;
 
       const container = document.getElementById('examsList');
@@ -778,11 +809,14 @@
     const examTime = document.getElementById('eTime').value || '08:00';
     const venue = document.getElementById('eVenue').value.trim();
     if (!courseCode || !examDate) return showToast('Please fill all required fields', true);
+    if (!currentUser?.id) return showToast('You are not logged in. Please log out and log in again.', true); // This check remains but is less effective without proper auth
 
     try {
       await fetch(`${API}/exams`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ userId: currentUser?.id || 1, courseCode, examDate, examTime, venue })
       });
       showToast('Exam added!');
@@ -797,10 +831,13 @@
   }
 
   async function completeExam(id, courseCode) {
+    if (!currentUser?.id) return showToast('You are not logged in.', true);
     try {
       await fetch(`${API}/exams/${id}/complete`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ userId: currentUser?.id || 1, courseCode })
       });
       showToast('Exam marked as done! 🍀');
@@ -812,10 +849,13 @@
 
   async function deleteExam(id, courseCode) {
     if (!confirm('Remove this exam?')) return;
+    if (!currentUser?.id) return showToast('You are not logged in.', true);
     try {
       await fetch(`${API}/exams/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ userId: currentUser?.id || 1, courseCode })
       });
       showToast('Exam removed!');

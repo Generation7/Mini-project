@@ -1,7 +1,15 @@
 const { sqlite } = require('./client');
 
 const requiredColumns = {
-  users: ['id', 'phone_number', 'created_at'],
+  users: [
+    'id',
+    'name',
+    'email',
+    'password',
+    'phone_number',
+    'telegram_chat_id',
+    'password_reset_token',
+    'password_reset_expires'],
   rules: ['id', 'user_id', 'trigger', 'condition', 'action', 'created_at'],
   events: ['id', 'type', 'data', 'created_at'],
   lectures: [
@@ -14,40 +22,30 @@ const requiredColumns = {
     'reminder_sent',
   ],
   reminders: ['id', 'lecture_id', 'event_id', 'reminder_date', 'created_at'],
+  assignments: [
+    'id',
+    'user_id',
+    'course_code',
+    'title',
+    'due_date',
+    'due_time',
+    'status',
+    'created_at',
+  ],
+  exams: [
+    'id',
+    'user_id',
+    'course_code',
+    'exam_date',
+    'exam_time',
+    'venue',
+    'status',
+    'created_at',
+  ],
 };
 
 function getTableColumns(tableName) {
   return sqlite.prepare(`PRAGMA table_info(${tableName})`).all().map((column) => column.name);
-}
-
-function tableHasMismatch(tableName, columns) {
-  const existingColumns = getTableColumns(tableName);
-
-  if (existingColumns.length === 0) {
-    return false;
-  }
-
-  return columns.some((column) => !existingColumns.includes(column));
-}
-
-function hasSchemaMismatch() {
-  return Object.entries(requiredColumns).some(([tableName, columns]) => {
-    return tableHasMismatch(tableName, columns);
-  });
-}
-
-function resetDevelopmentDatabase() {
-  console.warn('Schema mismatch detected. Resetting local development database.');
-
-  sqlite.exec(`
-    PRAGMA foreign_keys = OFF;
-    DROP TABLE IF EXISTS reminders;
-    DROP TABLE IF EXISTS lectures;
-    DROP TABLE IF EXISTS rules;
-    DROP TABLE IF EXISTS events;
-    DROP TABLE IF EXISTS users;
-    PRAGMA foreign_keys = ON;
-  `);
 }
 
 function validateSchema() {
@@ -68,18 +66,19 @@ function validateSchema() {
   }
 }
 
-if (hasSchemaMismatch()) {
-  resetDevelopmentDatabase();
-}
-
 sqlite.exec(`
   PRAGMA journal_mode = WAL;
   PRAGMA foreign_keys = ON;
 
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    phone_number TEXT NOT NULL UNIQUE,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    name TEXT,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    phone_number TEXT UNIQUE,
+    telegram_chat_id TEXT,
+    password_reset_token TEXT,
+    password_reset_expires INTEGER
   );
 
   CREATE TABLE IF NOT EXISTS rules (
@@ -119,6 +118,30 @@ sqlite.exec(`
     UNIQUE (lecture_id, reminder_date),
     FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    course_code TEXT NOT NULL,
+    title TEXT NOT NULL,
+    due_date TEXT NOT NULL,
+    due_time TEXT NOT NULL DEFAULT '23:59',
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS exams (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    course_code TEXT NOT NULL,
+    exam_date TEXT NOT NULL,
+    exam_time TEXT NOT NULL DEFAULT '08:00',
+    venue TEXT,
+    status TEXT NOT NULL DEFAULT 'upcoming',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   );
 `);
 
