@@ -379,13 +379,6 @@
     <h1>Acadia</h1>
     <p>Your AI Academic Assistant</p>
 
-<!-- LOGIN PAGE -->
-<div id="loginPage">
-  <div class="login-card">
-    <div class="logo">🎓</div>
-    <h1>Acadia</h1>
-    <p>Your AI Academic Assistant</p>
-
     <!-- LOGIN FORM -->
     <div id="loginForm">
       <input type="email" id="loginEmail" placeholder="Email address" />
@@ -409,6 +402,16 @@
     </div>
   </div>
 </div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email address" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button class="btn" onclick="doLogin()">Log In</button>
+      <p style="margin-top:12px;font-size:13px">
+        New here? <a href="#" onclick="toggleAuthForm(event)">Create an account</a>
+      </p>
+    </div>
 
     <!-- REGISTER FORM -->
     <div id="registerForm" style="display:none">
