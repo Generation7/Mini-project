@@ -19,7 +19,7 @@ function getTableColumns(tableName) {
 }
 
 function addMissingColumnsSafely() {
-  const newUserColumns = [
+const newUserColumns = [
     { name: 'name',             ddl: 'TEXT' },
     { name: 'email',            ddl: 'TEXT' },
     { name: 'password_hash',    ddl: 'TEXT' },
