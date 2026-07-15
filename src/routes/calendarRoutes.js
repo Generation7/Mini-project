@@ -1,31 +1,10 @@
-const userService = require('../services/userService');
-const calendarFeedService = require('../services/calendarFeedService');
+const express = require('express');
+const calendarController = require('../controllers/calendarController');
+const { requireAuth } = require('../middleware/authMiddleware');
 
-function getFeed(req, res) {
-  const { token } = req.params;
-  const user = userService.findByCalendarToken(token);
+const router = express.Router();
 
-  if (!user) {
-    return res.status(404).send('Calendar not found');
-  }
+router.get('/link', requireAuth, calendarController.getFeedLink);
+router.get('/:token/feed.ics', calendarController.getFeed);
 
-  const icsContent = calendarFeedService.buildCalendarFeed(user.id);
-
-  res.set('Content-Type', 'text/calendar; charset=utf-8');
-  res.set('Content-Disposition', 'inline; filename="acadia.ics"');
-  return res.status(200).send(icsContent);
-}
-
-function getFeedLink(req, res) {
-  const token = userService.getOrCreateCalendarToken(req.userId);
-  if (!token) {
-    return res.status(404).json({ success: false, message: 'User not found' });
-  }
-
-  const baseUrl = `${req.protocol}://${req.get('host')}`;
-  const feedUrl = `${baseUrl}/calendar/${token}/feed.ics`;
-
-  return res.status(200).json({ success: true, feedUrl });
-}
-
-module.exports = { getFeed, getFeedLink };
+module.exports = router;
