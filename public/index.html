@@ -14,7 +14,6 @@
       min-height: 100vh;
     }
 
-    /* LOGIN PAGE */
     #loginPage {
       display: flex;
       flex-direction: column;
@@ -42,11 +41,12 @@
       font-weight: 700;
       background: linear-gradient(135deg, #6c63ff, #a78bfa);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
     }
 
-    .login-card p {
+    .login-card > p {
       color: #888;
       margin-bottom: 30px;
       font-size: 14px;
@@ -102,7 +102,6 @@
       font-size: 13px;
     }
 
-    /* DASHBOARD */
     #dashboard { display: none; }
 
     .topbar {
@@ -128,6 +127,7 @@
       font-weight: 700;
       background: linear-gradient(135deg, #6c63ff, #a78bfa);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -151,7 +151,6 @@
 
     .logout-btn:hover { color: #e0e0e0; }
 
-    /* TABS */
     .tabs {
       display: flex;
       gap: 4px;
@@ -179,7 +178,6 @@
 
     .tab:hover:not(.active) { color: #e0e0e0; }
 
-    /* CONTENT */
     .content {
       padding: 24px;
       max-width: 900px;
@@ -201,7 +199,6 @@
       font-weight: 600;
     }
 
-    /* CARDS */
     .card {
       background: #1e1e2e;
       border-radius: 14px;
@@ -242,7 +239,6 @@
 
     .card-actions { display: flex; gap: 8px; }
 
-    /* FORM */
     .form-card {
       background: #1e1e2e;
       border-radius: 14px;
@@ -278,7 +274,6 @@
 
     select:focus { border-color: #6c63ff; }
 
-    /* TODAY SUMMARY */
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -350,7 +345,6 @@
       font-weight: 600;
     }
 
-    /* TOAST */
     .toast {
       position: fixed;
       bottom: 24px;
@@ -379,49 +373,23 @@
     <h1>Acadia</h1>
     <p>Your AI Academic Assistant</p>
 
-    <!-- LOGIN FORM -->
     <div id="loginForm">
       <input type="email" id="loginEmail" placeholder="Email address" />
       <input type="password" id="loginPassword" placeholder="Password" />
       <button class="btn" onclick="doLogin()">Log In</button>
-      <p style="margin-top:12px;font-size:13px">
+      <p style="margin-top:12px;font-size:13px;color:#888">
         New here? <a href="#" onclick="toggleAuthForm(event)" style="color:#a78bfa">Create an account</a>
       </p>
     </div>
 
-    <!-- REGISTER FORM -->
     <div id="registerForm" style="display:none">
       <input type="text" id="regName" placeholder="Your name" />
       <input type="email" id="regEmail" placeholder="Email address" />
       <input type="tel" id="regPhone" placeholder="Phone number (optional)" />
       <input type="password" id="regPassword" placeholder="Password (min 8 characters)" />
       <button class="btn" onclick="doRegister()">Create Account</button>
-      <p style="margin-top:12px;font-size:13px">
+      <p style="margin-top:12px;font-size:13px;color:#888">
         Already have an account? <a href="#" onclick="toggleAuthForm(event)" style="color:#a78bfa">Log in</a>
-      </p>
-    </div>
-  </div>
-</div>
-
-    <!-- LOGIN FORM -->
-    <div id="loginForm">
-      <input type="email" id="loginEmail" placeholder="Email address" />
-      <input type="password" id="loginPassword" placeholder="Password" />
-      <button class="btn" onclick="doLogin()">Log In</button>
-      <p style="margin-top:12px;font-size:13px">
-        New here? <a href="#" onclick="toggleAuthForm(event)">Create an account</a>
-      </p>
-    </div>
-
-    <!-- REGISTER FORM -->
-    <div id="registerForm" style="display:none">
-      <input type="text" id="regName" placeholder="Your name" />
-      <input type="email" id="regEmail" placeholder="Email address" />
-      <input type="tel" id="regPhone" placeholder="Phone number (optional)" />
-      <input type="password" id="regPassword" placeholder="Password (min 8 characters)" />
-      <button class="btn" onclick="doRegister()">Create Account</button>
-      <p style="margin-top:12px;font-size:13px">
-        Already have an account? <a href="#" onclick="toggleAuthForm(event)">Log in</a>
       </p>
     </div>
   </div>
@@ -441,10 +409,10 @@
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('today')">☀️ Today</button>
-    <button class="tab" onclick="showTab('lectures')">📚 Lectures</button>
-    <button class="tab" onclick="showTab('assignments')">📝 Assignments</button>
-    <button class="tab" onclick="showTab('exams')">🎓 Exams</button>
+    <button class="tab active" onclick="showTab('today', event)">☀️ Today</button>
+    <button class="tab" onclick="showTab('lectures', event)">📚 Lectures</button>
+    <button class="tab" onclick="showTab('assignments', event)">📝 Assignments</button>
+    <button class="tab" onclick="showTab('exams', event)">🎓 Exams</button>
   </div>
 
   <div class="content">
@@ -541,7 +509,6 @@
   let currentUser = null;
   let authToken = null;
 
-  // Load saved session
   window.onload = () => {
     const savedToken = localStorage.getItem('acadiaToken');
     const savedUser = localStorage.getItem('acadiaUser');
@@ -552,20 +519,15 @@
     }
   };
 
-  // Wrapper around fetch() that attaches the auth token and handles
-  // expired/invalid sessions by kicking the user back to the login page.
   async function authFetch(url, options = {}) {
     const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
     if (authToken) headers.Authorization = `Bearer ${authToken}`;
-
     const res = await fetch(url, Object.assign({}, options, { headers }));
-
     if (res.status === 401) {
       logout();
-      showToast('Your session expired, please log in again', true);
+      showToast('Session expired, please log in again', true);
       throw new Error('Unauthorized');
     }
-
     return res;
   }
 
@@ -588,46 +550,35 @@
 
   async function doRegister() {
     const name = document.getElementById('regName').value.trim();
-    const studentId = document.getElementById('regStudentId').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const phoneNumber = document.getElementById('regPhone').value.trim();
     const password = document.getElementById('regPassword').value;
-
-    if (!name || !studentId || !email || !password) {
-      return showToast('Please fill in all required fields', true);
-    }
-    if (password.length < 8) {
-      return showToast('Password must be at least 8 characters', true);
-    }
-
+    if (!name || !email || !password) return showToast('Please fill in all fields', true);
+    if (password.length < 8) return showToast('Password must be at least 8 characters', true);
     try {
       const res = await fetch(`${API}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, studentId, email, phoneNumber, password })
+        body: JSON.stringify({ name, email, phoneNumber, password })
       });
       const data = await res.json();
       if (!data.success) return showToast(data.message || 'Could not create account', true);
       startSession(data.token, data.user);
-      showToast('Account created!');
+      showToast('Account created! Welcome 🎉');
     } catch (err) {
       showToast('Error creating account', true);
     }
   }
 
   async function doLogin() {
-    const identifier = document.getElementById('loginIdentifier').value.trim();
+    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    if (!identifier || !password) return showToast('Enter your login details', true);
-
-    const isEmail = identifier.includes('@');
-    const body = isEmail ? { email: identifier, password } : { studentId: identifier, password };
-
+    if (!email || !password) return showToast('Enter your email and password', true);
     try {
       const res = await fetch(`${API}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
       if (!data.success) return showToast(data.message || 'Login failed', true);
@@ -649,14 +600,14 @@
   function showDashboard() {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('userBadge').textContent = currentUser.name || currentUser.studentId;
+    document.getElementById('userBadge').textContent = currentUser.name || currentUser.email;
     loadAll();
   }
 
-  function showTab(tab) {
+  function showTab(tab, evt) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    event.target.classList.add('active');
+    if (evt) evt.target.classList.add('active');
     document.getElementById(tab + 'Section').classList.add('active');
   }
 
@@ -675,14 +626,12 @@
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const grouped = {};
       days.forEach(d => grouped[d] = []);
-      myLectures.forEach(l => {
-        if (grouped[l.lectureDay]) grouped[l.lectureDay].push(l);
-      });
+      myLectures.forEach(l => { if (grouped[l.lectureDay]) grouped[l.lectureDay].push(l); });
 
       const container = document.getElementById('lecturesList');
       container.innerHTML = '';
-
       let hasAny = false;
+
       days.forEach(day => {
         if (grouped[day].length === 0) return;
         hasAny = true;
@@ -701,11 +650,8 @@
       });
 
       if (!hasAny) container.innerHTML = '<div class="empty-state"><div class="emoji">📚</div>No lectures yet. Add your first one!</div>';
-
       window._lectures = myLectures;
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   }
 
   async function addLecture() {
@@ -713,25 +659,17 @@
     const lectureDay = document.getElementById('lDay').value;
     const lectureTime = document.getElementById('lTime').value;
     if (!courseCode || !lectureDay || !lectureTime) return showToast('Please fill all fields', true);
-
     try {
       await authFetch(`${API}/lectures`, {
         method: 'POST',
-        body: JSON.stringify({
-          courseCode,
-          courseName: courseCode,
-          lectureDay,
-          lectureTime
-        })
+        body: JSON.stringify({ courseCode, courseName: courseCode, lectureDay, lectureTime })
       });
       showToast('Lecture added!');
       document.getElementById('lCourseCode').value = '';
       document.getElementById('lDay').value = '';
       document.getElementById('lTime').value = '';
       loadLectures();
-    } catch (err) {
-      showToast('Error adding lecture', true);
-    }
+    } catch (err) { showToast('Error adding lecture', true); }
   }
 
   async function deleteLecture(id) {
@@ -740,9 +678,7 @@
       await authFetch(`${API}/lectures/${id}`, { method: 'DELETE' });
       showToast('Lecture removed!');
       loadLectures();
-    } catch (err) {
-      showToast('Error removing lecture', true);
-    }
+    } catch (err) { showToast('Error removing lecture', true); }
   }
 
   // ASSIGNMENTS
@@ -751,13 +687,13 @@
       const res = await authFetch(`${API}/assignments`);
       const data = await res.json();
       const assignments = data.assignments || [];
-
-      const container = document.getElementById('assignmentsList');
       const pending = assignments.filter(a => a.status === 'pending');
       document.getElementById('pendingAssignmentCount').textContent = pending.length;
 
+      const container = document.getElementById('assignmentsList');
       if (!pending.length) {
         container.innerHTML = '<div class="empty-state"><div class="emoji">🎉</div>No pending assignments!</div>';
+        window._assignments = assignments;
         return;
       }
 
@@ -769,7 +705,7 @@
           <div class="card">
             <div class="card-info">
               <div class="card-title">${a.courseCode} — ${a.title}</div>
-              <div class="card-subtitle">Due: ${a.dueDate} at ${a.due_time || '23:59'}</div>
+              <div class="card-subtitle">Due: ${a.dueDate} at ${a.dueTime || '23:59'}</div>
             </div>
             <span class="card-badge ${badge}">${label}</span>
             <div class="card-actions">
@@ -780,9 +716,7 @@
       }).join('');
 
       window._assignments = assignments;
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   }
 
   async function addAssignment() {
@@ -791,7 +725,6 @@
     const dueDate = document.getElementById('aDueDate').value;
     const dueTime = document.getElementById('aDueTime').value || '23:59';
     if (!courseCode || !title || !dueDate) return showToast('Please fill all required fields', true);
-
     try {
       await authFetch(`${API}/assignments`, {
         method: 'POST',
@@ -803,9 +736,7 @@
       document.getElementById('aDueDate').value = '';
       document.getElementById('aDueTime').value = '';
       loadAssignments();
-    } catch (err) {
-      showToast('Error adding assignment', true);
-    }
+    } catch (err) { showToast('Error adding assignment', true); }
   }
 
   async function completeAssignment(id, courseCode) {
@@ -816,9 +747,7 @@
       });
       showToast('Assignment marked as done! 🎉');
       loadAssignments();
-    } catch (err) {
-      showToast('Error updating assignment', true);
-    }
+    } catch (err) { showToast('Error updating assignment', true); }
   }
 
   async function deleteAssignment(id, courseCode) {
@@ -830,9 +759,7 @@
       });
       showToast('Assignment removed!');
       loadAssignments();
-    } catch (err) {
-      showToast('Error removing assignment', true);
-    }
+    } catch (err) { showToast('Error removing assignment', true); }
   }
 
   // EXAMS
@@ -841,13 +768,13 @@
       const res = await authFetch(`${API}/exams`);
       const data = await res.json();
       const exams = data.exams || [];
-
       const upcoming = exams.filter(e => e.status === 'upcoming');
       document.getElementById('upcomingExamCount').textContent = upcoming.length;
 
       const container = document.getElementById('examsList');
       if (!upcoming.length) {
         container.innerHTML = '<div class="empty-state"><div class="emoji">🎉</div>No upcoming exams!</div>';
+        window._exams = exams;
         return;
       }
 
@@ -859,7 +786,7 @@
           <div class="card">
             <div class="card-info">
               <div class="card-title">${e.courseCode} Exam</div>
-              <div class="card-subtitle">📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? ` • 📍 ${e.venue}` : ''}</div>
+              <div class="card-subtitle">📅 ${e.examDate} at ${e.examTime || '08:00'}${e.venue ? ` • 📍 ${e.venue}` : ''}</div>
             </div>
             <span class="card-badge ${badge}">${label}</span>
             <div class="card-actions">
@@ -870,9 +797,7 @@
       }).join('');
 
       window._exams = exams;
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   }
 
   async function addExam() {
@@ -881,7 +806,6 @@
     const examTime = document.getElementById('eTime').value || '08:00';
     const venue = document.getElementById('eVenue').value.trim();
     if (!courseCode || !examDate) return showToast('Please fill all required fields', true);
-
     try {
       await authFetch(`${API}/exams`, {
         method: 'POST',
@@ -893,9 +817,7 @@
       document.getElementById('eTime').value = '';
       document.getElementById('eVenue').value = '';
       loadExams();
-    } catch (err) {
-      showToast('Error adding exam', true);
-    }
+    } catch (err) { showToast('Error adding exam', true); }
   }
 
   async function completeExam(id, courseCode) {
@@ -906,9 +828,7 @@
       });
       showToast('Exam marked as done! 🍀');
       loadExams();
-    } catch (err) {
-      showToast('Error updating exam', true);
-    }
+    } catch (err) { showToast('Error updating exam', true); }
   }
 
   async function deleteExam(id, courseCode) {
@@ -920,9 +840,7 @@
       });
       showToast('Exam removed!');
       loadExams();
-    } catch (err) {
-      showToast('Error removing exam', true);
-    }
+    } catch (err) { showToast('Error removing exam', true); }
   }
 
   // TODAY SUMMARY
@@ -952,7 +870,6 @@
       lectureContainer.innerHTML = '<div class="empty-state"><div class="emoji">🎉</div>No lectures today!</div>';
     }
 
-    // Upcoming assignments
     const assignments = window._assignments || [];
     const pending = assignments.filter(a => a.status === 'pending').slice(0, 3);
     const assignContainer = document.getElementById('todayAssignments');
@@ -969,7 +886,6 @@
         </div>`;
     }
 
-    // Upcoming exams
     const exams = window._exams || [];
     const upcoming = exams.filter(e => e.status === 'upcoming').slice(0, 3);
     const examContainer = document.getElementById('todayExams');
