@@ -3,6 +3,7 @@ const reminderService = require('./reminderService');
 const assignmentService = require('./assignmentService');
 const examService = require('./examService');
 const userService = require('./userService');
+const weeklyDigestService = require('./weeklyDigestService');
 const logger = require('../utils/logger');
 
 let bot;
