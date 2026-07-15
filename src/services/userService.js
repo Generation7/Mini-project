@@ -71,4 +71,5 @@ module.exports = {
   findOrCreateByPhoneNumber,
   saveTelegramChatId,
   findByTelegramChatId,
+  getAllUsersWithTelegram,
 };
