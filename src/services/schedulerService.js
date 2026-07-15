@@ -141,6 +141,11 @@ function startScheduler(botInstance) {
     logger.info('Daily lecture reminder check completed');
   });
 
+  // Weekly digest — every Sunday at 6pm
+  cron.schedule('0 18 * * 0', () => {
+    sendWeeklyDigests();
+  });
+
   // Check assignment and exam reminders every 5 minutes
   cron.schedule('*/5 * * * *', () => {
     checkAssignmentReminders();
