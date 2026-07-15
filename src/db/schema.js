@@ -3,9 +3,13 @@ const { sql } = require('drizzle-orm');
 
 const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  name: text('name').notNull(),
-  phoneNumber: text('phone_number').notNull().unique(),
-  telegramChatId: text('telegram_chat_id'),
+  name: text('name'),
+  email: text('email').unique(),
+  passwordHash: text('password_hash'),
+  studentId: text('student_id'),
+  phoneNumber: text('phone_number').unique(),
+  telegramChatId: text('telegram_chat_id').unique(),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 const rules = sqliteTable('rules', {
