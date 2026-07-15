@@ -26,6 +26,7 @@ app.use('/auth', authRoutes);
 app.use('/whatsapp', whatsappRoutes);
 app.use('/assignments', assignmentRoutes);
 app.use('/exams', examRoutes);
+app.use('/calendar', calendarRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
