@@ -1,7 +1,7 @@
 const { sqlite } = require('./client');
 
 const requiredColumns = {
-  users: ['id', 'name', 'email', 'password_hash', 'phone_number', 'telegram_chat_id', 'created_at'],
+ users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'created_at'],
   rules: ['id', 'user_id', 'trigger', 'condition', 'action', 'created_at'],
   events: ['id', 'type', 'data', 'created_at'],
   lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'reminder_sent'],
