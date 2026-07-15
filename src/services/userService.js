@@ -57,7 +57,9 @@ function saveTelegramChatId(userId, chatId) {
 function findByTelegramChatId(chatId) {
   return db.select().from(users).where(eq(users.telegramChatId, String(chatId))).get();
 }
-
+function getAllUsersWithTelegram() {
+  return db.select().from(users).where(isNotNull(users.telegramChatId)).all();
+}
 module.exports = {
   findById,
   findByPhoneNumber,
