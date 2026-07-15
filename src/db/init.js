@@ -1,7 +1,7 @@
 const { sqlite } = require('./client');
 
 const requiredColumns = {
- users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'created_at'],
+  users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'created_at'],
   rules: ['id', 'user_id', 'trigger', 'condition', 'action', 'created_at'],
   events: ['id', 'type', 'data', 'created_at'],
   lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'reminder_sent'],
@@ -23,6 +23,7 @@ function addMissingColumnsSafely() {
     { name: 'name',             ddl: 'TEXT' },
     { name: 'email',            ddl: 'TEXT' },
     { name: 'password_hash',    ddl: 'TEXT' },
+    { name: 'student_id',       ddl: 'TEXT' },
     { name: 'phone_number',     ddl: 'TEXT' },
     { name: 'telegram_chat_id', ddl: 'TEXT' },
     { name: 'created_at',       ddl: "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP" },
@@ -81,6 +82,7 @@ function createFreshDatabase() {
       name TEXT,
       email TEXT UNIQUE,
       password_hash TEXT,
+      student_id TEXT,
       phone_number TEXT UNIQUE,
       telegram_chat_id TEXT UNIQUE,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
