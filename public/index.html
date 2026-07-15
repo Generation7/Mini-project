@@ -379,15 +379,36 @@
     <h1>Acadia</h1>
     <p>Your AI Academic Assistant</p>
 
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="logo">🎓</div>
+    <h1>Acadia</h1>
+    <p>Your AI Academic Assistant</p>
+
     <!-- LOGIN FORM -->
     <div id="loginForm">
       <input type="email" id="loginEmail" placeholder="Email address" />
       <input type="password" id="loginPassword" placeholder="Password" />
       <button class="btn" onclick="doLogin()">Log In</button>
       <p style="margin-top:12px;font-size:13px">
-        New here? <a href="#" onclick="toggleAuthForm(event)">Create an account</a>
+        New here? <a href="#" onclick="toggleAuthForm(event)" style="color:#a78bfa">Create an account</a>
       </p>
     </div>
+
+    <!-- REGISTER FORM -->
+    <div id="registerForm" style="display:none">
+      <input type="text" id="regName" placeholder="Your name" />
+      <input type="email" id="regEmail" placeholder="Email address" />
+      <input type="tel" id="regPhone" placeholder="Phone number (optional)" />
+      <input type="password" id="regPassword" placeholder="Password (min 8 characters)" />
+      <button class="btn" onclick="doRegister()">Create Account</button>
+      <p style="margin-top:12px;font-size:13px">
+        Already have an account? <a href="#" onclick="toggleAuthForm(event)" style="color:#a78bfa">Log in</a>
+      </p>
+    </div>
+  </div>
+</div>
 
     <!-- REGISTER FORM -->
     <div id="registerForm" style="display:none">
