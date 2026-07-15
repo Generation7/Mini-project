@@ -587,8 +587,8 @@
       showToast('Error logging in', true);
     }
   }
-async function copyCalendarLink() {
-  try {
+    async function copyCalendarLink() {
+    try {
     const res = await authFetch(`${API}/calendar/link`);
     const data = await res.json();
     if (!data.success) {
