@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const whatsappRoutes = require('./routes/whatsappRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
 const examRoutes = require('./routes/examRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
 
 const app = express();
