@@ -60,6 +60,22 @@ function findByTelegramChatId(chatId) {
 function getAllUsersWithTelegram() {
   return db.select().from(users).where(isNotNull(users.telegramChatId)).all();
 }
+
+function findByCalendarToken(token) {
+  if (!token) return undefined;
+  return db.select().from(users).where(eq(users.calendarToken, token)).get();
+}
+
+function getOrCreateCalendarToken(userId) {
+  const user = findById(userId);
+  if (!user) return null;
+  if (user.calendarToken) return user.calendarToken;
+
+  const token = require('crypto').randomBytes(24).toString('hex');
+  db.update(users).set({ calendarToken: token }).where(eq(users.id, Number(userId))).run();
+  return token;
+}
+
 module.exports = {
   findById,
   findByPhoneNumber,

@@ -19,13 +19,14 @@ function getTableColumns(tableName) {
 }
 
 function addMissingColumnsSafely() {
-  const newUserColumns = [
+const newUserColumns = [
     { name: 'name',             ddl: 'TEXT' },
     { name: 'email',            ddl: 'TEXT' },
     { name: 'password_hash',    ddl: 'TEXT' },
     { name: 'student_id',       ddl: 'TEXT' },
     { name: 'phone_number',     ddl: 'TEXT' },
     { name: 'telegram_chat_id', ddl: 'TEXT' },
+    { name: 'calendar_token',   ddl: 'TEXT' },
     { name: 'created_at',       ddl: "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP" },
   ];
 
@@ -85,6 +86,7 @@ function createFreshDatabase() {
       student_id TEXT,
       phone_number TEXT UNIQUE,
       telegram_chat_id TEXT UNIQUE,
+      calendar_token TEXT UNIQUE,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
