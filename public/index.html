@@ -587,7 +587,20 @@
       showToast('Error logging in', true);
     }
   }
-
+async function copyCalendarLink() {
+  try {
+    const res = await authFetch(`${API}/calendar/link`);
+    const data = await res.json();
+    if (!data.success) {
+      showToast('Could not get calendar link', true);
+      return;
+    }
+    await navigator.clipboard.writeText(data.feedUrl);
+    showToast('Calendar link copied! Paste it into Google/Apple Calendar as a subscription URL.');
+  } catch (err) {
+    showToast('Error getting calendar link', true);
+  }
+}
   function logout() {
     localStorage.removeItem('acadiaToken');
     localStorage.removeItem('acadiaUser');
