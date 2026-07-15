@@ -1,5 +1,4 @@
-const { eq } = require('drizzle-orm');
-const { isNotNull } = require('drizzle-orm/expressions');
+const { eq, isNotNull } = require('drizzle-orm');
 const { db } = require('../db/client');
 const users = require('../models/userModel');
 const { hashPassword } = require('../utils/auth');
