@@ -87,4 +87,6 @@ module.exports = {
   saveTelegramChatId,
   findByTelegramChatId,
   getAllUsersWithTelegram,
+  findByCalendarToken,
+  getOrCreateCalendarToken,
 };
