@@ -113,7 +113,25 @@ function checkExamReminders() {
     logger.error('Exam reminder error', { error: err.message });
   }
 }
+function sendWeeklyDigests() {
+  try {
+    if (!bot) return;
 
+    const usersWithTelegram = userService.getAllUsersWithTelegram();
+
+    for (const user of usersWithTelegram) {
+      const digest = weeklyDigestService.buildWeeklyDigest(user.id);
+      if (!digest) continue;
+
+      bot.sendMessage(user.telegramChatId, digest, { parse_mode: 'Markdown' })
+        .catch(err => logger.error('Weekly digest send failed', { userId: user.id, error: err.message }));
+    }
+
+    logger.info('Weekly digest run completed', { userCount: usersWithTelegram.length });
+  } catch (err) {
+    logger.error('Weekly digest error', { error: err.message });
+  }
+}
 function startScheduler(botInstance) {
   if (botInstance) bot = botInstance;
 
