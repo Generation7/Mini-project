@@ -8,6 +8,8 @@ const requiredColumns = {
   reminders: ['id', 'lecture_id', 'event_id', 'reminder_date', 'created_at'],
   assignments: ['id', 'user_id', 'course_code', 'title', 'due_date', 'due_time', 'status', 'created_at'],
   exams: ['id', 'user_id', 'course_code', 'exam_date', 'exam_time', 'venue', 'status', 'created_at'],
+  courses: ['id', 'user_id', 'course_code', 'course_name', 'credit_hours', 'score', 'academic_year', 'semester', 'created_at'],
+};
 };
 
 function getTableColumns(tableName) {
