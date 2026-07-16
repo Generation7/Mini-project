@@ -10,7 +10,6 @@ const requiredColumns = {
   exams: ['id', 'user_id', 'course_code', 'exam_date', 'exam_time', 'venue', 'status', 'created_at'],
   courses: ['id', 'user_id', 'course_code', 'course_name', 'credit_hours', 'score', 'academic_year', 'semester', 'created_at'],
 };
-};
 
 function getTableColumns(tableName) {
   try {
@@ -151,6 +150,19 @@ function createFreshDatabase() {
       exam_time TEXT NOT NULL DEFAULT '08:00',
       venue TEXT,
       status TEXT NOT NULL DEFAULT 'upcoming',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS courses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      course_code TEXT NOT NULL,
+      course_name TEXT,
+      credit_hours INTEGER NOT NULL,
+      score TEXT NOT NULL,
+      academic_year TEXT,
+      semester TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
