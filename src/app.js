@@ -1,6 +1,3 @@
-Here is the updated `app.js` file with the new course routes imported and registered exactly as requested:
-
-```javascript
 const express = require('express');
 const path = require('path');
 const healthRoutes = require('./routes/healthRoutes');
@@ -37,5 +34,3 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 module.exports = app;
-
-```
