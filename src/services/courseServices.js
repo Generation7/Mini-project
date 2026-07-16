@@ -51,9 +51,6 @@ function deleteCourse(userId, courseId) {
   return existing;
 }
 
-// Computes the KNUST-style Cumulative Weighted Average:
-// CWA = (sum of score * creditHours) / (sum of creditHours)
-// Also breaks the result down per academic year / semester for a transcript view.
 function calculateCwa(userId) {
   const userCourses = getCoursesByUserId(userId);
 
@@ -68,7 +65,6 @@ function calculateCwa(userId) {
   const totalWeightedMarks = withGrades.reduce((sum, c) => sum + c.weightedMark, 0);
   const cwa = totalCredits > 0 ? totalWeightedMarks / totalCredits : 0;
 
-  // Group by academicYear + semester for a per-term breakdown
   const groups = {};
   withGrades.forEach(c => {
     const key = `${c.academicYear || 'Unspecified'} — Semester ${c.semester || '?'}`;
