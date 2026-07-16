@@ -7,11 +7,86 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      --bg: #0f0f1a;
+      --bg-gradient-start: #0f0f1a;
+      --bg-gradient-end: #1a1a2e;
+      --surface: #1e1e2e;
+      --surface-border: #2a2a3e;
+      --input-bg: #2a2a3e;
+      --input-border: #3a3a4e;
+      --text: #e0e0e0;
+      --text-muted: #888;
+      --accent: #6c63ff;
+      --accent-light: #a78bfa;
+      --accent-gradient: linear-gradient(135deg, #6c63ff, #a78bfa);
+      --badge-purple-bg: #2d2450;
+      --badge-purple-text: #a78bfa;
+      --badge-green-bg: #1a3a2a;
+      --badge-green-text: #4ade80;
+      --badge-red-bg: #3a1a1a;
+      --badge-red-text: #fa8b8b;
+      --badge-yellow-bg: #3a3a1a;
+      --badge-yellow-text: #fbbf24;
+      --shadow: rgba(0,0,0,0.5);
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f5fb;
+      --bg-gradient-start: #f4f5fb;
+      --bg-gradient-end: #e9eaf7;
+      --surface: #ffffff;
+      --surface-border: #e2e2ef;
+      --input-bg: #f4f5fb;
+      --input-border: #d8d9ea;
+      --text: #232336;
+      --text-muted: #6b6b80;
+      --accent: #6c63ff;
+      --accent-light: #7c5cf0;
+      --accent-gradient: linear-gradient(135deg, #6c63ff, #8b7cf6);
+      --badge-purple-bg: #ece9ff;
+      --badge-purple-text: #6c46d1;
+      --badge-green-bg: #dcfce7;
+      --badge-green-text: #16a34a;
+      --badge-red-bg: #fee2e2;
+      --badge-red-text: #dc2626;
+      --badge-yellow-bg: #fef9c3;
+      --badge-yellow-text: #a16207;
+      --shadow: rgba(0,0,0,0.12);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #f4f5fb;
+        --bg-gradient-start: #f4f5fb;
+        --bg-gradient-end: #e9eaf7;
+        --surface: #ffffff;
+        --surface-border: #e2e2ef;
+        --input-bg: #f4f5fb;
+        --input-border: #d8d9ea;
+        --text: #232336;
+        --text-muted: #6b6b80;
+        --accent: #6c63ff;
+        --accent-light: #7c5cf0;
+        --accent-gradient: linear-gradient(135deg, #6c63ff, #8b7cf6);
+        --badge-purple-bg: #ece9ff;
+        --badge-purple-text: #6c46d1;
+        --badge-green-bg: #dcfce7;
+        --badge-green-text: #16a34a;
+        --badge-red-bg: #fee2e2;
+        --badge-red-text: #dc2626;
+        --badge-yellow-bg: #fef9c3;
+        --badge-yellow-text: #a16207;
+        --shadow: rgba(0,0,0,0.12);
+      }
+    }
+
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #0f0f1a;
-      color: #e0e0e0;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+      transition: background 0.2s, color 0.2s;
     }
 
     #loginPage {
@@ -20,18 +95,18 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #0f0f1a, #1a1a2e);
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
     }
 
     .login-card {
-      background: #1e1e2e;
+      background: var(--surface);
       border-radius: 20px;
       padding: 40px;
       width: 90%;
       max-width: 400px;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      border: 1px solid #2a2a3e;
+      box-shadow: 0 20px 60px var(--shadow);
+      border: 1px solid var(--surface-border);
     }
 
     .logo { font-size: 48px; margin-bottom: 10px; }
@@ -39,7 +114,7 @@
     .login-card h1 {
       font-size: 28px;
       font-weight: 700;
-      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      background: var(--accent-gradient);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -47,7 +122,7 @@
     }
 
     .login-card > p {
-      color: #888;
+      color: var(--text-muted);
       margin-bottom: 30px;
       font-size: 14px;
     }
@@ -55,22 +130,22 @@
     input {
       width: 100%;
       padding: 14px 16px;
-      background: #2a2a3e;
-      border: 1px solid #3a3a4e;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
       border-radius: 10px;
-      color: #e0e0e0;
+      color: var(--text);
       font-size: 15px;
       margin-bottom: 12px;
       outline: none;
       transition: border-color 0.2s;
     }
 
-    input:focus { border-color: #6c63ff; }
+    input:focus { border-color: var(--accent); }
 
     .btn {
       width: 100%;
       padding: 14px;
-      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      background: var(--accent-gradient);
       border: none;
       border-radius: 10px;
       color: white;
@@ -105,12 +180,12 @@
     #dashboard { display: none; }
 
     .topbar {
-      background: #1e1e2e;
+      background: var(--surface);
       padding: 16px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid #2a2a3e;
+      border-bottom: 1px solid var(--surface-border);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -125,38 +200,54 @@
     .topbar h1 {
       font-size: 22px;
       font-weight: 700;
-      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      background: var(--accent-gradient);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .user-badge {
-      background: #2a2a3e;
+      background: var(--input-bg);
       padding: 6px 14px;
       border-radius: 20px;
       font-size: 13px;
-      color: #a78bfa;
+      color: var(--accent-light);
     }
 
     .logout-btn {
-      background: #2a2a3e;
+      background: var(--input-bg);
       border: none;
-      color: #888;
+      color: var(--text-muted);
       padding: 8px 16px;
       border-radius: 8px;
       cursor: pointer;
       font-size: 13px;
     }
 
-    .logout-btn:hover { color: #e0e0e0; }
+    .logout-btn:hover { color: var(--text); }
+
+    .theme-toggle {
+      background: var(--input-bg);
+      border: none;
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-toggle:hover { opacity: 0.8; }
 
     .tabs {
       display: flex;
       gap: 4px;
       padding: 16px 24px 0;
-      border-bottom: 1px solid #2a2a3e;
-      background: #1e1e2e;
+      border-bottom: 1px solid var(--surface-border);
+      background: var(--surface);
     }
 
     .tab {
@@ -164,19 +255,19 @@
       border-radius: 10px 10px 0 0;
       cursor: pointer;
       font-size: 14px;
-      color: #888;
+      color: var(--text-muted);
       border: none;
       background: transparent;
       transition: all 0.2s;
     }
 
     .tab.active {
-      background: #2a2a3e;
-      color: #a78bfa;
+      background: var(--input-bg);
+      color: var(--accent-light);
       font-weight: 600;
     }
 
-    .tab:hover:not(.active) { color: #e0e0e0; }
+    .tab:hover:not(.active) { color: var(--text); }
 
     .content {
       padding: 24px;
@@ -200,11 +291,11 @@
     }
 
     .card {
-      background: #1e1e2e;
+      background: var(--surface);
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 12px;
-      border: 1px solid #2a2a3e;
+      border: 1px solid var(--surface-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -216,13 +307,13 @@
     .card-title {
       font-size: 16px;
       font-weight: 600;
-      color: #e0e0e0;
+      color: var(--text);
       margin-bottom: 4px;
     }
 
     .card-subtitle {
       font-size: 13px;
-      color: #888;
+      color: var(--text-muted);
     }
 
     .card-badge {
@@ -232,26 +323,26 @@
       font-weight: 600;
     }
 
-    .badge-purple { background: #2d2450; color: #a78bfa; }
-    .badge-green { background: #1a3a2a; color: #4ade80; }
-    .badge-red { background: #3a1a1a; color: #fa8b8b; }
-    .badge-yellow { background: #3a3a1a; color: #fbbf24; }
+    .badge-purple { background: var(--badge-purple-bg); color: var(--badge-purple-text); }
+    .badge-green { background: var(--badge-green-bg); color: var(--badge-green-text); }
+    .badge-red { background: var(--badge-red-bg); color: var(--badge-red-text); }
+    .badge-yellow { background: var(--badge-yellow-bg); color: var(--badge-yellow-text); }
 
     .card-actions { display: flex; gap: 8px; }
 
     .form-card {
-      background: #1e1e2e;
+      background: var(--surface);
       border-radius: 14px;
       padding: 24px;
       margin-bottom: 24px;
-      border: 1px solid #2a2a3e;
+      border: 1px solid var(--surface-border);
     }
 
     .form-card h3 {
       font-size: 16px;
       font-weight: 600;
       margin-bottom: 16px;
-      color: #a78bfa;
+      color: var(--accent-light);
     }
 
     .form-row {
@@ -264,15 +355,15 @@
     select {
       width: 100%;
       padding: 14px 16px;
-      background: #2a2a3e;
-      border: 1px solid #3a3a4e;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
       border-radius: 10px;
-      color: #e0e0e0;
+      color: var(--text);
       font-size: 15px;
       outline: none;
     }
 
-    select:focus { border-color: #6c63ff; }
+    select:focus { border-color: var(--accent); }
 
     .summary-grid {
       display: grid;
@@ -282,45 +373,45 @@
     }
 
     .summary-card {
-      background: #1e1e2e;
+      background: var(--surface);
       border-radius: 14px;
       padding: 20px;
-      border: 1px solid #2a2a3e;
+      border: 1px solid var(--surface-border);
     }
 
     .summary-card h3 {
       font-size: 14px;
-      color: #888;
+      color: var(--text-muted);
       margin-bottom: 8px;
     }
 
     .summary-card .count {
       font-size: 36px;
       font-weight: 700;
-      color: #a78bfa;
+      color: var(--accent-light);
     }
 
     .empty-state {
       text-align: center;
       padding: 40px;
-      color: #888;
+      color: var(--text-muted);
       font-size: 15px;
     }
 
     .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
 
     .day-lectures {
-      background: #1e1e2e;
+      background: var(--surface);
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 12px;
-      border: 1px solid #2a2a3e;
+      border: 1px solid var(--surface-border);
     }
 
     .day-title {
       font-size: 15px;
       font-weight: 600;
-      color: #a78bfa;
+      color: var(--accent-light);
       margin-bottom: 12px;
     }
 
@@ -329,14 +420,14 @@
       align-items: center;
       gap: 12px;
       padding: 8px 0;
-      border-bottom: 1px solid #2a2a3e;
+      border-bottom: 1px solid var(--surface-border);
     }
 
     .lecture-item:last-child { border-bottom: none; }
 
     .lecture-time {
       font-size: 13px;
-      color: #888;
+      color: var(--text-muted);
       min-width: 50px;
     }
 
@@ -368,6 +459,7 @@
 
 <!-- LOGIN PAGE -->
 <div id="loginPage">
+  <button class="theme-toggle" id="loginThemeToggle" onclick="toggleTheme()" style="position:fixed;top:20px;right:20px" title="Toggle theme">🌙</button>
   <div class="login-card">
     <div class="logo">🎓</div>
     <h1>Acadia</h1>
@@ -377,8 +469,8 @@
       <input type="email" id="loginEmail" placeholder="Email address" />
       <input type="password" id="loginPassword" placeholder="Password" />
       <button class="btn" onclick="doLogin()">Log In</button>
-      <p style="margin-top:12px;font-size:13px;color:#888">
-        New here? <a href="#" onclick="toggleAuthForm(event)" style="color:#a78bfa">Create an account</a>
+      <p style="margin-top:12px;font-size:13px;color:var(--text-muted)">
+        New here? <a href="#" onclick="toggleAuthForm(event)" style="color:var(--accent-light)">Create an account</a>
       </p>
     </div>
 
@@ -388,8 +480,8 @@
       <input type="tel" id="regPhone" placeholder="Phone number (optional)" />
       <input type="password" id="regPassword" placeholder="Password (min 8 characters)" />
       <button class="btn" onclick="doRegister()">Create Account</button>
-      <p style="margin-top:12px;font-size:13px;color:#888">
-        Already have an account? <a href="#" onclick="toggleAuthForm(event)" style="color:#a78bfa">Log in</a>
+      <p style="margin-top:12px;font-size:13px;color:var(--text-muted)">
+        Already have an account? <a href="#" onclick="toggleAuthForm(event)" style="color:var(--accent-light)">Log in</a>
       </p>
     </div>
   </div>
@@ -404,12 +496,12 @@
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <span class="user-badge" id="userBadge"></span>
-      <button class="logout-btn" onclick="copyCalendarLink()" style="background:#4f46e5">📅 Calendar</button>
+      <button class="theme-toggle" id="dashboardThemeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <button class="logout-btn" onclick="copyCalendarLink()" style="background:#4f46e5;color:#fff">📅 Calendar</button>
       <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
   </div>
 
-  <div class="tabs">
   <div class="tabs">
     <button class="tab active" onclick="showTab('today', event)">☀️ Today</button>
     <button class="tab" onclick="showTab('lectures', event)">📚 Lectures</button>
@@ -511,6 +603,33 @@
   let currentUser = null;
   let authToken = null;
 
+  function applyThemeIcon() {
+    const explicit = localStorage.getItem('acadiaTheme');
+    const isDark = explicit ? explicit === 'dark' : !window.matchMedia('(prefers-color-scheme: light)').matches;
+    const icon = isDark ? '☀️' : '🌙';
+    const loginBtn = document.getElementById('loginThemeToggle');
+    const dashBtn = document.getElementById('dashboardThemeToggle');
+    if (loginBtn) loginBtn.textContent = icon;
+    if (dashBtn) dashBtn.textContent = icon;
+  }
+
+  function initTheme() {
+    const saved = localStorage.getItem('acadiaTheme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+    applyThemeIcon();
+  }
+
+  function toggleTheme() {
+    const current = localStorage.getItem('acadiaTheme') ||
+      (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    const next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('acadiaTheme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    applyThemeIcon();
+  }
+
+  initTheme();
+
   window.onload = () => {
     const savedToken = localStorage.getItem('acadiaToken');
     const savedUser = localStorage.getItem('acadiaUser');
@@ -589,20 +708,22 @@
       showToast('Error logging in', true);
     }
   }
-    async function copyCalendarLink() {
+
+  async function copyCalendarLink() {
     try {
-    const res = await authFetch(`${API}/calendar/link`);
-    const data = await res.json();
-    if (!data.success) {
-      showToast('Could not get calendar link', true);
-      return;
+      const res = await authFetch(`${API}/calendar/link`);
+      const data = await res.json();
+      if (!data.success) {
+        showToast('Could not get calendar link', true);
+        return;
+      }
+      await navigator.clipboard.writeText(data.feedUrl);
+      showToast('Calendar link copied! Paste it into Google/Apple Calendar as a subscription URL.');
+    } catch (err) {
+      showToast('Error getting calendar link', true);
     }
-    await navigator.clipboard.writeText(data.feedUrl);
-    showToast('Calendar link copied! Paste it into Google/Apple Calendar as a subscription URL.');
-  } catch (err) {
-    showToast('Error getting calendar link', true);
   }
-}
+
   function logout() {
     localStorage.removeItem('acadiaToken');
     localStorage.removeItem('acadiaUser');
@@ -631,7 +752,6 @@
     loadToday();
   }
 
-  // LECTURES
   async function loadLectures() {
     try {
       const res = await authFetch(`${API}/lectures`);
@@ -696,7 +816,6 @@
     } catch (err) { showToast('Error removing lecture', true); }
   }
 
-  // ASSIGNMENTS
   async function loadAssignments() {
     try {
       const res = await authFetch(`${API}/assignments`);
@@ -777,7 +896,6 @@
     } catch (err) { showToast('Error removing assignment', true); }
   }
 
-  // EXAMS
   async function loadExams() {
     try {
       const res = await authFetch(`${API}/exams`);
@@ -858,7 +976,6 @@
     } catch (err) { showToast('Error removing exam', true); }
   }
 
-  // TODAY SUMMARY
   function loadToday() {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const today = days[new Date().getDay()];
