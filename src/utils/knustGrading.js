@@ -1,5 +1,3 @@
-// KNUST-style letter grade bands (for display only — CWA itself is the raw
-// credit-weighted percentage average, not a converted letter/point scale).
 const LETTER_BANDS = [
   { min: 80, letter: 'A+' },
   { min: 75, letter: 'A' },
@@ -21,7 +19,6 @@ function scoreToLetter(score) {
   return 'F';
 }
 
-// KNUST degree classification bands, based on final CWA.
 const CLASS_BANDS = [
   { min: 70, label: 'First Class' },
   { min: 60, label: 'Second Class Upper' },
