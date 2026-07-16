@@ -457,7 +457,6 @@
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
 <div id="loginPage">
   <button class="theme-toggle" id="loginThemeToggle" onclick="toggleTheme()" style="position:fixed;top:20px;right:20px" title="Toggle theme">🌙</button>
   <div class="login-card">
@@ -487,7 +486,6 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard">
   <div class="topbar">
     <div class="topbar-left">
@@ -507,11 +505,11 @@
     <button class="tab" onclick="showTab('lectures', event)">📚 Lectures</button>
     <button class="tab" onclick="showTab('assignments', event)">📝 Assignments</button>
     <button class="tab" onclick="showTab('exams', event)">🎓 Exams</button>
+    <button class="tab" onclick="showTab('cwa', event)">📊 CWA</button>
   </div>
 
   <div class="content">
 
-    <!-- TODAY -->
     <div class="section active" id="todaySection">
       <div class="summary-grid">
         <div class="summary-card">
@@ -532,7 +530,6 @@
       <div id="todayExams"></div>
     </div>
 
-    <!-- LECTURES -->
     <div class="section" id="lecturesSection">
       <div class="form-card">
         <h3>➕ Add Lecture</h3>
@@ -557,7 +554,6 @@
       <div id="lecturesList"></div>
     </div>
 
-    <!-- ASSIGNMENTS -->
     <div class="section" id="assignmentsSection">
       <div class="form-card">
         <h3>➕ Add Assignment</h3>
@@ -575,7 +571,6 @@
       <div id="assignmentsList"></div>
     </div>
 
-    <!-- EXAMS -->
     <div class="section" id="examsSection">
       <div class="form-card">
         <h3>➕ Add Exam</h3>
@@ -591,6 +586,43 @@
         <h2>🎓 Upcoming Exams</h2>
       </div>
       <div id="examsList"></div>
+    </div>
+
+    <div class="section" id="cwaSection">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <h3>Current CWA</h3>
+          <div class="count" id="cwaValue">--</div>
+        </div>
+        <div class="summary-card">
+          <h3>Classification</h3>
+          <div class="count" id="cwaClassification" style="font-size:18px">--</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total Credits</h3>
+          <div class="count" id="cwaCredits">0</div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>➕ Add Course Grade</h3>
+        <div class="form-row">
+          <input type="text" id="cCourseCode" placeholder="Course code (e.g. BT 151)" />
+          <input type="text" id="cCourseName" placeholder="Course name (optional)" />
+          <input type="number" id="cCreditHours" placeholder="Credit hours" min="1" step="1" />
+          <input type="number" id="cScore" placeholder="Score (0-100)" min="0" max="100" step="0.1" />
+        </div>
+        <div class="form-row">
+          <input type="text" id="cAcademicYear" placeholder="Academic year (e.g. 2023/2024)" />
+          <input type="text" id="cSemester" placeholder="Semester (e.g. 1)" />
+        </div>
+        <button class="btn btn-small" onclick="addCourse()">Add Course</button>
+      </div>
+
+      <div class="section-header">
+        <h2>📊 Grade Breakdown</h2>
+      </div>
+      <div id="cwaBreakdown"></div>
     </div>
 
   </div>
@@ -748,7 +780,7 @@
   }
 
   async function loadAll() {
-    await Promise.all([loadLectures(), loadAssignments(), loadExams()]);
+    await Promise.all([loadLectures(), loadAssignments(), loadExams(), loadCwa()]);
     loadToday();
   }
 
@@ -974,6 +1006,77 @@
       showToast('Exam removed!');
       loadExams();
     } catch (err) { showToast('Error removing exam', true); }
+  }
+
+  async function loadCwa() {
+    try {
+      const res = await authFetch(`${API}/courses/cwa`);
+      const data = await res.json();
+
+      document.getElementById('cwaValue').textContent = data.cwa != null ? data.cwa.toFixed(2) : '--';
+      document.getElementById('cwaClassification').textContent = data.classification || '--';
+      document.getElementById('cwaCredits').textContent = data.totalCredits || 0;
+
+      const container = document.getElementById('cwaBreakdown');
+      const breakdown = data.breakdown || [];
+
+      if (!breakdown.length) {
+        container.innerHTML = '<div class="empty-state"><div class="emoji">📊</div>No courses added yet. Add your first grade above!</div>';
+        return;
+      }
+
+      container.innerHTML = breakdown.map(term => `
+        <div class="day-lectures">
+          <div class="day-title">${term.label} — CWA: ${term.cwa.toFixed(2)} (${term.credits} credits)</div>
+          ${term.courses.map(c => `
+            <div class="card">
+              <div class="card-info">
+                <div class="card-title">${c.courseCode}${c.courseName ? ' — ' + c.courseName : ''}</div>
+                <div class="card-subtitle">${c.creditHours} credit hour${c.creditHours === 1 ? '' : 's'} • Score: ${c.score} • Grade: ${c.letter}</div>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-danger" onclick="deleteCourse(${c.id})">Remove</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
+    } catch (err) { console.error(err); }
+  }
+
+  async function addCourse() {
+    const courseCode = document.getElementById('cCourseCode').value.trim();
+    const courseName = document.getElementById('cCourseName').value.trim();
+    const creditHours = document.getElementById('cCreditHours').value;
+    const score = document.getElementById('cScore').value;
+    const academicYear = document.getElementById('cAcademicYear').value.trim();
+    const semester = document.getElementById('cSemester').value.trim();
+
+    if (!courseCode || !creditHours || score === '') return showToast('Please fill in course code, credit hours and score', true);
+
+    try {
+      await authFetch(`${API}/courses`, {
+        method: 'POST',
+        body: JSON.stringify({ courseCode, courseName, creditHours, score, academicYear, semester })
+      });
+      showToast('Course added!');
+      document.getElementById('cCourseCode').value = '';
+      document.getElementById('cCourseName').value = '';
+      document.getElementById('cCreditHours').value = '';
+      document.getElementById('cScore').value = '';
+      document.getElementById('cAcademicYear').value = '';
+      document.getElementById('cSemester').value = '';
+      loadCwa();
+    } catch (err) { showToast('Error adding course', true); }
+  }
+
+  async function deleteCourse(id) {
+    if (!confirm('Remove this course?')) return;
+    try {
+      await authFetch(`${API}/courses/${id}`, { method: 'DELETE' });
+      showToast('Course removed!');
+      loadCwa();
+    } catch (err) { showToast('Error removing course', true); }
   }
 
   function loadToday() {
