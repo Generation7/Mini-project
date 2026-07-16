@@ -58,15 +58,16 @@ const assignments = sqliteTable('assignments', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-const exams = sqliteTable('exams', {
+const courses = sqliteTable('courses', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id),
   courseCode: text('course_code').notNull(),
-  examDate: text('exam_date').notNull(),
-  examTime: text('exam_time').notNull().default('08:00'),
-  venue: text('venue'),
-  status: text('status').notNull().default('upcoming'),
+  courseName: text('course_name'),
+  creditHours: integer('credit_hours').notNull(),
+  score: text('score').notNull(),
+  academicYear: text('academic_year'),
+  semester: text('semester'),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-module.exports = { users, rules, events, lectures, reminders, assignments, exams };
+module.exports = { users, rules, events, lectures, reminders, assignments, exams, courses };
