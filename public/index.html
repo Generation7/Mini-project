@@ -23,6 +23,11 @@
       --accent-light: #d8dce3;
       --accent-gradient: linear-gradient(135deg, #d8dce3, #f0f1f3);
       --btn-gradient: linear-gradient(135deg, #3b4252, #556074);
+      --brand: #2dd4bf;
+      --brand-light: #5eead4;
+      --brand-dark: #14b8a6;
+      --brand-gradient: linear-gradient(135deg, #0f766e, #2dd4bf);
+      --brand-bg: #0f2b28;
       --badge-purple-bg: #23262e;
       --badge-purple-text: #b4b8c2;
       --badge-green-bg: #16281e;
@@ -48,6 +53,11 @@
       --accent-light: #334155;
       --accent-gradient: linear-gradient(135deg, #334155, #64748b);
       --btn-gradient: linear-gradient(135deg, #334155, #64748b);
+      --brand: #0d9488;
+      --brand-light: #14b8a6;
+      --brand-dark: #0f766e;
+      --brand-gradient: linear-gradient(135deg, #0f766e, #14b8a6);
+      --brand-bg: #ecfdf9;
       --badge-purple-bg: #f1f5f9;
       --badge-purple-text: #475569;
       --badge-green-bg: #dcfce7;
@@ -74,6 +84,11 @@
         --accent-light: #334155;
         --accent-gradient: linear-gradient(135deg, #334155, #64748b);
         --btn-gradient: linear-gradient(135deg, #334155, #64748b);
+        --brand: #0d9488;
+        --brand-light: #14b8a6;
+        --brand-dark: #0f766e;
+        --brand-gradient: linear-gradient(135deg, #0f766e, #14b8a6);
+        --brand-bg: #ecfdf9;
         --badge-purple-bg: #f1f5f9;
         --badge-purple-text: #475569;
         --badge-green-bg: #dcfce7;
@@ -184,12 +199,12 @@
       transition: border-color 0.2s;
     }
 
-    input:focus { border-color: var(--accent); }
+    input:focus { border-color: var(--brand); }
 
     .btn {
       width: 100%;
       padding: 14px;
-      background: var(--btn-gradient);
+      background: var(--brand-gradient);
       border: none;
       border-radius: 10px;
       color: white;
@@ -342,8 +357,9 @@
 
     .tab.active {
       background: var(--input-bg);
-      color: var(--accent-light);
+      color: var(--brand-light);
       font-weight: 600;
+      box-shadow: inset 3px 0 0 var(--brand);
     }
 
     .tab:hover:not(.active) { color: var(--text); }
@@ -494,7 +510,7 @@
     .summary-card .count {
       font-size: 36px;
       font-weight: 700;
-      color: var(--accent-light);
+      color: var(--brand-light);
     }
 
     .empty-state {
@@ -576,7 +592,7 @@
       <input type="password" id="loginPassword" placeholder="Password" />
       <button class="btn" onclick="doLogin()">Log In</button>
       <p style="margin-top:12px;font-size:13px;color:var(--text-muted)">
-        New here? <a href="#" onclick="toggleAuthForm(event)" style="color:var(--accent-light)">Create an account</a>
+        New here? <a href="#" onclick="toggleAuthForm(event)" style="color:var(--brand-light)">Create an account</a>
       </p>
     </div>
 
@@ -587,7 +603,7 @@
       <input type="password" id="regPassword" placeholder="Password (min 8 characters)" />
       <button class="btn" onclick="doRegister()">Create Account</button>
       <p style="margin-top:12px;font-size:13px;color:var(--text-muted)">
-        Already have an account? <a href="#" onclick="toggleAuthForm(event)" style="color:var(--accent-light)">Log in</a>
+        Already have an account? <a href="#" onclick="toggleAuthForm(event)" style="color:var(--brand-light)">Log in</a>
       </p>
     </div>
   </div>
@@ -602,7 +618,7 @@
     <div style="display:flex;align-items:center;gap:12px">
       <span class="user-badge" id="userBadge"></span>
       <button class="theme-toggle" id="dashboardThemeToggle" onclick="toggleTheme()" title="Toggle theme"><i data-lucide="moon" class="icon" width="16" height="16"></i></button>
-      <button class="logout-btn" onclick="copyCalendarLink()" style="background:#334155;color:#fff"><i data-lucide="calendar" class="icon" width="14" height="14"></i> Calendar</button>
+      <button class="logout-btn" onclick="copyCalendarLink()" style="background:var(--brand-dark);color:#fff"><i data-lucide="calendar" class="icon" width="14" height="14"></i> Calendar</button>
       <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
   </div>
