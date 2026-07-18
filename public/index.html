@@ -118,21 +118,25 @@
 
     #loginLogo {
       opacity: 0;
-      transform: translateY(-24px);
-      animation: logoSlideFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      transform: translateY(-32px);
+      animation: logoSlideFadeIn 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
     .topbar-left img {
       opacity: 0;
-      animation: logoFadeIn 0.6s ease-out 0.15s forwards;
+      animation: logoFadeIn 1.4s ease-out 0.2s forwards;
     }
 
     @keyframes logoSlideFadeIn {
-      from {
+      0% {
         opacity: 0;
-        transform: translateY(-24px);
+        transform: translateY(-32px);
       }
-      to {
+      60% {
+        opacity: 0.7;
+        transform: translateY(-6px);
+      }
+      100% {
         opacity: 1;
         transform: translateY(0);
       }
