@@ -116,6 +116,41 @@
 
     .logo { font-size: 48px; margin-bottom: 10px; }
 
+    #loginLogo {
+      opacity: 0;
+      transform: translateY(-24px);
+      animation: logoSlideFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .topbar-left img {
+      opacity: 0;
+      animation: logoFadeIn 0.6s ease-out 0.15s forwards;
+    }
+
+    @keyframes logoSlideFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes logoFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #loginLogo, .topbar-left img {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+    }
+
     .login-card h1 {
       font-size: 28px;
       font-weight: 700;
