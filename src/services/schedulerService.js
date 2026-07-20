@@ -22,6 +22,7 @@ function checkAssignmentReminders() {
     for (const assignment of pendingAssignments) {
       const assignmentUser = userService.findById(assignment.userId);
       if (!assignmentUser?.telegram_chat_id) continue;
+      if (assignmentUser.remindersEnabled === false) continue;
 
       const dueTime = assignment.due_time || '23:59';
       const dueDateTime = new Date(`${assignment.dueDate}T${dueTime}:00`);
@@ -68,6 +69,7 @@ function checkExamReminders() {
     for (const exam of upcomingExams) {
       const examUser = userService.findById(exam.userId);
       if (!examUser?.telegram_chat_id) continue;
+      if (examUser.remindersEnabled === false) continue;
 
       const examTime = exam.exam_time || exam.examTime || '08:00';
       const examDateTime = new Date(`${exam.examDate}T${examTime}:00`);
@@ -120,6 +122,8 @@ function sendWeeklyDigests() {
     const usersWithTelegram = userService.getAllUsersWithTelegram();
 
     for (const user of usersWithTelegram) {
+      if (user.weeklyDigestEnabled === false) continue;
+
       const digest = weeklyDigestService.buildWeeklyDigest(user.id);
       if (!digest) continue;
 

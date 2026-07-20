@@ -11,6 +11,7 @@ const assignmentRoutes = require('./routes/assignmentRoutes');
 const examRoutes = require('./routes/examRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const courseRoutes = require('./routes/courseRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
 const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/assignments', assignmentRoutes);
 app.use('/exams', examRoutes);
 app.use('/calendar', calendarRoutes);
 app.use('/courses', courseRoutes);
+app.use('/settings', settingsRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
