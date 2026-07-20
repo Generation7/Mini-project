@@ -76,6 +76,36 @@ function getOrCreateCalendarToken(userId) {
   return token;
 }
 
+function updateProfile(userId, { name, email, studentId }) {
+  const patch = {};
+  if (name !== undefined) patch.name = name;
+  if (email !== undefined) patch.email = email.toLowerCase();
+  if (studentId !== undefined) patch.studentId = studentId;
+
+  db.update(users).set(patch).where(eq(users.id, Number(userId))).run();
+  return findById(userId);
+}
+
+async function updatePassword(userId, newPassword) {
+  const passwordHash = await hashPassword(newPassword);
+  db.update(users).set({ passwordHash }).where(eq(users.id, Number(userId))).run();
+}
+
+function updateNotificationSettings(userId, { weeklyDigestEnabled, dailySummaryEnabled, remindersEnabled, reminderLeadMinutes }) {
+  const patch = {};
+  if (weeklyDigestEnabled !== undefined) patch.weeklyDigestEnabled = !!weeklyDigestEnabled;
+  if (dailySummaryEnabled !== undefined) patch.dailySummaryEnabled = !!dailySummaryEnabled;
+  if (remindersEnabled !== undefined) patch.remindersEnabled = !!remindersEnabled;
+  if (reminderLeadMinutes !== undefined) patch.reminderLeadMinutes = Number(reminderLeadMinutes);
+
+  db.update(users).set(patch).where(eq(users.id, Number(userId))).run();
+  return findById(userId);
+}
+
+function deleteAccount(userId) {
+  db.delete(users).where(eq(users.id, Number(userId))).run();
+}
+
 module.exports = {
   findById,
   findByPhoneNumber,
@@ -89,4 +119,8 @@ module.exports = {
   getAllUsersWithTelegram,
   findByCalendarToken,
   getOrCreateCalendarToken,
+  updateProfile,
+  updatePassword,
+  updateNotificationSettings,
+  deleteAccount,
 };
