@@ -1,7 +1,7 @@
 const { sqlite } = require('./client');
 
 const requiredColumns = {
-  users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'calendar_token', 'created_at'],
+  users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'calendar_token', 'weekly_digest_enabled', 'daily_summary_enabled', 'reminders_enabled', 'reminder_lead_minutes', 'created_at'],
   rules: ['id', 'user_id', 'trigger', 'condition', 'action', 'created_at'],
   events: ['id', 'type', 'data', 'created_at'],
   lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'reminder_sent'],
@@ -28,6 +28,10 @@ const newUserColumns = [
     { name: 'phone_number',     ddl: 'TEXT' },
     { name: 'telegram_chat_id', ddl: 'TEXT' },
     { name: 'calendar_token',   ddl: 'TEXT' },
+    { name: 'weekly_digest_enabled',  ddl: 'INTEGER NOT NULL DEFAULT 1' },
+    { name: 'daily_summary_enabled',  ddl: 'INTEGER NOT NULL DEFAULT 1' },
+    { name: 'reminders_enabled',      ddl: 'INTEGER NOT NULL DEFAULT 1' },
+    { name: 'reminder_lead_minutes',  ddl: 'INTEGER NOT NULL DEFAULT 60' },
     { name: 'created_at',       ddl: "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP" },
   ];
 
@@ -88,6 +92,10 @@ function createFreshDatabase() {
       phone_number TEXT UNIQUE,
       telegram_chat_id TEXT UNIQUE,
       calendar_token TEXT UNIQUE,
+      weekly_digest_enabled INTEGER NOT NULL DEFAULT 1,
+      daily_summary_enabled INTEGER NOT NULL DEFAULT 1,
+      reminders_enabled INTEGER NOT NULL DEFAULT 1,
+      reminder_lead_minutes INTEGER NOT NULL DEFAULT 60,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
