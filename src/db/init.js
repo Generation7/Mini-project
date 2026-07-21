@@ -1,7 +1,7 @@
 const { sqlite } = require('./client');
 
 const requiredColumns = {
-  users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'calendar_token', 'weekly_digest_enabled', 'daily_summary_enabled', 'reminders_enabled', 'reminder_lead_minutes', 'created_at'],
+  users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'telegram_link_token', 'telegram_link_token_expires_at', 'calendar_token', 'weekly_digest_enabled', 'daily_summary_enabled', 'reminders_enabled', 'reminder_lead_minutes', 'created_at'],
   rules: ['id', 'user_id', 'trigger', 'condition', 'action', 'created_at'],
   events: ['id', 'type', 'data', 'created_at'],
   lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'reminder_sent'],
@@ -27,6 +27,8 @@ const newUserColumns = [
     { name: 'student_id',       ddl: 'TEXT' },
     { name: 'phone_number',     ddl: 'TEXT' },
     { name: 'telegram_chat_id', ddl: 'TEXT' },
+    { name: 'telegram_link_token', ddl: 'TEXT' },
+    { name: 'telegram_link_token_expires_at', ddl: 'TEXT' },
     { name: 'calendar_token',   ddl: 'TEXT' },
     { name: 'weekly_digest_enabled',  ddl: 'INTEGER NOT NULL DEFAULT 1' },
     { name: 'daily_summary_enabled',  ddl: 'INTEGER NOT NULL DEFAULT 1' },
@@ -62,6 +64,7 @@ const newUserColumns = [
   try {
     sqlite.exec(`CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email) WHERE email IS NOT NULL`);
     sqlite.exec(`CREATE UNIQUE INDEX IF NOT EXISTS users_telegram_unique ON users(telegram_chat_id) WHERE telegram_chat_id IS NOT NULL`);
+    sqlite.exec(`CREATE UNIQUE INDEX IF NOT EXISTS users_telegram_link_token_unique ON users(telegram_link_token) WHERE telegram_link_token IS NOT NULL`);
   } catch (err) {
     console.log('Index note:', err.message);
   }
@@ -91,6 +94,8 @@ function createFreshDatabase() {
       student_id TEXT,
       phone_number TEXT UNIQUE,
       telegram_chat_id TEXT UNIQUE,
+      telegram_link_token TEXT UNIQUE,
+      telegram_link_token_expires_at TEXT,
       calendar_token TEXT UNIQUE,
       weekly_digest_enabled INTEGER NOT NULL DEFAULT 1,
       daily_summary_enabled INTEGER NOT NULL DEFAULT 1,
