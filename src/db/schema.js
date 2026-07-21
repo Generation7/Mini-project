@@ -9,6 +9,8 @@ const users = sqliteTable('users', {
   studentId: text('student_id'),
   phoneNumber: text('phone_number').unique(),
   telegramChatId: text('telegram_chat_id').unique(),
+  telegramLinkToken: text('telegram_link_token').unique(),
+  telegramLinkTokenExpiresAt: text('telegram_link_token_expires_at'),
   calendarToken: text('calendar_token').unique(),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });

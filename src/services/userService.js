@@ -61,6 +61,50 @@ function getAllUsersWithTelegram() {
   return db.select().from(users).where(isNotNull(users.telegramChatId)).all();
 }
 
+const TELEGRAM_LINK_TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function createTelegramLinkToken(userId) {
+  const token = require('crypto').randomBytes(16).toString('hex');
+  const expiresAt = new Date(Date.now() + TELEGRAM_LINK_TOKEN_TTL_MS).toISOString();
+
+  db.update(users)
+    .set({ telegramLinkToken: token, telegramLinkTokenExpiresAt: expiresAt })
+    .where(eq(users.id, Number(userId)))
+    .run();
+
+  return token;
+}
+
+function findByValidTelegramLinkToken(token) {
+  if (!token) return undefined;
+  const user = db.select().from(users).where(eq(users.telegramLinkToken, token)).get();
+  if (!user) return undefined;
+  if (!user.telegramLinkTokenExpiresAt || new Date(user.telegramLinkTokenExpiresAt).getTime() < Date.now()) {
+    return undefined;
+  }
+  return user;
+}
+
+function linkTelegramChatId(userId, chatId) {
+  db.update(users)
+    .set({
+      telegramChatId: String(chatId),
+      telegramLinkToken: null,
+      telegramLinkTokenExpiresAt: null,
+    })
+    .where(eq(users.id, Number(userId)))
+    .run();
+  return findById(userId);
+}
+
+function unlinkTelegramChatId(userId) {
+  db.update(users)
+    .set({ telegramChatId: null })
+    .where(eq(users.id, Number(userId)))
+    .run();
+  return findById(userId);
+}
+
 function findByCalendarToken(token) {
   if (!token) return undefined;
   return db.select().from(users).where(eq(users.calendarToken, token)).get();
@@ -117,6 +161,10 @@ module.exports = {
   saveTelegramChatId,
   findByTelegramChatId,
   getAllUsersWithTelegram,
+  createTelegramLinkToken,
+  findByValidTelegramLinkToken,
+  linkTelegramChatId,
+  unlinkTelegramChatId,
   findByCalendarToken,
   getOrCreateCalendarToken,
   updateProfile,
