@@ -9,7 +9,7 @@ const logger = require('../utils/logger');
 let bot;
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-async function processMessage(chatId, userMessage) {
+async function processMessage(chatId, userMessage, user) {
   try {
     const completion = await groq.chat.completions.create({
       messages: [
@@ -72,7 +72,6 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
 
     try {
       const parsed = JSON.parse(textResponse);
-      const user = userService.findOrCreateByPhoneNumber(chatId.toString());
       if (!user) return "Sorry, I'm having trouble accessing your account. Please try again.";
 
       switch (parsed.action) {
@@ -188,21 +187,53 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
 function startTelegramBot() {
   bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
-  bot.onText(/\/start/, (msg) => {
-    const name = msg.from.first_name || 'Student';
+  bot.onText(/\/start(?:\s+(.+))?/, (msg, match) => {
     const chatId = msg.chat.id;
-    const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-    userService.saveTelegramChatId(user.id, chatId);
-    bot.sendMessage(chatId,
-      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant!\n\nI can help you with:\n📚 Lecture timetable\n📝 Assignment tracking\n🎓 Exam reminders\n⏰ Smart notifications\n\nJust talk to me naturally or send a photo of your timetable!`,
+    const name = msg.from.first_name || 'Student';
+    const token = match && match[1] ? match[1].trim() : null;
+
+    if (token) {
+      const user = userService.findByValidTelegramLinkToken(token);
+      if (!user) {
+        return bot.sendMessage(chatId,
+          `⚠️ That connection link has expired or is invalid. Please go back to the Acadia dashboard and click "Connect Telegram" again to get a fresh link.`
+        );
+      }
+      userService.linkTelegramChatId(user.id, chatId);
+      return bot.sendMessage(chatId,
+        `✅ Connected! Hi ${user.name || name}, your Telegram is now linked to your Acadia account.\n\nI can help you with:\n📚 Lecture timetable\n📝 Assignment tracking\n🎓 Exam reminders\n⏰ Smart notifications\n\nJust talk to me naturally or send a photo of your timetable!`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    const existing = userService.findByTelegramChatId(chatId);
+    if (existing) {
+      return bot.sendMessage(chatId,
+        `👋 Welcome back, ${existing.name || name}! Your account is already connected. Just talk to me naturally or send a photo of your timetable!`
+      );
+    }
+
+    return bot.sendMessage(chatId,
+      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant.\n\nTo get started, please connect your Telegram to your Acadia account:\n1️⃣ Log in to the Acadia dashboard\n2️⃣ Go to Settings\n3️⃣ Tap "Connect Telegram"\n\nThat'll bring you right back here, all linked up!`,
       { parse_mode: 'Markdown' }
     );
   });
 
+  function requireLinkedUser(chatId) {
+    const user = userService.findByTelegramChatId(chatId);
+    if (!user) {
+      bot.sendMessage(chatId,
+        `🔒 Your Telegram isn't connected to an Acadia account yet.\n\nPlease log in to the Acadia dashboard, go to Settings, and tap "Connect Telegram" to link your account.`
+      );
+      return null;
+    }
+    return user;
+  }
+
   bot.on('photo', async (msg) => {
     const chatId = msg.chat.id;
-    const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-    userService.saveTelegramChatId(user.id, chatId);
+    const user = requireLinkedUser(chatId);
+    if (!user) return;
 
     try {
       await bot.sendChatAction(chatId, 'typing');
@@ -283,12 +314,12 @@ Be thorough - check every single cell in the timetable carefully.`
   bot.on('message', async (msg) => {
     if (!msg.text || msg.text.startsWith('/')) return;
     const chatId = msg.chat.id;
-    const user = userService.findOrCreateByPhoneNumber(chatId.toString());
-    userService.saveTelegramChatId(user.id, chatId);
+    const user = requireLinkedUser(chatId);
+    if (!user) return;
     console.log('Received message:', msg.text);
     try {
       await bot.sendChatAction(chatId, 'typing');
-      const textResponse = await processMessage(chatId, msg.text);
+      const textResponse = await processMessage(chatId, msg.text, user);
       await bot.sendMessage(chatId, textResponse, { parse_mode: 'Markdown' }).catch(() => {
         bot.sendMessage(chatId, textResponse);
       });
