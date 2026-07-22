@@ -1233,6 +1233,7 @@
     document.getElementById('setDailySummary').checked = currentUser.dailySummaryEnabled !== false;
     document.getElementById('setReminders').checked = currentUser.remindersEnabled !== false;
     document.getElementById('setReminderLead').value = currentUser.reminderLeadMinutes ?? 60;
+    loadTelegramStatus();
   }
 
   function persistCurrentUser(user) {
@@ -1317,6 +1318,74 @@
       logout();
     } catch (err) {
       showToast('Error deleting account', true);
+    }
+  }
+
+  let telegramConnected = false;
+
+  async function loadTelegramStatus() {
+    const label = document.getElementById('telegramStatusLabel');
+    const btn = document.getElementById('telegramActionBtn');
+    if (!label || !btn) return;
+    try {
+      const res = await authFetch(`${API}/telegram/status`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      telegramConnected = !!data.connected;
+      renderTelegramButton();
+    } catch (err) {
+      label.textContent = 'Could not check status';
+    }
+  }
+
+  function renderTelegramButton() {
+    const label = document.getElementById('telegramStatusLabel');
+    const btn = document.getElementById('telegramActionBtn');
+    if (telegramConnected) {
+      label.textContent = 'Connected';
+      btn.innerHTML = '<i data-lucide="unlink" class="icon" width="14" height="14"></i> Disconnect';
+    } else {
+      label.textContent = 'Not connected';
+      btn.innerHTML = '<i data-lucide="send" class="icon" width="14" height="14"></i> Connect Telegram';
+    }
+    renderIcons();
+  }
+
+  async function handleTelegramAction() {
+    if (telegramConnected) return disconnectTelegram();
+    return connectTelegram();
+  }
+
+  async function connectTelegram() {
+    const btn = document.getElementById('telegramActionBtn');
+    btn.disabled = true;
+    try {
+      const res = await authFetch(`${API}/telegram/link-token`, { method: 'POST' });
+      const data = await res.json();
+      if (!data.success) {
+        showToast(data.message || 'Could not generate Telegram link', true);
+        return;
+      }
+      window.open(data.deepLink, '_blank');
+      showToast('Opening Telegram — finish linking there, then come back and refresh');
+    } catch (err) {
+      showToast('Error connecting to Telegram', true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function disconnectTelegram() {
+    if (!confirm('Disconnect Telegram from your Acadia account?')) return;
+    try {
+      const res = await authFetch(`${API}/telegram/link`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!data.success) return showToast(data.message || 'Could not disconnect', true);
+      telegramConnected = false;
+      renderTelegramButton();
+      showToast('Telegram disconnected');
+    } catch (err) {
+      showToast('Error disconnecting Telegram', true);
     }
   }
 
