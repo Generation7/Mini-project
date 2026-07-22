@@ -243,9 +243,6 @@ function startTelegramBot() {
       const file = await bot.getFile(fileId);
       const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
 
-      const caption = msg.caption || '';
-      const group = caption.toLowerCase().includes('2') ? '2' : '1';
-
       const visionCompletion = await groq.chat.completions.create({
         messages: [
           {
@@ -253,18 +250,19 @@ function startTelegramBot() {
             content: [
               {
                 type: 'text',
-                text: `This is a KNUST B.Sc Computer Science timetable. Each day has TWO rows - top row is Group 1, bottom row is Group 2. Some classes span both rows (joint classes for ALL LECTURERS).
+                text: `This is a university lecture timetable. It may be laid out in different ways (rows, columns, a grid with days and time slots, etc).
 
-Extract EVERY lecture for Group ${group} by going through each day and each period carefully:
-- Include top row (Group 1) entries
-- Include any entry labeled "ALL LECTURERS" or with no group label (joint classes)
-- Skip bottom row (Group 2) entries only
+Go through the entire image carefully and extract EVERY lecture you can find, regardless of layout or grouping. Do not skip any entries and do not filter by group, cohort, or section — include all of them.
 
-Return ONLY a JSON array with no explanation:
+For each lecture, capture:
+- courseCode (or course name if no code is shown)
+- lectureDay (the day of the week)
+- lectureTime (in 24-hour HH:MM format, using the start time of the slot)
+
+Return ONLY a JSON array with no explanation, for example:
 [{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"10:30"},...]
 
-Period to time mapping:
-1=08:00, 2=09:00, 3=10:30, 4=11:30, 5=13:00, 6=14:00, 7=15:00, 8=16:00, 9=17:00, 10=18:00
+If the timetable uses named time windows (e.g. "10:30 AM - 12:30 PM"), use the start time converted to 24-hour format (e.g. "10:30").
 
 Be thorough - check every single cell in the timetable carefully.`
               },
@@ -275,7 +273,7 @@ Be thorough - check every single cell in the timetable carefully.`
             ]
           }
         ],
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: 'qwen/qwen3.6-27b',
       });
 
       const visionResponse = visionCompletion.choices[0]?.message?.content?.trim();
