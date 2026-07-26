@@ -4,11 +4,9 @@ const app = require('./app');
 const env = require('./config/env');
 const logger = require('./utils/logger');
 const { startScheduler, setBotInstance } = require('./services/schedulerService');
-const { startWhatsAppWeb } = require('./services/whatsappWebService');
 const { startTelegramBot } = require('./services/telegramService');
 const { setTelegramBot } = require('./services/actionService');
 
-//startWhatsAppWeb();
 startScheduler();
 const bot = startTelegramBot();
 if (bot) {
