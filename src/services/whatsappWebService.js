@@ -20,8 +20,7 @@ function startWhatsAppWeb() {
   client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-      headless: false,
-      executablePath: 'C:\\Users\\Hon. EUGENE\\.cache\\puppeteer\\chrome\\win64-125.0.6422.141\\chrome-win64\\chrome.exe',
+      headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
