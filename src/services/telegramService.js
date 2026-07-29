@@ -5,9 +5,21 @@ const userService = require('./userService');
 const assignmentService = require('./assignmentService');
 const examService = require('./examService');
 const logger = require('../utils/logger');
+const { sendMessageWithRetry, withTelegramRetry } = require('../utils/telegramRetry');
 
 let bot;
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+// Best-effort typing indicator - not worth retrying, it's just a UI nicety
+// and the flaky network case is already covered by the retried sendMessage
+// call that follows it.
+async function safeSendChatAction(chatId, action) {
+  try {
+    await bot.sendChatAction(chatId, action);
+  } catch (err) {
+    console.warn(`sendChatAction(chat ${chatId}) failed, continuing anyway: ${err.message}`);
+  }
+}
 
 async function processMessage(chatId, userMessage, user) {
   try {
@@ -187,44 +199,55 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
 function startTelegramBot() {
   bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
-  bot.onText(/\/start(?:\s+(.+))?/, (msg, match) => {
+  bot.onText(/\/start(?:\s+(.+))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const name = msg.from.first_name || 'Student';
     const token = match && match[1] ? match[1].trim() : null;
 
-    if (token) {
-      const user = userService.findByValidTelegramLinkToken(token);
-      if (!user) {
-        return bot.sendMessage(chatId,
-          `⚠️ That connection link has expired or is invalid. Please go back to the Acadia dashboard and click "Connect Telegram" again to get a fresh link.`
+    try {
+      if (token) {
+        const user = userService.findByValidTelegramLinkToken(token);
+        if (!user) {
+          return await sendMessageWithRetry(bot, chatId,
+            `⚠️ That connection link has expired or is invalid. Please go back to the Acadia dashboard and click "Connect Telegram" again to get a fresh link.`
+          );
+        }
+        userService.linkTelegramChatId(user.id, chatId);
+        return await sendMessageWithRetry(bot, chatId,
+          `✅ Connected! Hi ${user.name || name}, your Telegram is now linked to your Acadia account.\n\nI can help you with:\n📚 Lecture timetable\n📝 Assignment tracking\n🎓 Exam reminders\n⏰ Smart notifications\n\nJust talk to me naturally or send a photo of your timetable!`,
+          { parse_mode: 'Markdown' }
         );
       }
-      userService.linkTelegramChatId(user.id, chatId);
-      return bot.sendMessage(chatId,
-        `✅ Connected! Hi ${user.name || name}, your Telegram is now linked to your Acadia account.\n\nI can help you with:\n📚 Lecture timetable\n📝 Assignment tracking\n🎓 Exam reminders\n⏰ Smart notifications\n\nJust talk to me naturally or send a photo of your timetable!`,
+
+      const existing = userService.findByTelegramChatId(chatId);
+      if (existing) {
+        return await sendMessageWithRetry(bot, chatId,
+          `👋 Welcome back, ${existing.name || name}! Your account is already connected. Just talk to me naturally or send a photo of your timetable!`
+        );
+      }
+
+      return await sendMessageWithRetry(bot, chatId,
+        `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant.\n\nTo get started, please connect your Telegram to your Acadia account:\n1️⃣ Log in to the Acadia dashboard\n2️⃣ Go to Settings\n3️⃣ Tap "Connect Telegram"\n\nThat'll bring you right back here, all linked up!`,
         { parse_mode: 'Markdown' }
       );
+    } catch (err) {
+      // Every retry attempt has already been exhausted (or the error was a
+      // genuine Telegram rejection) by the time we get here - just log it,
+      // there's nothing more this handler can do for that outgoing message.
+      logger.error(`/start handler failed for chat ${chatId}: ${err.message}`);
     }
-
-    const existing = userService.findByTelegramChatId(chatId);
-    if (existing) {
-      return bot.sendMessage(chatId,
-        `👋 Welcome back, ${existing.name || name}! Your account is already connected. Just talk to me naturally or send a photo of your timetable!`
-      );
-    }
-
-    return bot.sendMessage(chatId,
-      `👋 Hi ${name}! I'm *Acadia*, your AI academic assistant.\n\nTo get started, please connect your Telegram to your Acadia account:\n1️⃣ Log in to the Acadia dashboard\n2️⃣ Go to Settings\n3️⃣ Tap "Connect Telegram"\n\nThat'll bring you right back here, all linked up!`,
-      { parse_mode: 'Markdown' }
-    );
   });
 
-  function requireLinkedUser(chatId) {
+  async function requireLinkedUser(chatId) {
     const user = userService.findByTelegramChatId(chatId);
     if (!user) {
-      bot.sendMessage(chatId,
-        `🔒 Your Telegram isn't connected to an Acadia account yet.\n\nPlease log in to the Acadia dashboard, go to Settings, and tap "Connect Telegram" to link your account.`
-      );
+      try {
+        await sendMessageWithRetry(bot, chatId,
+          `🔒 Your Telegram isn't connected to an Acadia account yet.\n\nPlease log in to the Acadia dashboard, go to Settings, and tap "Connect Telegram" to link your account.`
+        );
+      } catch (err) {
+        logger.error(`requireLinkedUser notice failed for chat ${chatId}: ${err.message}`);
+      }
       return null;
     }
     return user;
@@ -232,15 +255,15 @@ function startTelegramBot() {
 
   bot.on('photo', async (msg) => {
     const chatId = msg.chat.id;
-    const user = requireLinkedUser(chatId);
+    const user = await requireLinkedUser(chatId);
     if (!user) return;
 
     try {
-      await bot.sendChatAction(chatId, 'typing');
-      await bot.sendMessage(chatId, "📸 Got your timetable! Let me read it...");
+      await safeSendChatAction(chatId, 'typing');
+      await sendMessageWithRetry(bot, chatId, "📸 Got your timetable! Let me read it...");
 
       const fileId = msg.photo[msg.photo.length - 1].file_id;
-      const file = await bot.getFile(fileId);
+      const file = await withTelegramRetry(() => bot.getFile(fileId), { label: `getFile(chat ${chatId})` });
       const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
 
       const visionCompletion = await groq.chat.completions.create({
@@ -281,7 +304,7 @@ Be thorough - check every single cell in the timetable carefully.`
 
       const jsonMatch = visionResponse.match(/\[[\s\S]*\]/);
       if (!jsonMatch) {
-        return bot.sendMessage(chatId, "Sorry, I couldn't read the timetable clearly. Try a clearer photo!");
+        return await sendMessageWithRetry(bot, chatId, "Sorry, I couldn't read the timetable clearly. Try a clearer photo!");
       }
 
       const lecturesList = JSON.parse(jsonMatch[0]);
@@ -298,32 +321,50 @@ Be thorough - check every single cell in the timetable carefully.`
         if (result.created) added++;
       }
 
-      bot.sendMessage(chatId,
+      await sendMessageWithRetry(bot, chatId,
         `✅ Done! I found *${lecturesList.length}* lectures and added *${added}* new ones to your timetable!\n\nSend "What lectures do I have?" to see them all.`,
         { parse_mode: 'Markdown' }
       );
 
     } catch (err) {
       console.error('Photo error:', err.message);
-      bot.sendMessage(chatId, "Sorry, I had trouble reading that image. Please try again!");
+      try {
+        await sendMessageWithRetry(bot, chatId, "Sorry, I had trouble reading that image. Please try again!");
+      } catch (sendErr) {
+        logger.error(`Photo error notice failed for chat ${chatId}: ${sendErr.message}`);
+      }
     }
   });
 
   bot.on('message', async (msg) => {
     if (!msg.text || msg.text.startsWith('/')) return;
     const chatId = msg.chat.id;
-    const user = requireLinkedUser(chatId);
+    const user = await requireLinkedUser(chatId);
     if (!user) return;
     console.log('Received message:', msg.text);
     try {
-      await bot.sendChatAction(chatId, 'typing');
+      await safeSendChatAction(chatId, 'typing');
       const textResponse = await processMessage(chatId, msg.text, user);
-      await bot.sendMessage(chatId, textResponse, { parse_mode: 'Markdown' }).catch(() => {
-        bot.sendMessage(chatId, textResponse);
-      });
+      try {
+        await sendMessageWithRetry(bot, chatId, textResponse, { parse_mode: 'Markdown' });
+      } catch (err) {
+        // Markdown parse failures come back from Telegram immediately
+        // (non-retryable, err.response is set) - fall back to plain text.
+        // Genuine network failures already exhausted their retries above,
+        // so this second attempt is specifically for the markdown case.
+        if (err.response) {
+          await sendMessageWithRetry(bot, chatId, textResponse);
+        } else {
+          throw err;
+        }
+      }
     } catch (err) {
       console.error('Bot error:', err.message);
-      bot.sendMessage(chatId, "Sorry, I ran into an issue. Please try again!");
+      try {
+        await sendMessageWithRetry(bot, chatId, "Sorry, I ran into an issue. Please try again!");
+      } catch (sendErr) {
+        logger.error(`Error notice failed for chat ${chatId}: ${sendErr.message}`);
+      }
     }
   });
 
