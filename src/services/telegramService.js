@@ -78,6 +78,17 @@ When a student says they completed/finished an exam, respond with ONLY this JSON
 When a student wants to delete/remove an exam, respond with ONLY this JSON:
 {"action":"DELETE_EXAM","courseCode":"X"}
 
+When a student clearly and explicitly asks to clear/delete/remove ALL of their lectures or timetable, respond with ONLY this JSON:
+{"action":"CLEAR_LECTURES"}
+
+When a student clearly and explicitly asks to clear/delete/remove ALL of their assignments, respond with ONLY this JSON:
+{"action":"CLEAR_ASSIGNMENTS"}
+
+When a student clearly and explicitly asks to clear/delete/remove ALL of their exams, respond with ONLY this JSON:
+{"action":"CLEAR_EXAMS"}
+
+The three CLEAR actions above are destructive and cannot be undone by you, so only use them when the student has been unambiguous about wanting everything gone (words like "all", "everything", "clear my X"). If a request is vague (e.g. just "clear things"), do NOT return a CLEAR action — instead reply in plain English asking exactly what they'd like cleared (lectures, assignments, or exams).
+
 For everything else, reply normally in plain friendly English.
 Today's date is ${todayDate}.`
         },
@@ -201,6 +212,27 @@ Today's date is ${todayDate}.`
           const exam = examService.deleteExam(user.id, parsed.courseCode);
           if (!exam) return `❌ I couldn't find an exam for *${parsed.courseCode}*.`;
           return `🗑️ Removed the *${parsed.courseCode}* exam.`;
+        }
+
+        case 'CLEAR_LECTURES': {
+          const allLectures = lectureService.getLecturesByUserId(user.id);
+          if (!allLectures.length) return "You don't have any lectures to clear.";
+          allLectures.forEach(l => lectureService.deleteLecture(l.id));
+          return `🗑️ Cleared *${allLectures.length}* lecture${allLectures.length === 1 ? '' : 's'} from your timetable.`;
+        }
+
+        case 'CLEAR_ASSIGNMENTS': {
+          const pending = assignmentService.getPendingAssignments(user.id);
+          if (!pending.length) return "You don't have any pending assignments to clear.";
+          pending.forEach(a => assignmentService.deleteAssignment(user.id, a.courseCode));
+          return `🗑️ Cleared *${pending.length}* assignment${pending.length === 1 ? '' : 's'}.`;
+        }
+
+        case 'CLEAR_EXAMS': {
+          const upcoming = examService.getUpcomingExams(user.id);
+          if (!upcoming.length) return "You don't have any upcoming exams to clear.";
+          upcoming.forEach(e => examService.deleteExam(user.id, e.courseCode));
+          return `🗑️ Cleared *${upcoming.length}* exam${upcoming.length === 1 ? '' : 's'}.`;
         }
       }
     } catch (e) {
