@@ -23,6 +23,12 @@ async function safeSendChatAction(chatId, action) {
 
 async function processMessage(chatId, userMessage, user) {
   try {
+    const now = new Date();
+    const todayDate = now.toISOString().slice(0, 10);
+    const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayWeekday = weekdayNames[now.getDay()];
+    const tomorrowWeekday = weekdayNames[(now.getDay() + 1) % 7];
+
     const completion = await groq.chat.completions.create({
       messages: [
         {
@@ -39,8 +45,12 @@ When a student wants to DELETE/REMOVE a lecture, respond with ONLY this JSON:
 When a student wants to EDIT/UPDATE/CHANGE a lecture time or day, respond with ONLY this JSON:
 {"action":"EDIT_LECTURE","courseCode":"X","oldLectureDay":"X","newLectureDay":"X","newLectureTime":"HH:MM"}
 
-When a student asks about their lectures or timetable, respond with ONLY:
+When a student asks about their lectures or timetable for ALL days, respond with ONLY:
 {"action":"LIST_LECTURES"}
+
+When a student asks about their lectures for a SPECIFIC day (e.g. "today", "tomorrow", "Monday", "what do I have on Wednesday"), respond with ONLY this JSON, using the actual weekday name (never the words "today"/"tomorrow" themselves):
+{"action":"LIST_LECTURES","day":"Monday"}
+Today is ${todayWeekday} (${todayDate}). Tomorrow is ${tomorrowWeekday}. Resolve relative day references against this before responding.
 
 When a student mentions an assignment or homework due on a date/time, respond with ONLY this JSON:
 {"action":"ADD_ASSIGNMENT","courseCode":"X","title":"X","dueDate":"YYYY-MM-DD","dueTime":"HH:MM"}
@@ -69,7 +79,7 @@ When a student wants to delete/remove an exam, respond with ONLY this JSON:
 {"action":"DELETE_EXAM","courseCode":"X"}
 
 For everything else, reply normally in plain friendly English.
-Today's date is ${new Date().toISOString().slice(0, 10)}.`
+Today's date is ${todayDate}.`
         },
         {
           role: 'user',
@@ -122,8 +132,16 @@ Today's date is ${new Date().toISOString().slice(0, 10)}.`
 
         case 'LIST_LECTURES': {
           const lectures = lectureService.getLecturesByUserId(user.id);
+          const day = parsed.day ? parsed.day.trim() : null;
+          const filtered = day
+            ? lectures.filter(l => l.lectureDay.toLowerCase() === day.toLowerCase())
+            : lectures;
+
           if (!lectures.length) return "You have no lectures yet. Send me a photo of your timetable!";
-          return `📚 *Your Lectures:*\n${lectures.map(l => `• ${l.courseCode} - ${l.lectureDay} at ${l.lectureTime}`).join('\n')}`;
+          if (day && !filtered.length) return `You have no lectures on *${day}*.`;
+
+          const label = day ? `📚 *Your Lectures on ${day}:*` : `📚 *Your Lectures:*`;
+          return `${label}\n${filtered.map(l => `• ${l.courseCode} - ${l.lectureDay} at ${l.lectureTime}`).join('\n')}`;
         }
 
         case 'ADD_ASSIGNMENT': {
