@@ -1,4 +1,5 @@
 const userService = require('./userService');
+const { sendMessageWithRetry } = require('../utils/telegramRetry');
 
 let telegramBot = null;
 
@@ -12,7 +13,7 @@ async function sendRuleNotification(action) {
 
   if (telegramBot && user.telegramChatId) {
     try {
-      await telegramBot.sendMessage(user.telegramChatId, `Rule notification: ${action.action.type}`);
+      await sendMessageWithRetry(telegramBot, user.telegramChatId, `Rule notification: ${action.action.type}`);
       return { sent: true };
     } catch (err) {
       console.error('Telegram rule notification error:', err.message);
@@ -29,7 +30,7 @@ async function sendLectureReminder(event) {
 
   if (telegramBot && user?.telegramChatId) {
     try {
-      await telegramBot.sendMessage(user.telegramChatId, message, { parse_mode: 'Markdown' });
+      await sendMessageWithRetry(telegramBot, user.telegramChatId, message, { parse_mode: 'Markdown' });
     } catch (err) {
       console.error('Telegram lecture reminder error:', err.message);
     }
