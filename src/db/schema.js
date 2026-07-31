@@ -83,4 +83,16 @@ const courses = sqliteTable('courses', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-module.exports = { users, rules, events, lectures, reminders, assignments, exams, courses };
+// Stores rolling Telegram chat history per user so the bot can hold context
+// across messages (previously every message was sent to Groq in isolation).
+// Pruned down to a fixed number of most-recent rows per user by
+// conversationService, so this does not grow unbounded.
+const conversationMessages = sqliteTable('conversation_messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  role: text('role').notNull(), // 'user' | 'assistant'
+  content: text('content').notNull(),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+module.exports = { users, rules, events, lectures, reminders, assignments, exams, courses, conversationMessages };
