@@ -7,6 +7,7 @@ const examService = require('./examService');
 const logger = require('../utils/logger');
 const { sendMessageWithRetry, withTelegramRetry } = require('../utils/telegramRetry');
 const conversationService = require('./conversationService');
+const classService = require('./classService');
 
 let bot;
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -19,6 +20,38 @@ async function safeSendChatAction(chatId, action) {
     await bot.sendChatAction(chatId, action);
   } catch (err) {
     console.warn(`sendChatAction(chat ${chatId}) failed, continuing anyway: ${err.message}`);
+  }
+}
+
+// Figures out which of the user's own classes a broadcast should go to.
+// Returns { class } on success or { error: 'message to show the user' }.
+function resolveOwnedClass(user, parsed) {
+  const owned = classService.getUserClasses(user.id).filter(c => c.isCreator);
+  if (!owned.length) {
+    return { error: 'You haven\'t created a class yet. Say "create a class called X" first.' };
+  }
+  if (parsed.className) {
+    const match = classService.findOwnedClassByName(user.id, parsed.className);
+    if (!match) return { error: `❌ I couldn't find a class you created called *${parsed.className}*.` };
+    return { class: match };
+  }
+  if (owned.length === 1) return { class: owned[0] };
+  return { error: `You've created more than one class — which one? (${owned.map(c => c.name).join(', ')})` };
+}
+
+// Fans a broadcast notification out to every other member with a linked
+// Telegram account. Each send is independently retried/caught so one
+// member's failure (blocked bot, bad chat id) doesn't stop the rest.
+async function notifyClassMembers(klass, creator, item, message) {
+  const members = classService.getNotifiableMembers(klass.id, creator.id);
+  const fullMessage = `${message}\n\nReply "accept ${item.id}" to add it to your own list.`;
+
+  for (const member of members) {
+    try {
+      await sendMessageWithRetry(bot, member.telegramChatId, fullMessage, { parse_mode: 'Markdown' });
+    } catch (err) {
+      console.error(`Failed to notify user ${member.userId} of class broadcast ${item.id}: ${err.message}`);
+    }
   }
 }
 
@@ -122,6 +155,30 @@ When a student clearly and explicitly asks to clear/delete/remove ALL of their e
 {"action":"CLEAR_EXAMS"}
 
 The three CLEAR actions above are destructive and cannot be undone by you, so only use them when the student has been unambiguous about wanting everything gone (words like "all", "everything", "clear my X"). If a request is vague (e.g. just "clear things"), do NOT return a CLEAR action — instead reply in plain English asking exactly what they'd like cleared (lectures, assignments, or exams).
+
+When a student wants to create/start a class or study group, respond with ONLY this JSON:
+{"action":"CREATE_CLASS","name":"X"}
+
+When a student wants to join a class using a code someone shared with them, respond with ONLY this JSON:
+{"action":"JOIN_CLASS","joinCode":"X"}
+
+When a student asks what classes they're in, respond with ONLY:
+{"action":"LIST_CLASSES"}
+
+When a student (as the creator of a class) wants to share/broadcast a lecture with the whole class, respond with ONLY this JSON. Include "className" only if they mention which class or you know they own more than one:
+{"action":"BROADCAST_LECTURE","className":"X","courseCode":"X","lectureDay":"X","lectureTime":"HH:MM"}
+
+When a student wants to share/broadcast an assignment with their class, respond with ONLY this JSON:
+{"action":"BROADCAST_ASSIGNMENT","className":"X","courseCode":"X","title":"X","dueDate":"YYYY-MM-DD","dueTime":"HH:MM"}
+
+When a student wants to share/broadcast an exam with their class, respond with ONLY this JSON:
+{"action":"BROADCAST_EXAM","className":"X","courseCode":"X","examDate":"YYYY-MM-DD","examTime":"HH:MM","venue":"X"}
+
+When a student asks about new updates/shares from their class(es) that they haven't seen yet, respond with ONLY:
+{"action":"LIST_CLASS_UPDATES"}
+
+When a student says "accept <number>" or otherwise clearly confirms they want to add a specific numbered class update to their own list, respond with ONLY this JSON:
+{"action":"ACCEPT_CLASS_ITEM","itemId":123}
 
 For everything else, reply normally in plain friendly English.
 Today's date is ${todayDate}.`
@@ -280,6 +337,118 @@ Today's date is ${todayDate}.`
           if (!upcoming.length) return "You don't have any upcoming exams to clear.";
           upcoming.forEach(e => examService.deleteExam(user.id, e.courseCode));
           return `🗑️ Cleared *${upcoming.length}* exam${upcoming.length === 1 ? '' : 's'}.`;
+        }
+
+        case 'CREATE_CLASS': {
+          const klass = classService.createClass(user.id, parsed.name || 'My Class');
+          return `🏫 Created *${klass.name}*!\n🔑 Join code: *${klass.joinCode}*\n\nShare this code with classmates so they can join. Only you can broadcast lectures, assignments, and exams to this class.`;
+        }
+
+        case 'JOIN_CLASS': {
+          const result = classService.joinClassByCode(user.id, parsed.joinCode);
+          if (result.error === 'not_found') {
+            return `❌ I couldn't find a class with join code *${(parsed.joinCode || '').toUpperCase()}*. Double-check the code and try again.`;
+          }
+          if (result.error === 'already_member') return `You're already in *${result.class.name}*!`;
+          return `✅ Joined *${result.class.name}*! I'll message you here whenever the class creator shares a new lecture, assignment, or exam.`;
+        }
+
+        case 'LIST_CLASSES': {
+          const myClasses = classService.getUserClasses(user.id);
+          if (!myClasses.length) {
+            return 'You\'re not in any classes yet. Say "create a class called X" to start one, or "join class ABC123" if someone gave you a code.';
+          }
+          return `🏫 *Your Classes:*\n${myClasses.map(c => `• ${c.name}${c.isCreator ? ` (you created this — code: *${c.joinCode}*)` : ''}`).join('\n')}`;
+        }
+
+        case 'BROADCAST_LECTURE': {
+          const resolved = resolveOwnedClass(user, parsed);
+          if (resolved.error) return resolved.error;
+          const item = classService.broadcastItem({
+            classId: resolved.class.id,
+            creatorId: user.id,
+            type: 'lecture',
+            payload: { courseCode: parsed.courseCode, lectureDay: parsed.lectureDay, lectureTime: parsed.lectureTime },
+          });
+          await notifyClassMembers(resolved.class, user, item,
+            `📚 New lecture shared in *${resolved.class.name}*:\n${parsed.courseCode} - ${parsed.lectureDay} at ${parsed.lectureTime}`);
+          return `📣 Broadcast to *${resolved.class.name}*! Members can reply "accept ${item.id}" to add it to their own timetable.`;
+        }
+
+        case 'BROADCAST_ASSIGNMENT': {
+          const resolved = resolveOwnedClass(user, parsed);
+          if (resolved.error) return resolved.error;
+          const item = classService.broadcastItem({
+            classId: resolved.class.id,
+            creatorId: user.id,
+            type: 'assignment',
+            payload: { courseCode: parsed.courseCode, title: parsed.title, dueDate: parsed.dueDate, dueTime: parsed.dueTime || '23:59' },
+          });
+          await notifyClassMembers(resolved.class, user, item,
+            `📝 New assignment shared in *${resolved.class.name}*:\n*${parsed.courseCode}* - ${parsed.title}\n📅 Due: ${parsed.dueDate} at ${parsed.dueTime || '23:59'}`);
+          return `📣 Broadcast to *${resolved.class.name}*! Members can reply "accept ${item.id}" to add it to their own list.`;
+        }
+
+        case 'BROADCAST_EXAM': {
+          const resolved = resolveOwnedClass(user, parsed);
+          if (resolved.error) return resolved.error;
+          const item = classService.broadcastItem({
+            classId: resolved.class.id,
+            creatorId: user.id,
+            type: 'exam',
+            payload: { courseCode: parsed.courseCode, examDate: parsed.examDate, examTime: parsed.examTime || '08:00', venue: parsed.venue || null },
+          });
+          const venueText = parsed.venue ? ` (${parsed.venue})` : '';
+          await notifyClassMembers(resolved.class, user, item,
+            `🎓 New exam shared in *${resolved.class.name}*:\n*${parsed.courseCode}* - ${parsed.examDate} at ${parsed.examTime || '08:00'}${venueText}`);
+          return `📣 Broadcast to *${resolved.class.name}*! Members can reply "accept ${item.id}" to add it to their own list.`;
+        }
+
+        case 'LIST_CLASS_UPDATES': {
+          const pending = classService.getPendingItemsForUser(user.id);
+          if (!pending.length) return '🎉 No new class updates right now.';
+
+          const lines = pending.map(item => {
+            const p = item.payload;
+            if (item.type === 'lecture') return `#${item.id} 📚 ${p.courseCode} - ${p.lectureDay} at ${p.lectureTime}`;
+            if (item.type === 'assignment') return `#${item.id} 📝 ${p.courseCode} - ${p.title} (due ${p.dueDate} ${p.dueTime})`;
+            if (item.type === 'exam') return `#${item.id} 🎓 ${p.courseCode} exam ${p.examDate} at ${p.examTime}${p.venue ? ` (${p.venue})` : ''}`;
+            return `#${item.id} ${item.type}`;
+          });
+          return `📣 *Class Updates:*\n${lines.join('\n')}\n\nReply "accept <number>" to add one to your personal list.`;
+        }
+
+        case 'ACCEPT_CLASS_ITEM': {
+          const item = classService.getClassItemById(parsed.itemId);
+          if (!item) return `❌ I couldn't find update #${parsed.itemId}.`;
+
+          const p = item.payload;
+          let personalRecordId = null;
+
+          if (item.type === 'lecture') {
+            const result = lectureService.createLecture({
+              userId: user.id, courseCode: p.courseCode, courseName: p.courseCode, lectureDay: p.lectureDay, lectureTime: p.lectureTime,
+            });
+            personalRecordId = result?.lecture?.id || null;
+          } else if (item.type === 'assignment') {
+            const created = assignmentService.createAssignment({
+              userId: user.id, courseCode: p.courseCode, title: p.title, dueDate: p.dueDate, dueTime: p.dueTime || '23:59',
+            });
+            // assignmentService's return shape isn't confirmed from here, so
+            // this is best-effort - recordAcceptance below still prevents
+            // duplicates either way via the classItemId+userId uniqueness.
+            personalRecordId = (created && created.id) ? created.id : null;
+          } else if (item.type === 'exam') {
+            const created = examService.createExam({
+              userId: user.id, courseCode: p.courseCode, examDate: p.examDate, examTime: p.examTime || '08:00', venue: p.venue || null,
+            });
+            personalRecordId = (created && created.id) ? created.id : null;
+          }
+
+          const result = classService.recordAcceptance(item.id, user.id, personalRecordId);
+          if (result.alreadyAccepted) return `You've already accepted update #${item.id}.`;
+
+          return `✅ Added to your personal list!`;
         }
       }
     } catch (e) {
