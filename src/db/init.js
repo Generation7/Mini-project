@@ -10,6 +10,10 @@ const requiredColumns = {
   exams: ['id', 'user_id', 'course_code', 'exam_date', 'exam_time', 'venue', 'status', 'created_at'],
   courses: ['id', 'user_id', 'course_code', 'course_name', 'credit_hours', 'score', 'academic_year', 'semester', 'created_at'],
   conversation_messages: ['id', 'user_id', 'role', 'content', 'created_at'],
+  classes: ['id', 'name', 'join_code', 'creator_id', 'created_at'],
+  class_members: ['id', 'class_id', 'user_id', 'joined_at'],
+  class_items: ['id', 'class_id', 'type', 'payload', 'created_by', 'created_at'],
+  class_item_acceptances: ['id', 'class_item_id', 'user_id', 'personal_record_id', 'accepted_at'],
 };
 
 function getTableColumns(tableName) {
@@ -187,6 +191,47 @@ function createFreshDatabase() {
       role TEXT NOT NULL,
       content TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS classes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      join_code TEXT NOT NULL UNIQUE,
+      creator_id INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS class_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      class_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (class_id, user_id),
+      FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS class_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      class_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      created_by INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS class_item_acceptances (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      class_item_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      personal_record_id INTEGER,
+      accepted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (class_item_id, user_id),
+      FOREIGN KEY (class_item_id) REFERENCES class_items(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
