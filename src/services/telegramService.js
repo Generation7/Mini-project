@@ -28,6 +28,24 @@ async function processMessage(chatId, userMessage, user) {
     const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const todayWeekday = weekdayNames[now.getDay()];
     const tomorrowWeekday = weekdayNames[(now.getDay() + 1) % 7];
+    const tomorrowDate = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    // Filters a list of items with a "date" field (dueDate/examDate) down to
+    // either a single exact date or a rolling window of N days from today.
+    // Returns null if no filter was requested (parsed.date / parsed.withinDays absent).
+    function filterByDateWindow(items, dateField, parsed) {
+      if (parsed.date) {
+        return { filtered: items.filter(i => i[dateField] === parsed.date), windowLabel: parsed.date };
+      }
+      if (parsed.withinDays) {
+        const cutoff = new Date(now.getTime() + Number(parsed.withinDays) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        return {
+          filtered: items.filter(i => i[dateField] >= todayDate && i[dateField] <= cutoff),
+          windowLabel: `the next ${parsed.withinDays} days`,
+        };
+      }
+      return null;
+    }
 
     const completion = await groq.chat.completions.create({
       messages: [
@@ -50,14 +68,20 @@ When a student asks about their lectures or timetable for ALL days, respond with
 
 When a student asks about their lectures for a SPECIFIC day (e.g. "today", "tomorrow", "Monday", "what do I have on Wednesday"), respond with ONLY this JSON, using the actual weekday name (never the words "today"/"tomorrow" themselves):
 {"action":"LIST_LECTURES","day":"Monday"}
-Today is ${todayWeekday} (${todayDate}). Tomorrow is ${tomorrowWeekday}. Resolve relative day references against this before responding.
+Today is ${todayWeekday} (${todayDate}). Tomorrow is ${tomorrowWeekday} (${tomorrowDate}). Resolve relative day references against these before responding.
 
 When a student mentions an assignment or homework due on a date/time, respond with ONLY this JSON:
 {"action":"ADD_ASSIGNMENT","courseCode":"X","title":"X","dueDate":"YYYY-MM-DD","dueTime":"HH:MM"}
 If no time is mentioned, use "23:59" as the default dueTime.
 
-When a student asks about their assignments or what is due, respond with ONLY:
+When a student asks about ALL their assignments or what is due in general, respond with ONLY:
 {"action":"LIST_ASSIGNMENTS"}
+
+When a student asks what's due on a SPECIFIC day (e.g. "today", "tomorrow", a weekday name, or an exact date), respond with ONLY this JSON, resolving the day to an exact "YYYY-MM-DD" date using today's/tomorrow's date above:
+{"action":"LIST_ASSIGNMENTS","date":"YYYY-MM-DD"}
+
+When a student asks what's due within a range (e.g. "this week", "in the next 3 days"), respond with ONLY this JSON, where days is how many days ahead to include:
+{"action":"LIST_ASSIGNMENTS","withinDays":7}
 
 When a student says they submitted or completed an assignment, respond with ONLY this JSON:
 {"action":"COMPLETE_ASSIGNMENT","courseCode":"X"}
@@ -69,8 +93,14 @@ When a student mentions an exam on a date/time, respond with ONLY this JSON:
 {"action":"ADD_EXAM","courseCode":"X","examDate":"YYYY-MM-DD","examTime":"HH:MM","venue":"X"}
 If no time is mentioned use "08:00". If no venue is mentioned use null.
 
-When a student asks about their exams, respond with ONLY:
+When a student asks about ALL their exams in general, respond with ONLY:
 {"action":"LIST_EXAMS"}
+
+When a student asks about exams on a SPECIFIC day (e.g. "today", "tomorrow", a weekday name, or an exact date), respond with ONLY this JSON, resolving the day to an exact "YYYY-MM-DD" date using today's/tomorrow's date above:
+{"action":"LIST_EXAMS","date":"YYYY-MM-DD"}
+
+When a student asks about exams within a range (e.g. "this week", "in the next 3 days"), respond with ONLY this JSON, where days is how many days ahead to include:
+{"action":"LIST_EXAMS","withinDays":7}
 
 When a student says they completed/finished an exam, respond with ONLY this JSON:
 {"action":"COMPLETE_EXAM","courseCode":"X"}
@@ -169,7 +199,13 @@ Today's date is ${todayDate}.`
         case 'LIST_ASSIGNMENTS': {
           const pending = assignmentService.getPendingAssignments(user.id);
           if (!pending.length) return "🎉 You have no pending assignments!";
-          return `📝 *Your Pending Assignments:*\n${pending.map(a => `• *${a.courseCode}* - ${a.title}\n  📅 Due: ${a.dueDate} at ${a.due_time || '23:59'}`).join('\n')}`;
+
+          const window = filterByDateWindow(pending, 'dueDate', parsed);
+          const list = window ? window.filtered : pending;
+          if (window && !list.length) return `🎉 Nothing due on *${window.windowLabel}*.`;
+
+          const label = window ? `📝 *Assignments Due (${window.windowLabel}):*` : `📝 *Your Pending Assignments:*`;
+          return `${label}\n${list.map(a => `• *${a.courseCode}* - ${a.title}\n  📅 Due: ${a.dueDate} at ${a.due_time || '23:59'}`).join('\n')}`;
         }
 
         case 'COMPLETE_ASSIGNMENT': {
@@ -199,7 +235,13 @@ Today's date is ${todayDate}.`
         case 'LIST_EXAMS': {
           const upcoming = examService.getUpcomingExams(user.id);
           if (!upcoming.length) return "🎉 You have no upcoming exams!";
-          return `🎓 *Your Upcoming Exams:*\n${upcoming.map(e => `• *${e.courseCode}*\n  📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? `\n  📍 ${e.venue}` : ''}`).join('\n')}`;
+
+          const window = filterByDateWindow(upcoming, 'examDate', parsed);
+          const list = window ? window.filtered : upcoming;
+          if (window && !list.length) return `🎉 No exams on *${window.windowLabel}*.`;
+
+          const label = window ? `🎓 *Exams (${window.windowLabel}):*` : `🎓 *Your Upcoming Exams:*`;
+          return `${label}\n${list.map(e => `• *${e.courseCode}*\n  📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? `\n  📍 ${e.venue}` : ''}`).join('\n')}`;
         }
 
         case 'COMPLETE_EXAM': {
