@@ -9,6 +9,7 @@ const requiredColumns = {
   assignments: ['id', 'user_id', 'course_code', 'title', 'due_date', 'due_time', 'status', 'created_at'],
   exams: ['id', 'user_id', 'course_code', 'exam_date', 'exam_time', 'venue', 'status', 'created_at'],
   courses: ['id', 'user_id', 'course_code', 'course_name', 'credit_hours', 'score', 'academic_year', 'semester', 'created_at'],
+  conversation_messages: ['id', 'user_id', 'role', 'content', 'created_at'],
 };
 
 function getTableColumns(tableName) {
@@ -176,6 +177,15 @@ function createFreshDatabase() {
       score TEXT NOT NULL,
       academic_year TEXT,
       semester TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS conversation_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
