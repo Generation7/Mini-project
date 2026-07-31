@@ -6,6 +6,7 @@ const assignmentService = require('./assignmentService');
 const examService = require('./examService');
 const logger = require('../utils/logger');
 const { sendMessageWithRetry, withTelegramRetry } = require('../utils/telegramRetry');
+const conversationService = require('./conversationService');
 
 let bot;
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -21,7 +22,10 @@ async function safeSendChatAction(chatId, action) {
   }
 }
 
-async function processMessage(chatId, userMessage, user) {
+// Runs one turn through Groq and returns the reply string. Pure - does not
+// touch conversation history storage itself, so it can be tested/reasoned
+// about independently of the save step in processMessage() below.
+async function computeReply(chatId, userMessage, user, history) {
   try {
     const now = new Date();
     const todayDate = now.toISOString().slice(0, 10);
@@ -122,6 +126,7 @@ The three CLEAR actions above are destructive and cannot be undone by you, so on
 For everything else, reply normally in plain friendly English.
 Today's date is ${todayDate}.`
         },
+        ...history.map(m => ({ role: m.role, content: m.content })),
         {
           role: 'user',
           content: userMessage
@@ -286,6 +291,28 @@ Today's date is ${todayDate}.`
     console.error('Groq error:', err.message);
     throw err;
   }
+}
+
+// Public entry point: loads recent history, gets a reply, then persists this
+// turn for next time. Kept separate from computeReply so a Groq failure
+// (which throws before we have a reply) never gets saved to history - only
+// completed exchanges are stored.
+async function processMessage(chatId, userMessage, user) {
+  const history = user ? conversationService.getRecentMessages(user.id) : [];
+  const reply = await computeReply(chatId, userMessage, user, history);
+
+  if (user) {
+    try {
+      conversationService.addMessage(user.id, 'user', userMessage);
+      conversationService.addMessage(user.id, 'assistant', reply);
+    } catch (err) {
+      // Losing history for one turn isn't worth failing the reply over -
+      // the user still gets their answer, just without it being remembered.
+      console.error(`Failed to save conversation history for user ${user.id}: ${err.message}`);
+    }
+  }
+
+  return reply;
 }
 
 function startTelegramBot() {
