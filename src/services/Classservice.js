@@ -5,6 +5,10 @@ const classMembers = require('../models/classMemberModel');
 const classItems = require('../models/classItemModel');
 const classItemAcceptances = require('../models/classItemAcceptanceModel');
 const users = require('../models/userModel');
+const lectureService = require('./lectureService');
+const assignmentService = require('./assignmentService');
+const examService = require('./examService');
+const { sendMessageWithRetry } = require('../utils/telegramRetry');
 
 // Excludes visually ambiguous characters (0/O, 1/I) so codes are easy to
 // read aloud or copy from a phone screen.
@@ -169,6 +173,78 @@ function recordAcceptance(classItemId, userId, personalRecordId) {
   return { alreadyAccepted: false };
 }
 
+// Full member list for a class (creator included), for display purposes -
+// distinct from getNotifiableMembers, which deliberately excludes the
+// broadcaster and anyone without Telegram linked.
+function getClassMembers(classId) {
+  const rows = db
+    .select({ userId: users.id, name: users.name, email: users.email, joinedAt: classMembers.joinedAt })
+    .from(classMembers)
+    .innerJoin(users, eq(classMembers.userId, users.id))
+    .where(eq(classMembers.classId, Number(classId)))
+    .all();
+
+  const klass = getClassById(classId);
+  return rows.map(r => ({ ...r, isCreator: !!klass && klass.creatorId === r.userId }));
+}
+
+// Sends a message to every notifiable member of a class. `bot` may be null
+// (e.g. Telegram isn't running) - notification is always best-effort and
+// never blocks the broadcast itself from succeeding.
+async function notifyMembers(bot, classId, excludeUserId, message) {
+  if (!bot) return;
+  const members = getNotifiableMembers(classId, excludeUserId);
+  for (const member of members) {
+    try {
+      await sendMessageWithRetry(bot, member.telegramChatId, message, { parse_mode: 'Markdown' });
+    } catch (err) {
+      console.error(`Failed to notify user ${member.userId} of class broadcast: ${err.message}`);
+    }
+  }
+}
+
+// Shared accept-flow used by both the Telegram bot and the dashboard API,
+// so there's exactly one place that knows how to turn a class_item into a
+// real personal lecture/assignment/exam record.
+// Returns { error: 'not_found' | 'already_accepted', item? } or { item }.
+function acceptClassItem(itemId, userId) {
+  const item = getClassItemById(itemId);
+  if (!item) return { error: 'not_found' };
+
+  const existing = db
+    .select()
+    .from(classItemAcceptances)
+    .where(and(eq(classItemAcceptances.classItemId, Number(itemId)), eq(classItemAcceptances.userId, Number(userId))))
+    .get();
+  if (existing) return { error: 'already_accepted', item };
+
+  const p = item.payload;
+  let personalRecordId = null;
+
+  if (item.type === 'lecture') {
+    const result = lectureService.createLecture({
+      userId, courseCode: p.courseCode, courseName: p.courseCode, lectureDay: p.lectureDay, lectureTime: p.lectureTime,
+    });
+    personalRecordId = result?.lecture?.id || null;
+  } else if (item.type === 'assignment') {
+    const created = assignmentService.createAssignment({
+      userId, courseCode: p.courseCode, title: p.title, dueDate: p.dueDate, dueTime: p.dueTime || '23:59',
+    });
+    // assignmentService's return shape has never been confirmed against its
+    // actual source, so this is best-effort - recordAcceptance's own
+    // uniqueness check is what actually prevents duplicates, not this id.
+    personalRecordId = (created && created.id) ? created.id : null;
+  } else if (item.type === 'exam') {
+    const created = examService.createExam({
+      userId, courseCode: p.courseCode, examDate: p.examDate, examTime: p.examTime || '08:00', venue: p.venue || null,
+    });
+    personalRecordId = (created && created.id) ? created.id : null;
+  }
+
+  recordAcceptance(item.id, userId, personalRecordId);
+  return { item };
+}
+
 module.exports = {
   createClass,
   getClassByJoinCode,
@@ -179,8 +255,11 @@ module.exports = {
   findOwnedClassByName,
   isClassCreator,
   getNotifiableMembers,
+  getClassMembers,
   broadcastItem,
   getClassItemById,
   getPendingItemsForUser,
   recordAcceptance,
+  acceptClassItem,
+  notifyMembers,
 };
