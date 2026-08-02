@@ -7,6 +7,7 @@ const router = express.Router();
 router.post('/', requireAuth, examController.createExam);
 router.get('/', requireAuth, examController.listExams);
 router.put('/:id/complete', requireAuth, examController.completeExam);
+router.put('/toggle-reminder', requireAuth, examController.toggleExamReminder);
 router.delete('/:id', requireAuth, examController.deleteExam);
 
 module.exports = router;
