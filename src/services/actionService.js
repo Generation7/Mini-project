@@ -7,6 +7,13 @@ function setTelegramBot(bot) {
   telegramBot = bot;
 }
 
+// Lets other modules (e.g. the class-group dashboard controller) reuse the
+// same bot instance for outgoing messages, instead of each needing their
+// own wiring back to server.js.
+function getTelegramBot() {
+  return telegramBot;
+}
+
 async function sendRuleNotification(action) {
   const user = userService.findById(action.userId);
   if (!user) return { sent: false, reason: 'user_not_found' };
@@ -37,4 +44,4 @@ async function sendLectureReminder(event) {
   }
 }
 
-module.exports = { sendRuleNotification, sendLectureReminder, setTelegramBot };
+module.exports = { sendRuleNotification, sendLectureReminder, setTelegramBot, getTelegramBot };

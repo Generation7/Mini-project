@@ -39,20 +39,12 @@ function resolveOwnedClass(user, parsed) {
   return { error: `You've created more than one class — which one? (${owned.map(c => c.name).join(', ')})` };
 }
 
-// Fans a broadcast notification out to every other member with a linked
-// Telegram account. Each send is independently retried/caught so one
-// member's failure (blocked bot, bad chat id) doesn't stop the rest.
+// Thin wrapper: appends the "reply accept N" instruction, then delegates
+// the actual fan-out to classService.notifyMembers (shared with the
+// dashboard API so there's one retry/error-handling implementation).
 async function notifyClassMembers(klass, creator, item, message) {
-  const members = classService.getNotifiableMembers(klass.id, creator.id);
   const fullMessage = `${message}\n\nReply "accept ${item.id}" to add it to your own list.`;
-
-  for (const member of members) {
-    try {
-      await sendMessageWithRetry(bot, member.telegramChatId, fullMessage, { parse_mode: 'Markdown' });
-    } catch (err) {
-      console.error(`Failed to notify user ${member.userId} of class broadcast ${item.id}: ${err.message}`);
-    }
-  }
+  await classService.notifyMembers(bot, klass.id, creator.id, fullMessage);
 }
 
 // Runs one turn through Groq and returns the reply string. Pure - does not
@@ -427,35 +419,9 @@ Today's date is ${todayDate}.`
         }
 
         case 'ACCEPT_CLASS_ITEM': {
-          const item = classService.getClassItemById(parsed.itemId);
-          if (!item) return `❌ I couldn't find update #${parsed.itemId}.`;
-
-          const p = item.payload;
-          let personalRecordId = null;
-
-          if (item.type === 'lecture') {
-            const result = lectureService.createLecture({
-              userId: user.id, courseCode: p.courseCode, courseName: p.courseCode, lectureDay: p.lectureDay, lectureTime: p.lectureTime,
-            });
-            personalRecordId = result?.lecture?.id || null;
-          } else if (item.type === 'assignment') {
-            const created = assignmentService.createAssignment({
-              userId: user.id, courseCode: p.courseCode, title: p.title, dueDate: p.dueDate, dueTime: p.dueTime || '23:59',
-            });
-            // assignmentService's return shape isn't confirmed from here, so
-            // this is best-effort - recordAcceptance below still prevents
-            // duplicates either way via the classItemId+userId uniqueness.
-            personalRecordId = (created && created.id) ? created.id : null;
-          } else if (item.type === 'exam') {
-            const created = examService.createExam({
-              userId: user.id, courseCode: p.courseCode, examDate: p.examDate, examTime: p.examTime || '08:00', venue: p.venue || null,
-            });
-            personalRecordId = (created && created.id) ? created.id : null;
-          }
-
-          const result = classService.recordAcceptance(item.id, user.id, personalRecordId);
-          if (result.alreadyAccepted) return `You've already accepted update #${item.id}.`;
-
+          const result = classService.acceptClassItem(parsed.itemId, user.id);
+          if (result.error === 'not_found') return `❌ I couldn't find update #${parsed.itemId}.`;
+          if (result.error === 'already_accepted') return `You've already accepted update #${result.item.id}.`;
           return `✅ Added to your personal list!`;
         }
       }
