@@ -46,6 +46,18 @@ function deleteAssignment(userId, courseCode) {
   return db.delete(assignments).where(eq(assignments.id, assignment.id)).returning().get();
 }
 
+function toggleAssignmentReminder(userId, courseCode) {
+  const assignment = db.select().from(assignments).where(
+    and(eq(assignments.userId, Number(userId)), eq(assignments.courseCode, courseCode))
+  ).get();
+  if (!assignment) return null;
+
+  return db.update(assignments)
+    .set({ remindersEnabled: !assignment.remindersEnabled })
+    .where(eq(assignments.id, assignment.id))
+    .returning().get();
+}
+
 function getAllPendingAssignments() {
   return db.select().from(assignments)
     .where(eq(assignments.status, 'pending'))
@@ -59,4 +71,5 @@ module.exports = {
   markAssignmentDone,
   deleteAssignment,
   getAllPendingAssignments,
+  toggleAssignmentReminder,
 };
