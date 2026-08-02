@@ -65,6 +65,18 @@ function updateLecture(id, { lectureDay, lectureTime }) {
     .run();
 }
 
+function toggleLectureReminder(id) {
+  const lecture = getLectureById(id);
+  if (!lecture) return null;
+
+  db.update(lectures)
+    .set({ remindersEnabled: !lecture.remindersEnabled })
+    .where(eq(lectures.id, Number(id)))
+    .run();
+
+  return { ...lecture, remindersEnabled: !lecture.remindersEnabled };
+}
+
 module.exports = {
   createLecture,
   findDuplicate,
@@ -74,4 +86,5 @@ module.exports = {
   getLecturesByDay,
   getLecturesByUserId,
   updateLecture,
+  toggleLectureReminder,
 };
