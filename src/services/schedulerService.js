@@ -12,6 +12,16 @@ function setBotInstance(botInstance) {
   bot = botInstance;
 }
 
+// Formats a lead time in minutes for display in a reminder message.
+// e.g. 30 -> "30 minutes", 60 -> "1 hour", 120 -> "2 hours"
+function formatLeadTime(minutes) {
+  if (minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return `${hours} hour${hours === 1 ? '' : 's'}`;
+  }
+  return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+}
+
 function checkAssignmentReminders() {
   try {
     if (!bot) return;
