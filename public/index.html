@@ -840,6 +840,7 @@
     <button class="tab" onclick="showTab('lectures', event)"><i data-lucide="book-open" class="icon" width="16" height="16"></i> Lectures</button>
     <button class="tab" onclick="showTab('assignments', event)"><i data-lucide="clipboard-list" class="icon" width="16" height="16"></i> Assignments</button>
     <button class="tab" onclick="showTab('exams', event)"><i data-lucide="graduation-cap" class="icon" width="16" height="16"></i> Exams</button>
+    <button class="tab" onclick="showTab('classes', event)"><i data-lucide="users" class="icon" width="16" height="16"></i> Classes</button>
     <button class="tab" onclick="showTab('cwa', event)"><i data-lucide="bar-chart-3" class="icon" width="16" height="16"></i> CWA</button>
     <button class="tab" onclick="showTab('settings', event)"><i data-lucide="settings" class="icon" width="16" height="16"></i> Settings</button>
   </div>
@@ -939,6 +940,34 @@
       </div>
       <div id="examsList"></div>
       <div id="examsCalendar" style="display:none"></div>
+    </div>
+
+    <div class="section" id="classesSection">
+      <div class="form-card">
+        <h3><i data-lucide="plus" class="icon" width="16" height="16"></i> Create a Class</h3>
+        <div class="form-row">
+          <input type="text" id="cClassName" placeholder="Class name" />
+        </div>
+        <button class="btn btn-small" onclick="createClass()">Create Class</button>
+      </div>
+
+      <div class="form-card">
+        <h3><i data-lucide="log-in" class="icon" width="16" height="16"></i> Join a Class</h3>
+        <div class="form-row">
+          <input type="text" id="cJoinCode" placeholder="Join code (e.g. JV686Y)" style="text-transform:uppercase" />
+        </div>
+        <button class="btn btn-small" onclick="joinClassByCode()">Join Class</button>
+      </div>
+
+      <div class="section-header">
+        <h2><i data-lucide="users" class="icon" width="18" height="18"></i> My Classes</h2>
+      </div>
+      <div id="classesList"></div>
+
+      <div class="section-header">
+        <h2><i data-lucide="bell" class="icon" width="18" height="18"></i> Class Updates</h2>
+      </div>
+      <div id="classUpdatesList"></div>
     </div>
 
     <div class="section" id="cwaSection">
@@ -1485,7 +1514,7 @@
   }
 
   async function loadAll() {
-    await Promise.all([loadLectures(), loadAssignments(), loadExams(), loadCwa()]);
+    await Promise.all([loadLectures(), loadAssignments(), loadExams(), loadCwa(), loadClasses(), loadClassUpdates()]);
     loadToday();
     loadSettings();
   }
@@ -1801,6 +1830,230 @@
       loadAssignments();
     } catch (err) { showToast('Error removing assignment', true); }
   }
+
+  // ---- Classes (shared class groups) --------------------------------
+
+  async function loadClasses() {
+    try {
+      const res = await authFetch(`${API}/classes`);
+      const data = await res.json();
+      const myClasses = data.classes || [];
+      const container = document.getElementById('classesList');
+
+      if (!myClasses.length) {
+        container.innerHTML = '<div class="empty-state"><div class="emoji"><i data-lucide="users" class="icon" width="32" height="32"></i></div>You\'re not in any classes yet. Create one or join with a code!</div>';
+        renderIcons();
+        return;
+      }
+
+      container.innerHTML = myClasses.map(c => `
+        <div class="card" style="flex-direction:column;align-items:stretch;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+            <div class="card-info">
+              <div class="card-title">${c.name}${c.isCreator ? ' <span class="card-badge badge-green">Creator</span>' : ''}</div>
+              ${c.isCreator ? `<div class="card-subtitle">Join code: <strong>${c.joinCode}</strong></div>` : ''}
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-small" onclick="toggleClassMembers(${c.id})">Members</button>
+              ${c.isCreator ? `<button class="btn btn-small" onclick="toggleClassBroadcast(${c.id})">Broadcast</button>` : ''}
+            </div>
+          </div>
+          <div id="classMembers_${c.id}" style="display:none;font-size:13px;color:var(--text-muted)"></div>
+          ${c.isCreator ? `
+          <div id="classBroadcast_${c.id}" style="display:none;border-top:1px solid var(--surface-border);padding-top:10px">
+            <div class="form-row">
+              <select id="bType_${c.id}" onchange="updateBroadcastFields(${c.id})">
+                <option value="lecture">Lecture</option>
+                <option value="assignment">Assignment</option>
+                <option value="exam">Exam</option>
+              </select>
+            </div>
+            <div id="bFields_${c.id}"></div>
+            <button class="btn btn-small" onclick="submitBroadcast(${c.id})">Share with Class</button>
+          </div>` : ''}
+        </div>`).join('');
+
+      myClasses.filter(c => c.isCreator).forEach(c => updateBroadcastFields(c.id));
+      renderIcons();
+    } catch (err) { console.error(err); }
+  }
+
+  async function createClass() {
+    const name = document.getElementById('cClassName').value.trim();
+    if (!name) return showToast('Please enter a class name', true);
+    try {
+      const res = await authFetch(`${API}/classes`, { method: 'POST', body: JSON.stringify({ name }) });
+      const data = await res.json();
+      if (!data.success) return showToast(data.message || 'Could not create class', true);
+      showToast('Class created!');
+      document.getElementById('cClassName').value = '';
+      loadClasses();
+    } catch (err) { showToast('Error creating class', true); }
+  }
+
+  async function joinClassByCode() {
+    const joinCode = document.getElementById('cJoinCode').value.trim();
+    if (!joinCode) return showToast('Please enter a join code', true);
+    try {
+      const res = await authFetch(`${API}/classes/join`, { method: 'POST', body: JSON.stringify({ joinCode }) });
+      const data = await res.json();
+      if (!data.success) return showToast(data.message || 'Could not join class', true);
+      showToast(data.alreadyMember ? `You're already in ${data.class.name}` : `Joined ${data.class.name}!`);
+      document.getElementById('cJoinCode').value = '';
+      loadClasses();
+    } catch (err) { showToast('Error joining class', true); }
+  }
+
+  async function toggleClassMembers(classId) {
+    const el = document.getElementById(`classMembers_${classId}`);
+    if (!el) return;
+    const opening = el.style.display === 'none';
+    el.style.display = opening ? 'block' : 'none';
+    if (opening && !el.dataset.loaded) {
+      try {
+        const res = await authFetch(`${API}/classes/${classId}/members`);
+        const data = await res.json();
+        const members = data.members || [];
+        el.innerHTML = members.map(m => `${m.name || 'Unnamed student'}${m.isCreator ? ' (creator)' : ''}`).join('<br>') || 'No members yet.';
+        el.dataset.loaded = '1';
+      } catch (err) { el.innerHTML = 'Could not load members.'; }
+    }
+  }
+
+  function toggleClassBroadcast(classId) {
+    const el = document.getElementById(`classBroadcast_${classId}`);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function updateBroadcastFields(classId) {
+    const typeEl = document.getElementById(`bType_${classId}`);
+    const container = document.getElementById(`bFields_${classId}`);
+    if (!typeEl || !container) return;
+    const type = typeEl.value;
+
+    if (type === 'lecture') {
+      container.innerHTML = `
+        <div class="form-row">
+          <input type="text" id="bCourseCode_${classId}" placeholder="Course code" />
+          <select id="bDay_${classId}">
+            <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+            <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+          </select>
+          <input type="time" id="bTime_${classId}" />
+        </div>`;
+    } else if (type === 'assignment') {
+      container.innerHTML = `
+        <div class="form-row">
+          <input type="text" id="bCourseCode_${classId}" placeholder="Course code" />
+          <input type="text" id="bTitle_${classId}" placeholder="Title" />
+          <input type="date" id="bDueDate_${classId}" />
+          <input type="time" id="bDueTime_${classId}" />
+        </div>`;
+    } else {
+      container.innerHTML = `
+        <div class="form-row">
+          <input type="text" id="bCourseCode_${classId}" placeholder="Course code" />
+          <input type="date" id="bExamDate_${classId}" />
+          <input type="time" id="bExamTime_${classId}" />
+          <input type="text" id="bVenue_${classId}" placeholder="Venue (optional)" />
+        </div>`;
+    }
+    renderIcons();
+  }
+
+  async function submitBroadcast(classId) {
+    const type = document.getElementById(`bType_${classId}`).value;
+    const courseCodeEl = document.getElementById(`bCourseCode_${classId}`);
+    const courseCode = courseCodeEl ? courseCodeEl.value.trim() : '';
+    if (!courseCode) return showToast('Course code is required', true);
+
+    let payload = { courseCode };
+    if (type === 'lecture') {
+      const lectureDay = document.getElementById(`bDay_${classId}`).value;
+      const lectureTime = document.getElementById(`bTime_${classId}`).value;
+      if (!lectureTime) return showToast('Please set a lecture time', true);
+      payload.lectureDay = lectureDay;
+      payload.lectureTime = lectureTime;
+    } else if (type === 'assignment') {
+      const title = document.getElementById(`bTitle_${classId}`).value.trim();
+      const dueDate = document.getElementById(`bDueDate_${classId}`).value;
+      const dueTime = document.getElementById(`bDueTime_${classId}`).value || '23:59';
+      if (!title || !dueDate) return showToast('Title and due date are required', true);
+      payload.title = title;
+      payload.dueDate = dueDate;
+      payload.dueTime = dueTime;
+    } else {
+      const examDate = document.getElementById(`bExamDate_${classId}`).value;
+      const examTime = document.getElementById(`bExamTime_${classId}`).value || '08:00';
+      const venue = document.getElementById(`bVenue_${classId}`).value.trim();
+      if (!examDate) return showToast('Exam date is required', true);
+      payload.examDate = examDate;
+      payload.examTime = examTime;
+      payload.venue = venue || null;
+    }
+
+    try {
+      const res = await authFetch(`${API}/classes/${classId}/broadcast`, {
+        method: 'POST',
+        body: JSON.stringify({ type, payload })
+      });
+      const data = await res.json();
+      if (!data.success) return showToast(data.message || 'Could not share with class', true);
+      showToast('Shared with the class!');
+      document.getElementById(`classBroadcast_${classId}`).style.display = 'none';
+    } catch (err) { showToast('Error sharing with class', true); }
+  }
+
+  async function loadClassUpdates() {
+    try {
+      const res = await authFetch(`${API}/classes/updates`);
+      const data = await res.json();
+      const updates = data.updates || [];
+      const container = document.getElementById('classUpdatesList');
+
+      if (!updates.length) {
+        container.innerHTML = '<div class="empty-state"><div class="emoji"><i data-lucide="check-circle" class="icon" width="32" height="32"></i></div>No new class updates.</div>';
+        renderIcons();
+        return;
+      }
+
+      container.innerHTML = updates.map(item => {
+        const p = item.payload;
+        let summary = '';
+        if (item.type === 'lecture') summary = `${p.courseCode} — ${p.lectureDay} at ${p.lectureTime}`;
+        else if (item.type === 'assignment') summary = `${p.courseCode} — ${p.title} (due ${p.dueDate})`;
+        else summary = `${p.courseCode} exam on ${p.examDate}${p.venue ? ` at ${p.venue}` : ''}`;
+
+        return `
+          <div class="card">
+            <div class="card-info">
+              <div class="card-title">${summary}</div>
+              <div class="card-subtitle">Shared ${item.type}</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-success" onclick="acceptClassUpdate(${item.id})"><i data-lucide="check" class="icon" width="14" height="14"></i> Accept</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      renderIcons();
+    } catch (err) { console.error(err); }
+  }
+
+  async function acceptClassUpdate(itemId) {
+    try {
+      const res = await authFetch(`${API}/classes/updates/${itemId}/accept`, { method: 'POST' });
+      const data = await res.json();
+      if (!data.success) return showToast(data.message || 'Could not accept update', true);
+      showToast(data.alreadyAccepted ? 'Already accepted' : 'Added to your personal list!');
+      loadClassUpdates();
+      loadLectures();
+      loadAssignments();
+      loadExams();
+    } catch (err) { showToast('Error accepting update', true); }
+  }
+
+  // ---------------------------------------------------------------------
 
   async function loadExams() {
     try {
