@@ -4,6 +4,7 @@ const reminders = require('../models/reminderModel');
 const lectureService = require('./lectureService');
 const eventService = require('./eventService');
 const actionService = require('./actionService');
+const userService = require('./userService');
 const logger = require('../utils/logger');
 
 function getTomorrowDayName() {
@@ -35,6 +36,8 @@ function createLectureReminderEvents() {
   const created = [];
 
   for (const lecture of lectures) {
+    const lectureUser = userService.findById(lecture.userId);
+    if (lectureUser?.remindersEnabled === false) continue;
     if (lecture.remindersEnabled === false) continue;
     if (reminderExists(lecture.id, reminderDate)) continue;
 
