@@ -23,6 +23,7 @@ function checkAssignmentReminders() {
       const assignmentUser = userService.findById(assignment.userId);
       if (!assignmentUser?.telegram_chat_id) continue;
       if (assignmentUser.remindersEnabled === false) continue;
+      if (assignment.remindersEnabled === false) continue;
 
       const dueTime = assignment.due_time || '23:59';
       const dueDateTime = new Date(`${assignment.dueDate}T${dueTime}:00`);
@@ -70,6 +71,7 @@ function checkExamReminders() {
       const examUser = userService.findById(exam.userId);
       if (!examUser?.telegram_chat_id) continue;
       if (examUser.remindersEnabled === false) continue;
+      if (exam.remindersEnabled === false) continue;
 
       const examTime = exam.exam_time || exam.examTime || '08:00';
       const examDateTime = new Date(`${exam.examDate}T${examTime}:00`);

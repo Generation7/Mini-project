@@ -53,6 +53,21 @@ function deleteExam(userId, courseCode) {
   return exam;
 }
 
+function toggleExamReminder(userId, courseCode) {
+  const userExams = getExamsByUserId(userId);
+  const exam = userExams.find(e =>
+    e.courseCode.replace(/\s/g, '').toLowerCase() === courseCode.replace(/\s/g, '').toLowerCase()
+  );
+  if (!exam) return null;
+
+  db.update(exams)
+    .set({ remindersEnabled: !exam.remindersEnabled })
+    .where(eq(exams.id, exam.id))
+    .run();
+
+  return { ...exam, remindersEnabled: !exam.remindersEnabled };
+}
+
 module.exports = {
   createExam,
   getExamsByUserId,
@@ -60,4 +75,5 @@ module.exports = {
   getAllUpcomingExams,
   markExamDone,
   deleteExam,
+  toggleExamReminder,
 };

@@ -35,6 +35,7 @@ function createLectureReminderEvents() {
   const created = [];
 
   for (const lecture of lectures) {
+    if (lecture.remindersEnabled === false) continue;
     if (reminderExists(lecture.id, reminderDate)) continue;
 
     const event = eventService.createEvent({
