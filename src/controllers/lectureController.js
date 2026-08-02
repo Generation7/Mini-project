@@ -37,4 +37,13 @@ function deleteLecture(req, res) {
   return res.status(200).json({ success: true, message: 'Lecture deleted', lecture });
 }
 
-module.exports = { createLecture, listLectures, getLecture, deleteLecture };
+function toggleLectureReminder(req, res) {
+  const lecture = lectureService.getLectureById(req.params.id);
+  if (!lecture || lecture.userId !== req.userId) {
+    return res.status(404).json({ success: false, message: 'Lecture not found' });
+  }
+  const updated = lectureService.toggleLectureReminder(req.params.id);
+  return res.status(200).json({ success: true, lecture: updated });
+}
+
+module.exports = { createLecture, listLectures, getLecture, deleteLecture, toggleLectureReminder };
