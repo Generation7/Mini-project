@@ -156,8 +156,9 @@ When a student clearly and explicitly asks to clear/delete/remove ALL of their e
 
 The three CLEAR actions above are destructive and cannot be undone by you, so only use them when the student has been unambiguous about wanting everything gone (words like "all", "everything", "clear my X"). If a request is vague (e.g. just "clear things"), do NOT return a CLEAR action — instead reply in plain English asking exactly what they'd like cleared (lectures, assignments, or exams).
 
-When a student wants to create/start a class or study group, respond with ONLY this JSON:
-{"action":"CREATE_CLASS","name":"X"}
+When a student wants to create/start a class or study group AND has given an actual name for it, respond with ONLY this JSON:
+{"action":"CREATE_CLASS","name":"<the class name they gave>"}
+If they want to create a class but have NOT given a name yet (e.g. they just said "create a class" or "make a new group"), do NOT return this JSON and do NOT invent a name - instead reply in plain English asking what they'd like to call it.
 
 When a student wants to join a class using a code someone shared with them, respond with ONLY this JSON:
 {"action":"JOIN_CLASS","joinCode":"X"}
@@ -340,7 +341,14 @@ Today's date is ${todayDate}.`
         }
 
         case 'CREATE_CLASS': {
-          const klass = classService.createClass(user.id, parsed.name || 'My Class');
+          const name = (parsed.name || '').trim();
+          // Backstop in case the model still slips through without a real
+          // name - "X" is the literal placeholder from the prompt example,
+          // so if that comes through verbatim it's a miss, not a real name.
+          if (!name || name.toLowerCase() === 'x') {
+            return 'Sure! What would you like to call the class?';
+          }
+          const klass = classService.createClass(user.id, name);
           return `🏫 Created *${klass.name}*!\n🔑 Join code: *${klass.joinCode}*\n\nShare this code with classmates so they can join. Only you can broadcast lectures, assignments, and exams to this class.`;
         }
 
