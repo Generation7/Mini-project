@@ -1722,6 +1722,7 @@
       if (!hasAny) container.innerHTML = '<div class="empty-state"><div class="emoji"><i data-lucide="book-open" class="icon" width="32" height="32"></i></div>No lectures yet. Add your first one!</div>';
       window._lectures = myLectures;
       applyViewMode('lectures');
+      renderIcons();
     } catch (err) { console.error(err); }
   }
 
@@ -1773,6 +1774,7 @@
         container.innerHTML = '<div class="empty-state"><div class="emoji"><i data-lucide="check-circle" class="icon" width="32" height="32"></i></div>No pending assignments!</div>';
         window._assignments = assignments;
         applyViewMode('assignments');
+        renderIcons();
         return;
       }
 
@@ -1799,6 +1801,7 @@
 
       window._assignments = assignments;
       applyViewMode('assignments');
+      renderIcons();
     } catch (err) { console.error(err); }
   }
 
@@ -2093,6 +2096,7 @@
         container.innerHTML = '<div class="empty-state"><div class="emoji"><i data-lucide="check-circle" class="icon" width="32" height="32"></i></div>No upcoming exams!</div>';
         window._exams = exams;
         applyViewMode('exams');
+        renderIcons();
         return;
       }
 
@@ -2119,6 +2123,7 @@
 
       window._exams = exams;
       applyViewMode('exams');
+      renderIcons();
     } catch (err) { console.error(err); }
   }
 
