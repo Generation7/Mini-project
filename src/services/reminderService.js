@@ -1,74 +1,157 @@
-const { and, eq } = require('drizzle-orm');
+const { eq, isNotNull } = require('drizzle-orm');
 const { db } = require('../db/client');
-const reminders = require('../models/reminderModel');
-const lectureService = require('./lectureService');
-const eventService = require('./eventService');
-const actionService = require('./actionService');
-const userService = require('./userService');
-const logger = require('../utils/logger');
+const users = require('../models/userModel');
+const { hashPassword } = require('../utils/auth');
 
-function getTomorrowDayName() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  return tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+function findByPhoneNumber(phoneNumber) {
+  return db.select().from(users).where(eq(users.phoneNumber, phoneNumber)).get();
 }
 
-function getReminderDate() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  return tomorrow.toISOString().slice(0, 10);
+function findById(id) {
+  return db.select().from(users).where(eq(users.id, Number(id))).get();
 }
 
-function reminderExists(lectureId, reminderDate) {
+function findByEmail(email) {
+  if (!email) return undefined;
+  return db.select().from(users).where(eq(users.email, email.toLowerCase())).get();
+}
+
+function findByStudentId(studentId) {
+  if (!studentId) return undefined;
+  return db.select().from(users).where(eq(users.studentId, studentId)).get();
+}
+
+function createUser(phoneNumber) {
+  return db.insert(users).values({ phoneNumber }).returning().get();
+}
+
+function findOrCreateByPhoneNumber(phoneNumber) {
+  const existingUser = findByPhoneNumber(phoneNumber);
+  if (existingUser) return existingUser;
+  return createUser(phoneNumber);
+}
+
+async function registerUser({ name, studentId, email, password, phoneNumber }) {
+  const passwordHash = await hashPassword(password);
+
   return db
-    .select()
-    .from(reminders)
-    .where(and(eq(reminders.lectureId, lectureId), eq(reminders.reminderDate, reminderDate)))
+    .insert(users)
+    .values({
+      name,
+      studentId,
+      email: email.toLowerCase(),
+      passwordHash,
+      phoneNumber: phoneNumber || null,
+    })
+    .returning()
     .get();
 }
 
-function createLectureReminderEvents() {
-  const lectureDay = getTomorrowDayName();
-  const reminderDate = getReminderDate();
-  const lectures = lectureService.getLecturesByDay(lectureDay);
-  const created = [];
-
-  for (const lecture of lectures) {
-    const lectureUser = userService.findById(lecture.userId);
-    if (lectureUser?.remindersEnabled === false) continue;
-    if (lecture.remindersEnabled === false) continue;
-    if (reminderExists(lecture.id, reminderDate)) continue;
-
-    const event = eventService.createEvent({
-      type: 'lecture_reminder',
-      data: {
-        userId: lecture.userId,
-        lectureId: lecture.id,
-        courseCode: lecture.courseCode,
-        courseName: lecture.courseName,
-        lectureDay: lecture.lectureDay,
-        lectureTime: lecture.lectureTime,
-      },
-    });
-
-    db.insert(reminders)
-      .values({ lectureId: lecture.id, eventId: event.id, reminderDate })
-      .run();
-
-    actionService.sendLectureReminder(event);
-
-    created.push(event);
-  }
-
-  logger.info('Lecture reminder scheduler completed', {
-    lectureDay,
-    reminderDate,
-    remindersCreated: created.length,
-  });
-
-  return created;
+function saveTelegramChatId(userId, chatId) {
+  db.update(users)
+    .set({ telegramChatId: String(chatId) })
+    .where(eq(users.id, Number(userId)))
+    .run();
 }
 
-module.exports = { createLectureReminderEvents };
+function findByTelegramChatId(chatId) {
+  return db.select().from(users).where(eq(users.telegramChatId, String(chatId))).get();
+}
+function getAllUsersWithTelegram() {
+  return db.select().from(users).where(isNotNull(users.telegramChatId)).all();
+}
+
+const TELEGRAM_LINK_TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function createTelegramLinkToken(userId) {
+  const token = require('crypto').randomBytes(16).toString('hex');
+  const expiresAt = new Date(Date.now() + TELEGRAM_LINK_TOKEN_TTL_MS).toISOString();
+
+  db.update(users)
+    .set({ telegramLinkToken: token, telegramLinkTokenExpiresAt: expiresAt })
+    .where(eq(users.id, Number(userId)))
+    .run();
+
+  return token;
+}
+
+function findByValidTelegramLinkToken(token) {
+  if (!token) return undefined;
+  const user = db.select().from(users).where(eq(users.telegramLinkToken, token)).get();
+  if (!user) return undefined;
+  if (!user.telegramLinkTokenExpiresAt || new Date(user.telegramLinkTokenExpiresAt).getTime() < Date.now()) {
+    return undefined;
+  }
+  return user;
+}
+
+function linkTelegramChatId(userId, chatId) {
+  db.update(users)
+    .set({
+      telegramChatId: String(chatId),
+      telegramLinkToken: null,
+      telegramLinkTokenExpiresAt: null,
+    })
+    .where(eq(users.id, Number(userId)))
+    .run();
+  return findById(userId);
+}
+
+function unlinkTelegramChatId(userId) {
+  db.update(users)
+    .set({ telegramChatId: null })
+    .where(eq(users.id, Number(userId)))
+    .run();
+  return findById(userId);
+}
+
+function updateProfile(userId, { name, email, studentId }) {
+  const patch = {};
+  if (name !== undefined) patch.name = name;
+  if (email !== undefined) patch.email = email.toLowerCase();
+  if (studentId !== undefined) patch.studentId = studentId;
+
+  db.update(users).set(patch).where(eq(users.id, Number(userId))).run();
+  return findById(userId);
+}
+
+async function updatePassword(userId, newPassword) {
+  const passwordHash = await hashPassword(newPassword);
+  db.update(users).set({ passwordHash }).where(eq(users.id, Number(userId))).run();
+}
+
+function updateNotificationSettings(userId, { weeklyDigestEnabled, dailySummaryEnabled, remindersEnabled, reminderLeadMinutes }) {
+  const patch = {};
+  if (weeklyDigestEnabled !== undefined) patch.weeklyDigestEnabled = !!weeklyDigestEnabled;
+  if (dailySummaryEnabled !== undefined) patch.dailySummaryEnabled = !!dailySummaryEnabled;
+  if (remindersEnabled !== undefined) patch.remindersEnabled = !!remindersEnabled;
+  if (reminderLeadMinutes !== undefined) patch.reminderLeadMinutes = Number(reminderLeadMinutes);
+
+  db.update(users).set(patch).where(eq(users.id, Number(userId))).run();
+  return findById(userId);
+}
+
+function deleteAccount(userId) {
+  db.delete(users).where(eq(users.id, Number(userId))).run();
+}
+
+module.exports = {
+  findById,
+  findByPhoneNumber,
+  findByEmail,
+  findByStudentId,
+  createUser,
+  registerUser,
+  findOrCreateByPhoneNumber,
+  saveTelegramChatId,
+  findByTelegramChatId,
+  getAllUsersWithTelegram,
+  createTelegramLinkToken,
+  findByValidTelegramLinkToken,
+  linkTelegramChatId,
+  unlinkTelegramChatId,
+  updateProfile,
+  updatePassword,
+  updateNotificationSettings,
+  deleteAccount,
+};
