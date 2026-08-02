@@ -1710,7 +1710,10 @@
               <div class="lecture-item">
                 <span class="lecture-time">${l.lectureTime}</span>
                 <span class="lecture-code">${l.courseCode}</span>
-                <button class="btn btn-danger" style="margin-left:auto" onclick="deleteLecture(${l.id})">Remove</button>
+                <button class="btn btn-small" style="margin-left:auto" onclick="toggleLectureReminder(${l.id})" title="${l.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
+                  <i data-lucide="${l.remindersEnabled === false ? 'bell-off' : 'bell'}" class="icon" width="14" height="14"></i>
+                </button>
+                <button class="btn btn-danger" onclick="deleteLecture(${l.id})">Remove</button>
               </div>
             `).join('')}
           </div>`;
@@ -1749,6 +1752,14 @@
     } catch (err) { showToast('Error removing lecture', true); }
   }
 
+  async function toggleLectureReminder(id) {
+    try {
+      await authFetch(`${API}/lectures/${id}/toggle-reminder`, { method: 'PUT' });
+      showToast('Reminder setting updated!');
+      loadLectures();
+    } catch (err) { showToast('Error updating reminder setting', true); }
+  }
+
   async function loadAssignments() {
     try {
       const res = await authFetch(`${API}/assignments`);
@@ -1778,6 +1789,9 @@
             <span class="card-badge ${badge}">${label}</span>
             <div class="card-actions">
               <button class="btn btn-success" onclick="completeAssignment(${a.id}, '${a.courseCode}')"><i data-lucide="check" class="icon" width="14" height="14"></i> Done</button>
+              <button class="btn btn-small" onclick="toggleAssignmentReminder('${a.courseCode}')" title="${a.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
+                <i data-lucide="${a.remindersEnabled === false ? 'bell-off' : 'bell'}" class="icon" width="14" height="14"></i>
+              </button>
               <button class="btn btn-danger" onclick="deleteAssignment(${a.id}, '${a.courseCode}')">Remove</button>
             </div>
           </div>`;
@@ -1817,6 +1831,17 @@
       showToast('Assignment marked as done!');
       loadAssignments();
     } catch (err) { showToast('Error updating assignment', true); }
+  }
+
+  async function toggleAssignmentReminder(courseCode) {
+    try {
+      await authFetch(`${API}/assignments/toggle-reminder`, {
+        method: 'PUT',
+        body: JSON.stringify({ courseCode })
+      });
+      showToast('Reminder setting updated!');
+      loadAssignments();
+    } catch (err) { showToast('Error updating reminder setting', true); }
   }
 
   async function deleteAssignment(id, courseCode) {
@@ -2084,6 +2109,9 @@
             <span class="card-badge ${badge}">${label}</span>
             <div class="card-actions">
               <button class="btn btn-success" onclick="completeExam(${e.id}, '${e.courseCode}')"><i data-lucide="check" class="icon" width="14" height="14"></i> Done</button>
+              <button class="btn btn-small" onclick="toggleExamReminder('${e.courseCode}')" title="${e.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
+                <i data-lucide="${e.remindersEnabled === false ? 'bell-off' : 'bell'}" class="icon" width="14" height="14"></i>
+              </button>
               <button class="btn btn-danger" onclick="deleteExam(${e.id}, '${e.courseCode}')">Remove</button>
             </div>
           </div>`;
@@ -2123,6 +2151,17 @@
       showToast('Exam marked as done!');
       loadExams();
     } catch (err) { showToast('Error updating exam', true); }
+  }
+
+  async function toggleExamReminder(courseCode) {
+    try {
+      await authFetch(`${API}/exams/toggle-reminder`, {
+        method: 'PUT',
+        body: JSON.stringify({ courseCode })
+      });
+      showToast('Reminder setting updated!');
+      loadExams();
+    } catch (err) { showToast('Error updating reminder setting', true); }
   }
 
   async function deleteExam(id, courseCode) {

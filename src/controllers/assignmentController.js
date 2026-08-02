@@ -41,4 +41,15 @@ function deleteAssignment(req, res) {
   }
 }
 
-module.exports = { createAssignment, listAssignments, completeAssignment, deleteAssignment };
+function toggleAssignmentReminder(req, res) {
+  try {
+    const { courseCode } = req.body;
+    const assignment = assignmentService.toggleAssignmentReminder(req.userId, courseCode);
+    if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
+    return res.json({ success: true, assignment });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+module.exports = { createAssignment, listAssignments, completeAssignment, deleteAssignment, toggleAssignmentReminder };

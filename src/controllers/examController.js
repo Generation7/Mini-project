@@ -41,4 +41,15 @@ function deleteExam(req, res) {
   }
 }
 
-module.exports = { createExam, listExams, completeExam, deleteExam };
+function toggleExamReminder(req, res) {
+  try {
+    const { courseCode } = req.body;
+    const exam = examService.toggleExamReminder(req.userId, courseCode);
+    if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
+    return res.json({ success: true, exam });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+module.exports = { createExam, listExams, completeExam, deleteExam, toggleExamReminder };
