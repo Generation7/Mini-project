@@ -39,6 +39,7 @@ const lectures = sqliteTable('lectures', {
   lectureDay: text('lecture_day').notNull(),
   lectureTime: text('lecture_time').notNull(),
   reminderSent: integer('reminder_sent', { mode: 'boolean' }).notNull().default(false),
+  remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(true),
 });
 
 const reminders = sqliteTable('reminders', {
@@ -57,6 +58,7 @@ const assignments = sqliteTable('assignments', {
   dueDate: text('due_date').notNull(),
   dueTime: text('due_time').notNull().default('23:59'),
   status: text('status').notNull().default('pending'),
+  remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -68,6 +70,7 @@ const exams = sqliteTable('exams', {
   examTime: text('exam_time').notNull().default('08:00'),
   venue: text('venue'),
   status: text('status').notNull().default('upcoming'),
+  remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
