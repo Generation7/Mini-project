@@ -4,10 +4,10 @@ const requiredColumns = {
   users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'telegram_link_token', 'telegram_link_token_expires_at', 'calendar_token', 'weekly_digest_enabled', 'daily_summary_enabled', 'reminders_enabled', 'reminder_lead_minutes', 'created_at'],
   rules: ['id', 'user_id', 'trigger', 'condition', 'action', 'created_at'],
   events: ['id', 'type', 'data', 'created_at'],
-  lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'reminder_sent'],
+  lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'reminder_sent', 'reminders_enabled'],
   reminders: ['id', 'lecture_id', 'event_id', 'reminder_date', 'created_at'],
-  assignments: ['id', 'user_id', 'course_code', 'title', 'due_date', 'due_time', 'status', 'created_at'],
-  exams: ['id', 'user_id', 'course_code', 'exam_date', 'exam_time', 'venue', 'status', 'created_at'],
+  assignments: ['id', 'user_id', 'course_code', 'title', 'due_date', 'due_time', 'status', 'reminders_enabled', 'created_at'],
+  exams: ['id', 'user_id', 'course_code', 'exam_date', 'exam_time', 'venue', 'status', 'reminders_enabled', 'created_at'],
   courses: ['id', 'user_id', 'course_code', 'course_name', 'credit_hours', 'score', 'academic_year', 'semester', 'created_at'],
   conversation_messages: ['id', 'user_id', 'role', 'content', 'created_at'],
   classes: ['id', 'name', 'join_code', 'creator_id', 'created_at'],
@@ -24,8 +24,29 @@ function getTableColumns(tableName) {
   }
 }
 
+// Adds any columns from `columns` that don't already exist on `tableName`.
+// Safe to call repeatedly - each column is only added if missing, and a
+// failed ALTER for one column doesn't stop the others. Used for every
+// table that needs to self-migrate an existing DB (as opposed to
+// createFreshDatabase(), which only matters for brand-new DBs).
+function addMissingColumns(tableName, columns) {
+  const existing = getTableColumns(tableName);
+  if (existing.length === 0) return;
+
+  for (const col of columns) {
+    if (!existing.includes(col.name)) {
+      try {
+        sqlite.exec(`ALTER TABLE ${tableName} ADD COLUMN ${col.name} ${col.ddl}`);
+        console.log(`Added ${tableName}.${col.name} column.`);
+      } catch (err) {
+        console.log(`Skipped ${tableName}.${col.name}:`, err.message);
+      }
+    }
+  }
+}
+
 function addMissingColumnsSafely() {
-const newUserColumns = [
+  const newUserColumns = [
     { name: 'name',             ddl: 'TEXT' },
     { name: 'email',            ddl: 'TEXT' },
     { name: 'password_hash',    ddl: 'TEXT' },
@@ -42,19 +63,17 @@ const newUserColumns = [
     { name: 'created_at',       ddl: "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP" },
   ];
 
+  addMissingColumns('users', newUserColumns);
+
+  const remindersEnabledColumn = [
+    { name: 'reminders_enabled', ddl: 'INTEGER NOT NULL DEFAULT 1' },
+  ];
+  addMissingColumns('lectures', remindersEnabledColumn);
+  addMissingColumns('assignments', remindersEnabledColumn);
+  addMissingColumns('exams', remindersEnabledColumn);
+
   const existing = getTableColumns('users');
   if (existing.length === 0) return;
-
-  for (const col of newUserColumns) {
-    if (!existing.includes(col.name)) {
-      try {
-        sqlite.exec(`ALTER TABLE users ADD COLUMN ${col.name} ${col.ddl}`);
-        console.log(`Added users.${col.name} column.`);
-      } catch (err) {
-        console.log(`Skipped users.${col.name}:`, err.message);
-      }
-    }
-  }
 
   // If old DB had 'password' column but not 'password_hash', copy it over
   if (existing.includes('password') && !existing.includes('password_hash')) {
@@ -134,6 +153,7 @@ function createFreshDatabase() {
       lecture_day TEXT NOT NULL,
       lecture_time TEXT NOT NULL,
       reminder_sent INTEGER NOT NULL DEFAULT 0,
+      reminders_enabled INTEGER NOT NULL DEFAULT 1,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
@@ -156,6 +176,7 @@ function createFreshDatabase() {
       due_date TEXT NOT NULL,
       due_time TEXT NOT NULL DEFAULT '23:59',
       status TEXT NOT NULL DEFAULT 'pending',
+      reminders_enabled INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
@@ -168,6 +189,7 @@ function createFreshDatabase() {
       exam_time TEXT NOT NULL DEFAULT '08:00',
       venue TEXT,
       status TEXT NOT NULL DEFAULT 'upcoming',
+      reminders_enabled INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
