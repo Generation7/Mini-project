@@ -420,7 +420,13 @@
         border-right: none;
         border-bottom: 1px solid var(--surface-border);
       }
-      .tab { flex-shrink: 0; }
+      .tab {
+        flex-shrink: 0;
+        width: auto;
+        padding: 10px 14px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
       .sidebar-resize-handle { display: none; }
 
       /* Visual hint that the tab strip scrolls sideways - a fade into the
