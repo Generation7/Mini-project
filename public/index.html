@@ -416,6 +416,7 @@
         width: 100% !important;
         height: auto;
         position: relative;
+        top: 0;
         overflow-x: auto;
         border-right: none;
         border-bottom: 1px solid var(--surface-border);
@@ -428,33 +429,6 @@
         white-space: nowrap;
       }
       .sidebar-resize-handle { display: none; }
-
-      /* Visual hint that the tab strip scrolls sideways - a fade into the
-         surface color at the right edge, plus a small chevron on top of it.
-         Purely decorative: pointer-events none so it never blocks taps. */
-      .tabs::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 36px;
-        height: 100%;
-        background: linear-gradient(to right, transparent, var(--surface) 65%);
-        pointer-events: none;
-        z-index: 1;
-      }
-      .tabs::after {
-        content: '\203A';
-        position: absolute;
-        top: 50%;
-        right: 6px;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        font-size: 18px;
-        line-height: 1;
-        pointer-events: none;
-        z-index: 2;
-      }
     }
 
     .icon {
