@@ -286,11 +286,9 @@
     }
 
     .user-badge {
-      background: var(--input-bg);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      color: var(--accent-light);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--brand);
     }
 
     @media (max-width: 640px) {
@@ -299,28 +297,14 @@
       .topbar-left img { height: 22px; }
       .topbar h1 { font-size: 17px; }
       .user-badge {
-        max-width: 90px;
+        max-width: 130px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        padding: 5px 10px;
-        font-size: 11px;
+        font-size: 13px;
       }
-      .logout-btn { padding: 6px 10px; font-size: 12px; }
       .theme-toggle { width: 30px; height: 30px; }
     }
-
-    .logout-btn {
-      background: var(--input-bg);
-      border: none;
-      color: var(--text-muted);
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    .logout-btn:hover { color: var(--text); }
 
     .theme-toggle {
       background: var(--input-bg);
@@ -855,7 +839,6 @@
     <div style="display:flex;align-items:center;gap:12px">
       <span class="user-badge" id="userBadge"></span>
       <button class="theme-toggle" id="dashboardThemeToggle" onclick="toggleTheme()" title="Toggle theme"><i data-lucide="moon" class="icon" width="16" height="16"></i></button>
-      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
   </div>
 
@@ -1121,6 +1104,17 @@
           <button class="btn btn-small" id="telegramActionBtn" onclick="handleTelegramAction()">
             <i data-lucide="send" class="icon" width="14" height="14"></i> Connect Telegram
           </button>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3><i data-lucide="log-out" class="icon" width="16" height="16"></i> Account</h3>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Log out</div>
+            <div class="settings-row-desc">Sign out of Acadia on this device</div>
+          </div>
+          <button class="btn btn-small" onclick="logout()"><i data-lucide="log-out" class="icon" width="14" height="14"></i> Logout</button>
         </div>
       </div>
 
