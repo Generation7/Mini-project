@@ -6,3 +6,4 @@ const router = express.Router();
 router.get('/', healthController.healthCheck);
 
 module.exports = router;
+    
