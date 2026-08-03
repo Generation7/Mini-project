@@ -294,7 +294,7 @@
     }
 
     @media (max-width: 640px) {
-      .topbar { padding: 10px 14px; gap: 8px; }
+      .topbar { height: 56px; padding: 0 14px; gap: 8px; }
       .topbar-left { gap: 8px; }
       .topbar-left img { height: 22px; }
       .topbar h1 { font-size: 17px; }
@@ -409,14 +409,15 @@
       min-width: 0;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 640px) {
       .dashboard-body { flex-direction: column; }
       .tabs {
         flex-direction: row;
         width: 100% !important;
         height: auto;
-        position: relative;
-        top: 0;
+        position: sticky;
+        top: 56px;
+        z-index: 90;
         overflow-x: auto;
         border-right: none;
         border-bottom: 1px solid var(--surface-border);
