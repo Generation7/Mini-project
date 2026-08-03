@@ -293,6 +293,23 @@
       color: var(--accent-light);
     }
 
+    @media (max-width: 640px) {
+      .topbar { padding: 10px 14px; gap: 8px; }
+      .topbar-left { gap: 8px; }
+      .topbar-left img { height: 22px; }
+      .topbar h1 { font-size: 17px; }
+      .user-badge {
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+      .logout-btn { padding: 6px 10px; font-size: 12px; }
+      .theme-toggle { width: 30px; height: 30px; }
+    }
+
     .logout-btn {
       background: var(--input-bg);
       border: none;
@@ -398,13 +415,40 @@
         flex-direction: row;
         width: 100% !important;
         height: auto;
-        position: static;
+        position: relative;
         overflow-x: auto;
         border-right: none;
         border-bottom: 1px solid var(--surface-border);
       }
       .tab { flex-shrink: 0; }
       .sidebar-resize-handle { display: none; }
+
+      /* Visual hint that the tab strip scrolls sideways - a fade into the
+         surface color at the right edge, plus a small chevron on top of it.
+         Purely decorative: pointer-events none so it never blocks taps. */
+      .tabs::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 36px;
+        height: 100%;
+        background: linear-gradient(to right, transparent, var(--surface) 65%);
+        pointer-events: none;
+        z-index: 1;
+      }
+      .tabs::after {
+        content: '\203A';
+        position: absolute;
+        top: 50%;
+        right: 6px;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 18px;
+        line-height: 1;
+        pointer-events: none;
+        z-index: 2;
+      }
     }
 
     .icon {
@@ -1500,6 +1544,7 @@
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
     document.getElementById('userBadge').textContent = currentUser.name || currentUser.email;
+    document.getElementById('userBadge').title = currentUser.name || currentUser.email;
     loadAll();
   }
 
@@ -1550,6 +1595,7 @@
       if (!data.success) return showToast(data.message || 'Could not update profile', true);
       persistCurrentUser(data.user);
       document.getElementById('userBadge').textContent = data.user.name || data.user.email;
+      document.getElementById('userBadge').title = data.user.name || data.user.email;
       showToast('Profile updated');
     } catch (err) {
       showToast('Error updating profile', true);
