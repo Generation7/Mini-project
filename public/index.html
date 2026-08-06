@@ -115,66 +115,7 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      position: relative;
       transition: background 0.2s, color 0.2s;
-    }
-
-    /* ── Animated mesh gradient background ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: -50%;
-      z-index: -1;
-      background:
-        radial-gradient(ellipse 55% 45% at 78% 12%, rgba(45, 212, 191, 0.16) 0%, transparent 55%),
-        radial-gradient(ellipse 45% 55% at 12% 82%, rgba(15, 118, 110, 0.22) 0%, transparent 55%),
-        radial-gradient(ellipse 38% 38% at 52% 52%, rgba(20, 184, 166, 0.08) 0%, transparent 65%),
-        var(--bg);
-      will-change: transform;
-      animation: meshDrift 25s ease-in-out infinite alternate;
-    }
-
-    /* Light mode — softer glows */
-    [data-theme="light"] body::before {
-      background:
-        radial-gradient(ellipse 55% 45% at 78% 12%, rgba(13, 148, 136, 0.09) 0%, transparent 55%),
-        radial-gradient(ellipse 45% 55% at 12% 82%, rgba(15, 118, 110, 0.11) 0%, transparent 55%),
-        radial-gradient(ellipse 38% 38% at 52% 52%, rgba(20, 184, 166, 0.04) 0%, transparent 65%),
-        var(--bg);
-    }
-
-    @media (prefers-color-scheme: light) {
-      :root:not([data-theme="dark"]) body::before {
-        background:
-          radial-gradient(ellipse 55% 45% at 78% 12%, rgba(13, 148, 136, 0.09) 0%, transparent 55%),
-          radial-gradient(ellipse 45% 55% at 12% 82%, rgba(15, 118, 110, 0.11) 0%, transparent 55%),
-          radial-gradient(ellipse 38% 38% at 52% 52%, rgba(20, 184, 166, 0.04) 0%, transparent 65%),
-          var(--bg);
-      }
-    }
-
-    @keyframes meshDrift {
-      0% {
-        transform: scale(1) rotate(0deg) translate(0%, 0%);
-      }
-
-      33% {
-        transform: scale(1.04) rotate(1.5deg) translate(-1.5%, 1.2%);
-      }
-
-      66% {
-        transform: scale(0.97) rotate(-1.2deg) translate(1.8%, -0.8%);
-      }
-
-      100% {
-        transform: scale(1.03) rotate(2.2deg) translate(-0.8%, 1.8%);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      body::before {
-        animation: none;
-      }
     }
 
     #loginPage {
@@ -187,22 +128,69 @@
     }
 
     .login-card {
-      background: rgba(26, 29, 36, 0.6);
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      border-radius: 20px;
-      padding: 40px;
+      background: rgba(14, 17, 22, 0.52);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border-radius: 24px;
+      padding: 44px 40px;
       width: 90%;
-      max-width: 400px;
+      max-width: 420px;
       text-align: center;
-      box-shadow: 0 20px 60px var(--shadow), 0 0 0 1px rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.45),
+        0 1px 0 rgba(255, 255, 255, 0.12) inset;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      animation: cardFadeUp 0.6s ease-out both;
     }
 
-    [data-theme="light"] .login-card {
-      background: rgba(255, 255, 255, 0.68);
-      border-color: rgba(255, 255, 255, 0.5);
-      box-shadow: 0 20px 60px var(--shadow), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    @keyframes cardFadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .login-card {
+        animation: none;
+      }
+    }
+
+    /* Override text colour on login card so it pops on the glass */
+    .login-card h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #ffffff;
+      -webkit-text-fill-color: #ffffff;
+      background: none;
+      margin-bottom: 6px;
+    }
+
+    .login-card>p {
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+
+    /* Glass inputs inside the card */
+    #loginPage input {
+      background: rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+    }
+
+    #loginPage input::placeholder {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    #loginPage input:focus {
+      border-color: var(--brand);
+      background: rgba(255, 255, 255, 0.14);
     }
 
     .logo {
@@ -354,22 +342,15 @@
     }
 
     .topbar {
-      background: rgba(26, 29, 36, 0.72);
-      backdrop-filter: blur(16px) saturate(150%);
-      -webkit-backdrop-filter: blur(16px) saturate(150%);
+      background: var(--surface);
       padding: 16px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      border-bottom: 1px solid var(--surface-border);
       position: sticky;
       top: 0;
       z-index: 100;
-    }
-
-    [data-theme="light"] .topbar {
-      background: rgba(255, 255, 255, 0.75);
-      border-bottom-color: rgba(0, 0, 0, 0.08);
     }
 
     .topbar-left {
@@ -457,10 +438,8 @@
       flex-direction: column;
       gap: 4px;
       padding: 16px 12px;
-      border-right: 1px solid rgba(255, 255, 255, 0.07);
-      background: rgba(26, 29, 36, 0.65);
-      backdrop-filter: blur(16px) saturate(150%);
-      -webkit-backdrop-filter: blur(16px) saturate(150%);
+      border-right: 1px solid var(--surface-border);
+      background: var(--surface);
       width: var(--sidebar-width, 200px);
       flex-shrink: 0;
       position: sticky;
@@ -468,11 +447,6 @@
       height: calc(100vh - 65px);
       box-sizing: border-box;
       overflow: hidden;
-    }
-
-    [data-theme="light"] .tabs {
-      background: rgba(255, 255, 255, 0.72);
-      border-right-color: rgba(0, 0, 0, 0.08);
     }
 
     .sidebar-resize-handle {
@@ -508,15 +482,14 @@
     }
 
     .tab.active {
-      background: var(--brand-gradient);
-      color: #fff;
+      background: var(--input-bg);
+      color: var(--brand-light);
       font-weight: 600;
-      box-shadow: 0 2px 12px rgba(45, 212, 191, 0.25);
+      box-shadow: inset 3px 0 0 var(--brand);
     }
 
     .tab:hover:not(.active) {
       color: var(--text);
-      background: rgba(255, 255, 255, 0.05);
     }
 
     .content {
@@ -595,29 +568,15 @@
     }
 
     .card {
-      background: rgba(26, 29, 36, 0.55);
-      backdrop-filter: blur(14px) saturate(150%);
-      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      background: var(--surface);
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--surface-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    [data-theme="light"] .card {
-      background: rgba(255, 255, 255, 0.65);
-      border-color: rgba(0, 0, 0, 0.07);
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(45, 212, 191, 0.12);
-      border-color: rgba(45, 212, 191, 0.28);
     }
 
     .card-info {
@@ -788,18 +747,11 @@
     }
 
     .form-card {
-      background: rgba(26, 29, 36, 0.55);
-      backdrop-filter: blur(14px) saturate(150%);
-      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      background: var(--surface);
       border-radius: 14px;
       padding: 24px;
       margin-bottom: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-    }
-
-    [data-theme="light"] .form-card {
-      background: rgba(255, 255, 255, 0.65);
-      border-color: rgba(0, 0, 0, 0.07);
+      border: 1px solid var(--surface-border);
     }
 
     .form-card h3 {
@@ -839,36 +791,10 @@
     }
 
     .summary-card {
-      background: rgba(26, 29, 36, 0.55);
-      backdrop-filter: blur(14px) saturate(150%);
-      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      background: var(--surface);
       border-radius: 14px;
       padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    [data-theme="light"] .summary-card {
-      background: rgba(255, 255, 255, 0.65);
-      border-color: rgba(0, 0, 0, 0.07);
-    }
-
-    .summary-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--brand-gradient);
-      border-radius: 14px 14px 0 0;
-    }
-
-    .summary-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(45, 212, 191, 0.14);
+      border: 1px solid var(--surface-border);
     }
 
     .summary-card h3 {
@@ -879,8 +805,7 @@
 
     .summary-card .count {
       font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-weight: 700;
       color: var(--brand-light);
     }
 
@@ -980,17 +905,11 @@
     }
 
     .danger-zone {
-      background: rgba(26, 29, 36, 0.55);
-      backdrop-filter: blur(14px) saturate(150%);
-      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      background: var(--surface);
       border-radius: 14px;
       padding: 24px;
       margin-bottom: 24px;
       border: 1px solid var(--badge-red-text);
-    }
-
-    [data-theme="light"] .danger-zone {
-      background: rgba(255, 255, 255, 0.65);
     }
 
     .danger-zone h3 {
@@ -1007,18 +926,11 @@
     }
 
     .day-lectures {
-      background: rgba(26, 29, 36, 0.55);
-      backdrop-filter: blur(14px) saturate(150%);
-      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      background: var(--surface);
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-    }
-
-    [data-theme="light"] .day-lectures {
-      background: rgba(255, 255, 255, 0.65);
-      border-color: rgba(0, 0, 0, 0.07);
+      border: 1px solid var(--surface-border);
     }
 
     .day-title {
@@ -1055,34 +967,23 @@
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: rgba(20, 22, 28, 0.88);
-      backdrop-filter: blur(14px) saturate(150%);
-      -webkit-backdrop-filter: blur(14px) saturate(150%);
-      color: var(--badge-green-text);
+      background: #22c55e;
+      color: white;
       padding: 12px 20px;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
       opacity: 0;
-      transition: opacity 0.3s, transform 0.3s;
-      transform: translateY(8px);
+      transition: opacity 0.3s;
       z-index: 1000;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-left: 3px solid var(--badge-green-text);
     }
 
     .toast.show {
       opacity: 1;
-      transform: translateY(0);
     }
 
     .toast.error {
-      color: var(--badge-red-text);
-      border-left-color: var(--badge-red-text);
-    }
-
-    [data-theme="light"] .toast {
-      background: rgba(255, 255, 255, 0.88);
+      background: #ef4444;
     }
   </style>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
