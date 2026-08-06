@@ -46,6 +46,16 @@
       --badge-yellow-bg: #2e2a16;
       --badge-yellow-text: #fbbf24;
       --shadow: rgba(0, 0, 0, 0.5);
+      --danger: #f87171;
+      --danger-dark: #dc2626;
+      --danger-gradient: linear-gradient(135deg, #dc2626, #f87171);
+      --success: #4ade80;
+      --success-dark: #16a34a;
+      --success-gradient: linear-gradient(135deg, #16a34a, #4ade80);
+      --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
+      --shadow-elev-2: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+      --shadow-elev-3: 0 2px 4px rgba(0, 0, 0, 0.4), 0 24px 64px rgba(0, 0, 0, 0.45);
+      --shadow-brand: 0 1px 2px rgba(15, 118, 110, 0.3), 0 6px 18px rgba(45, 212, 191, 0.28);
     }
 
     [data-theme="light"] {
@@ -76,6 +86,16 @@
       --badge-yellow-bg: #fef9c3;
       --badge-yellow-text: #a16207;
       --shadow: rgba(0, 0, 0, 0.12);
+      --danger: #dc2626;
+      --danger-dark: #b91c1c;
+      --danger-gradient: linear-gradient(135deg, #b91c1c, #dc2626);
+      --success: #16a34a;
+      --success-dark: #15803d;
+      --success-gradient: linear-gradient(135deg, #15803d, #16a34a);
+      --shadow-elev-1: 0 1px 2px rgba(30, 41, 59, 0.06), 0 1px 1px rgba(30, 41, 59, 0.04);
+      --shadow-elev-2: 0 1px 2px rgba(30, 41, 59, 0.05), 0 8px 24px rgba(30, 41, 59, 0.08);
+      --shadow-elev-3: 0 2px 4px rgba(30, 41, 59, 0.06), 0 24px 64px rgba(30, 41, 59, 0.12);
+      --shadow-brand: 0 1px 2px rgba(15, 118, 110, 0.12), 0 6px 18px rgba(20, 184, 166, 0.18);
     }
 
     @media (prefers-color-scheme: light) {
@@ -107,6 +127,16 @@
         --badge-yellow-bg: #fef9c3;
         --badge-yellow-text: #a16207;
         --shadow: rgba(0, 0, 0, 0.12);
+        --danger: #dc2626;
+        --danger-dark: #b91c1c;
+        --danger-gradient: linear-gradient(135deg, #b91c1c, #dc2626);
+        --success: #16a34a;
+        --success-dark: #15803d;
+        --success-gradient: linear-gradient(135deg, #15803d, #16a34a);
+        --shadow-elev-1: 0 1px 2px rgba(30, 41, 59, 0.06), 0 1px 1px rgba(30, 41, 59, 0.04);
+        --shadow-elev-2: 0 1px 2px rgba(30, 41, 59, 0.05), 0 8px 24px rgba(30, 41, 59, 0.08);
+        --shadow-elev-3: 0 2px 4px rgba(30, 41, 59, 0.06), 0 24px 64px rgba(30, 41, 59, 0.12);
+        --shadow-brand: 0 1px 2px rgba(15, 118, 110, 0.12), 0 6px 18px rgba(20, 184, 166, 0.18);
       }
     }
 
@@ -117,6 +147,12 @@
       min-height: 100vh;
       position: relative;
       transition: background 0.2s, color 0.2s;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+      border-radius: 4px;
     }
 
     /* ── Animated mesh gradient background ── */
@@ -195,14 +231,14 @@
       width: 90%;
       max-width: 400px;
       text-align: center;
-      box-shadow: 0 20px 60px var(--shadow), 0 0 0 1px rgba(255, 255, 255, 0.07);
+      box-shadow: var(--shadow-elev-3), 0 0 0 1px rgba(255, 255, 255, 0.07);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     [data-theme="light"] .login-card {
       background: rgba(255, 255, 255, 0.68);
       border-color: rgba(255, 255, 255, 0.5);
-      box-shadow: 0 20px 60px var(--shadow), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-elev-3), 0 0 0 1px rgba(0, 0, 0, 0.05);
     }
 
     .logo {
@@ -322,31 +358,75 @@
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
+      box-shadow: var(--shadow-brand);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
     }
 
     .btn:hover {
-      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-elev-1), var(--shadow-brand);
     }
 
-    .btn-danger {
-      background: linear-gradient(135deg, #ff6363, #fa8b8b);
-      width: auto;
-      padding: 8px 16px;
-      font-size: 13px;
-    }
-
-    .btn-success {
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      width: auto;
-      padding: 8px 16px;
-      font-size: 13px;
+    .btn:active {
+      transform: translateY(0);
     }
 
     .btn-small {
       width: auto;
       padding: 8px 16px;
       font-size: 13px;
+      box-shadow: none;
+    }
+
+    .btn-success {
+      background: var(--success-gradient);
+      width: auto;
+      padding: 8px 16px;
+      font-size: 13px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), 0 4px 14px color-mix(in srgb, var(--success) 30%, transparent);
+    }
+
+    /* Destructive actions are demoted to a ghost style: quieter by default,
+       fills solid only on hover/focus so the eye isn't drawn to "Remove"
+       before it's drawn to the item itself. */
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+      width: auto;
+      padding: 8px 16px;
+      font-size: 13px;
+      box-shadow: none;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-gradient);
+      border-color: transparent;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), 0 4px 14px color-mix(in srgb, var(--danger) 35%, transparent);
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid var(--input-border);
+      color: var(--text-muted);
+      cursor: pointer;
+      box-shadow: none;
+      transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .btn-icon:hover {
+      color: var(--brand);
+      border-color: var(--brand);
+      background: var(--brand-bg);
     }
 
     #dashboard {
@@ -362,6 +442,7 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -602,6 +683,7 @@
       padding: 20px;
       margin-bottom: 12px;
       border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: var(--shadow-elev-1);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -616,7 +698,7 @@
 
     .card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(45, 212, 191, 0.12);
+      box-shadow: var(--shadow-elev-1), 0 8px 32px rgba(45, 212, 191, 0.12);
       border-color: rgba(45, 212, 191, 0.28);
     }
 
@@ -795,6 +877,7 @@
       padding: 24px;
       margin-bottom: 24px;
       border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: var(--shadow-elev-1);
     }
 
     [data-theme="light"] .form-card {
@@ -845,6 +928,7 @@
       border-radius: 14px;
       padding: 20px;
       border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: var(--shadow-elev-1);
       position: relative;
       overflow: hidden;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -868,7 +952,7 @@
 
     .summary-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(45, 212, 191, 0.14);
+      box-shadow: var(--shadow-elev-1), 0 8px 28px rgba(45, 212, 191, 0.14);
     }
 
     .summary-card h3 {
@@ -882,6 +966,7 @@
       font-weight: 800;
       letter-spacing: -0.5px;
       color: var(--brand-light);
+      font-variant-numeric: tabular-nums;
     }
 
     .empty-state {
@@ -1014,6 +1099,7 @@
       padding: 20px;
       margin-bottom: 12px;
       border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: var(--shadow-elev-1);
     }
 
     [data-theme="light"] .day-lectures {
@@ -1069,6 +1155,7 @@
       z-index: 1000;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-left: 3px solid var(--badge-green-text);
+      box-shadow: var(--shadow-elev-2);
     }
 
     .toast.show {
@@ -2060,7 +2147,7 @@
               <div class="lecture-item">
                 <span class="lecture-time">${l.lectureTime}</span>
                 <span class="lecture-code">${l.courseCode}</span>
-                <button class="btn btn-small" style="margin-left:auto" onclick="toggleLectureReminder(${l.id})" title="${l.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
+                <button class="btn-icon" style="margin-left:auto" onclick="toggleLectureReminder(${l.id})" title="${l.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
                   <i data-lucide="${l.remindersEnabled === false ? 'bell-off' : 'bell'}" class="icon" width="14" height="14"></i>
                 </button>
                 <button class="btn btn-danger" onclick="deleteLecture(${l.id})">Remove</button>
@@ -2141,7 +2228,7 @@
             <span class="card-badge ${badge}">${label}</span>
             <div class="card-actions">
               <button class="btn btn-success" onclick="completeAssignment(${a.id}, '${a.courseCode}')"><i data-lucide="check" class="icon" width="14" height="14"></i> Done</button>
-              <button class="btn btn-small" onclick="toggleAssignmentReminder('${a.courseCode}')" title="${a.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
+              <button class="btn-icon" onclick="toggleAssignmentReminder('${a.courseCode}')" title="${a.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
                 <i data-lucide="${a.remindersEnabled === false ? 'bell-off' : 'bell'}" class="icon" width="14" height="14"></i>
               </button>
               <button class="btn btn-danger" onclick="deleteAssignment(${a.id}, '${a.courseCode}')">Remove</button>
@@ -2463,7 +2550,7 @@
             <span class="card-badge ${badge}">${label}</span>
             <div class="card-actions">
               <button class="btn btn-success" onclick="completeExam(${e.id}, '${e.courseCode}')"><i data-lucide="check" class="icon" width="14" height="14"></i> Done</button>
-              <button class="btn btn-small" onclick="toggleExamReminder('${e.courseCode}')" title="${e.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
+              <button class="btn-icon" onclick="toggleExamReminder('${e.courseCode}')" title="${e.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
                 <i data-lucide="${e.remindersEnabled === false ? 'bell-off' : 'bell'}" class="icon" width="14" height="14"></i>
               </button>
               <button class="btn btn-danger" onclick="deleteExam(${e.id}, '${e.courseCode}')">Remove</button>
