@@ -359,29 +359,6 @@
       position: relative;
       padding: 32px 24px;
       background: var(--bg);
-      overflow: hidden;
-    }
-
-    .auth-form-panel::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(160deg, rgba(10, 14, 18, 0.93) 0%, rgba(15, 23, 26, 0.88) 55%, rgba(15, 118, 110, 0.35) 100%),
-        url('https://images.unsplash.com/photo-1650661926447-9efb2610f64c?auto=format&fit=crop&w=1400&q=70') center/cover no-repeat;
-      z-index: 0;
-    }
-
-    [data-theme="light"] .auth-form-panel::before {
-      background:
-        linear-gradient(160deg, rgba(248, 250, 252, 0.95) 0%, rgba(240, 244, 246, 0.92) 55%, rgba(20, 184, 166, 0.2) 100%),
-        url('https://images.unsplash.com/photo-1650661926447-9efb2610f64c?auto=format&fit=crop&w=1400&q=70') center/cover no-repeat;
-    }
-
-    .auth-form-panel .theme-toggle,
-    .auth-form-panel .login-card {
-      position: relative;
-      z-index: 1;
     }
 
     .auth-form-panel .theme-toggle {
@@ -651,6 +628,30 @@
     }
 
     #dashboard {
+      display: none;
+      position: relative;
+    }
+
+    #dashboard::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(160deg, rgba(10, 14, 18, 0.94) 0%, rgba(15, 23, 26, 0.9) 55%, rgba(15, 118, 110, 0.4) 100%),
+        url('https://images.unsplash.com/photo-1769794371055-54436b54577e?auto=format&fit=crop&w=1600&q=70') center/cover no-repeat fixed;
+    }
+
+    [data-theme="light"] #dashboard::before {
+      background:
+        linear-gradient(160deg, rgba(248, 250, 252, 0.96) 0%, rgba(240, 244, 246, 0.93) 55%, rgba(20, 184, 166, 0.18) 100%),
+        url('https://images.unsplash.com/photo-1769794371055-54436b54577e?auto=format&fit=crop&w=1600&q=70') center/cover no-repeat fixed;
+    }
+
+    /* The animated mesh belongs to the auth screen only — the dashboard gets
+       the static study-desk photo above instead, so it isn't competing with
+       real data on screen. */
+    body.dashboard-mode::before {
       display: none;
     }
 
@@ -2185,13 +2186,15 @@
       localStorage.removeItem('acadiaUser');
       authToken = null;
       currentUser = null;
+      document.body.classList.remove('dashboard-mode');
       document.getElementById('dashboard').style.display = 'none';
-      document.getElementById('loginPage').style.display = 'flex';
+      document.getElementById('loginPage').style.display = 'grid';
     }
 
     function showDashboard() {
       document.getElementById('loginPage').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
+      document.body.classList.add('dashboard-mode');
       document.getElementById('userBadge').textContent = currentUser.name || currentUser.email;
       document.getElementById('userBadge').title = currentUser.name || currentUser.email;
       loadAll();
