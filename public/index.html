@@ -225,7 +225,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
       padding: 44px 48px;
       min-height: 100vh;
       color: #f4f6f8;
@@ -253,6 +253,9 @@
     }
 
     .auth-brand-row {
+      position: absolute;
+      top: 44px;
+      left: 48px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -276,6 +279,31 @@
       letter-spacing: -0.5px;
       margin-bottom: 14px;
       max-width: 460px;
+    }
+
+    .auth-hero-copy h1 .reveal-word {
+      display: inline-block;
+      opacity: 0;
+      filter: blur(6px);
+      transform: translateY(16px);
+      animation: wordSettle 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes wordSettle {
+      to {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .auth-hero-copy h1 .reveal-word {
+        animation: none;
+        opacity: 1;
+        filter: none;
+        transform: none;
+      }
     }
 
     .auth-hero-copy p {
@@ -309,6 +337,9 @@
     }
 
     .auth-visual-footer {
+      position: absolute;
+      bottom: 44px;
+      left: 48px;
       font-size: 12px;
       color: rgba(244, 246, 248, 0.5);
     }
@@ -1348,7 +1379,7 @@
       </div>
       <div class="auth-hero-copy">
         <h1>Own your semester, not the other way around.</h1>
-        <p>One dashboard for lectures, assignments, exams and your CWA \u2014 kept in sync with a Telegram bot that reminds you before you miss a deadline.</p>
+        <p>One dashboard for lectures, assignments, exams and your CWA — kept in sync with a Telegram bot that reminds you before you miss a deadline.</p>
         <div class="auth-feature-list">
           <div><span class="auth-feature-dot" style="background:var(--brand-light)"></span> Lectures, assignments &amp; exams tracked in one place</div>
           <div><span class="auth-feature-dot" style="background:var(--badge-yellow-text)"></span> Telegram reminders before deadlines slip past you</div>
@@ -2022,9 +2053,20 @@
       });
     }
 
+    function initHeroReveal() {
+      const heading = document.querySelector('.auth-hero-copy h1');
+      if (!heading || heading.dataset.revealed) return;
+      heading.dataset.revealed = 'true';
+      const words = heading.textContent.trim().split(/\s+/);
+      heading.innerHTML = words
+        .map((w, i) => `<span class="reveal-word" style="animation-delay:${i * 80}ms">${w}</span>`)
+        .join(' ');
+    }
+
     initTheme();
     renderIcons();
     initSidebarResize();
+    initHeroReveal();
 
     window.onload = () => {
       const savedToken = localStorage.getItem('acadiaToken');
