@@ -247,9 +247,63 @@
         linear-gradient(175deg, rgba(10, 14, 18, 0.94) 0%, rgba(11, 30, 28, 0.86) 42%, rgba(15, 118, 110, 0.55) 100%);
     }
 
+    /* Drifting motes = tasks quietly rising off your list */
+    .auth-particles {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .auth-particle {
+      position: absolute;
+      bottom: -24px;
+      border-radius: 50%;
+      opacity: 0;
+      animation: particleRise linear infinite;
+      filter: blur(0.3px);
+    }
+
+    @keyframes particleRise {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+
+      8% {
+        opacity: var(--p-opacity, 0.55);
+      }
+
+      50% {
+        transform: translateY(-52vh) translateX(var(--p-drift, 14px));
+      }
+
+      88% {
+        opacity: var(--p-opacity, 0.55);
+      }
+
+      100% {
+        transform: translateY(-108vh) translateX(0);
+        opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .auth-particle {
+        display: none;
+      }
+    }
+
     .auth-visual>* {
       position: relative;
       z-index: 1;
+    }
+
+    .auth-brand-row,
+    .auth-hero-copy,
+    .auth-visual-footer {
+      z-index: 3;
     }
 
     .auth-brand-row {
@@ -1373,6 +1427,7 @@
     <div class="auth-visual">
       <img class="auth-bg" src="https://images.unsplash.com/photo-1580537659466-0a9bfa916a54?auto=format&amp;fit=crop&amp;w=1600&amp;q=80" alt="" />
       <div class="auth-overlay"></div>
+      <div class="auth-particles" id="authParticles"></div>
       <div class="auth-brand-row">
         <i data-lucide="graduation-cap" width="26" height="26"></i>
         <span>Acadia</span>
@@ -2063,10 +2118,37 @@
         .join(' ');
     }
 
+    function initParticles() {
+      const container = document.getElementById('authParticles');
+      if (!container || container.dataset.built) return;
+      container.dataset.built = 'true';
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const colors = [
+        'rgba(45, 212, 191, 0.9)',   // brand teal
+        'rgba(251, 191, 36, 0.85)',  // amber
+        'rgba(74, 222, 128, 0.85)',  // success green
+      ];
+      const count = 22;
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        const size = (Math.random() * 3.5 + 2.5).toFixed(1);
+        const left = (Math.random() * 100).toFixed(1);
+        const duration = (Math.random() * 12 + 14).toFixed(1);
+        const delay = (-Math.random() * duration).toFixed(1);
+        const drift = (Math.random() * 40 - 20).toFixed(0);
+        const opacity = (Math.random() * 0.35 + 0.25).toFixed(2);
+        const color = colors[i % colors.length];
+        html += `<span class="auth-particle" style="left:${left}%;width:${size}px;height:${size}px;background:${color};box-shadow:0 0 6px ${color};animation-duration:${duration}s;animation-delay:${delay}s;--p-drift:${drift}px;--p-opacity:${opacity}"></span>`;
+      }
+      container.innerHTML = html;
+    }
+
     initTheme();
     renderIcons();
     initSidebarResize();
     initHeroReveal();
+    initParticles();
 
     window.onload = () => {
       const savedToken = localStorage.getItem('acadiaToken');
