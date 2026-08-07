@@ -639,13 +639,13 @@
       z-index: -1;
       background:
         linear-gradient(160deg, rgba(10, 14, 18, 0.94) 0%, rgba(15, 23, 26, 0.9) 55%, rgba(15, 118, 110, 0.4) 100%),
-        url('https://images.unsplash.com/photo-1769794371055-54436b54577e?auto=format&fit=crop&w=1600&q=70') center/cover no-repeat fixed;
+        url('https://images.unsplash.com/photo-1751200065697-4461cc2b43cb?auto=format&fit=crop&w=1600&q=70') center/cover no-repeat fixed;
     }
 
     [data-theme="light"] #dashboard::before {
       background:
         linear-gradient(160deg, rgba(248, 250, 252, 0.96) 0%, rgba(240, 244, 246, 0.93) 55%, rgba(20, 184, 166, 0.18) 100%),
-        url('https://images.unsplash.com/photo-1769794371055-54436b54577e?auto=format&fit=crop&w=1600&q=70') center/cover no-repeat fixed;
+        url('https://images.unsplash.com/photo-1751200065697-4461cc2b43cb?auto=format&fit=crop&w=1600&q=70') center/cover no-repeat fixed;
     }
 
     /* The animated mesh belongs to the auth screen only — the dashboard gets
@@ -688,6 +688,111 @@
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
+    }
+
+    .topbar-search {
+      flex: 1;
+      max-width: 420px;
+      margin: 0 24px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .topbar-search i {
+      position: absolute;
+      left: 12px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .topbar-search input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      border-radius: 9px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .topbar-search input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .topbar-search input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+    }
+
+    .search-results {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      max-height: 340px;
+      overflow-y: auto;
+      background: rgba(26, 29, 36, 0.85);
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      box-shadow: var(--shadow-elev-3);
+      z-index: 200;
+    }
+
+    [data-theme="light"] .search-results {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .search-results.open {
+      display: block;
+    }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-result-item:hover {
+      background: var(--brand-bg);
+    }
+
+    .search-result-item .result-type {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--brand-light);
+      flex-shrink: 0;
+      width: 78px;
+    }
+
+    .search-result-empty {
+      padding: 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .topbar-search {
+        display: none;
+      }
     }
 
     .user-badge {
@@ -1471,6 +1576,13 @@
           alt="Acadia" style="height:32px;width:auto;display:block" data-logo="icon-dark">
         <h1>Acadia</h1>
       </div>
+      <div class="topbar-search">
+        <i data-lucide="search" width="16" height="16"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search lectures, assignments, exams..."
+          autocomplete="off" oninput="handleGlobalSearch(this.value)"
+          onkeydown="if(event.key==='Escape'){this.value='';handleGlobalSearch('')}" />
+        <div class="search-results" id="globalSearchResults"></div>
+      </div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="user-badge" id="userBadge"></span>
         <button class="theme-toggle" id="dashboardThemeToggle" onclick="toggleTheme()" title="Toggle theme"><i
@@ -2092,6 +2204,57 @@
         .map((w, i) => `<span class="reveal-word" style="animation-delay:${i * 160}ms">${w}</span>`)
         .join(' ');
     }
+
+    function activateTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      const btn = document.querySelector(`.tab[onclick*="'${tab}'"]`);
+      if (btn) btn.classList.add('active');
+      const section = document.getElementById(tab + 'Section');
+      if (section) section.classList.add('active');
+    }
+
+    function handleGlobalSearch(query) {
+      const box = document.getElementById('globalSearchResults');
+      const q = query.trim().toLowerCase();
+      if (!q) { box.classList.remove('open'); box.innerHTML = ''; return; }
+
+      const results = [];
+      (window._lectures || []).forEach(l => {
+        if ((l.courseCode || '').toLowerCase().includes(q) || (l.courseName || '').toLowerCase().includes(q)) {
+          results.push({ type: 'Lecture', tab: 'lectures', label: `${l.courseCode} — ${l.lectureDay} ${l.lectureTime}` });
+        }
+      });
+      (window._assignments || []).forEach(a => {
+        if ((a.courseCode || '').toLowerCase().includes(q) || (a.title || '').toLowerCase().includes(q)) {
+          results.push({ type: 'Assignment', tab: 'assignments', label: `${a.courseCode}${a.title ? ' — ' + a.title : ''}` });
+        }
+      });
+      (window._exams || []).forEach(e => {
+        if ((e.courseCode || '').toLowerCase().includes(q) || (e.title || '').toLowerCase().includes(q)) {
+          results.push({ type: 'Exam', tab: 'exams', label: `${e.courseCode}${e.title ? ' — ' + e.title : ''}` });
+        }
+      });
+
+      if (results.length === 0) {
+        box.innerHTML = '<div class="search-result-empty">No matches found</div>';
+      } else {
+        box.innerHTML = results.slice(0, 20).map(r => `
+          <div class="search-result-item" onclick="activateTab('${r.tab}');document.getElementById('globalSearchInput').value='';handleGlobalSearch('')">
+            <span class="result-type">${r.type}</span>
+            <span>${r.label}</span>
+          </div>
+        `).join('');
+      }
+      box.classList.add('open');
+    }
+
+    document.addEventListener('click', (e) => {
+      const search = document.querySelector('.topbar-search');
+      if (search && !search.contains(e.target)) {
+        document.getElementById('globalSearchResults')?.classList.remove('open');
+      }
+    });
 
     initTheme();
     renderIcons();
