@@ -509,21 +509,15 @@
     }
 
     .login-card {
-      background: rgba(26, 29, 36, 0.32);
+      background: rgba(255, 255, 255, 0.82);
       backdrop-filter: blur(22px) saturate(160%);
       -webkit-backdrop-filter: blur(22px) saturate(160%);
       border-radius: 20px;
       padding: 40px;
       width: 100%;
       max-width: 400px;
-      box-shadow: var(--shadow-elev-3), 0 0 0 1px rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    [data-theme="light"] .login-card {
-      background: rgba(255, 255, 255, 0.28);
-      border-color: rgba(255, 255, 255, 0.4);
       box-shadow: var(--shadow-elev-3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.5);
     }
 
     .logo {
@@ -1555,6 +1549,61 @@
       margin-bottom: 16px;
     }
 
+    .static-copy {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+
+    .about-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .about-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .about-list li .icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--brand-light);
+    }
+
+    .about-list li strong {
+      color: var(--text);
+    }
+
+    .faq-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .faq-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .faq-q {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .faq-a {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
     .day-lectures {
       background: rgba(26, 29, 36, 0.55);
       backdrop-filter: blur(14px) saturate(150%);
@@ -1764,6 +1813,10 @@
             height="16"></i> CWA</button>
         <button class="tab" onclick="showTab('settings', event)"><i data-lucide="settings" class="icon" width="16"
             height="16"></i> Settings</button>
+        <button class="tab" onclick="showTab('about', event)"><i data-lucide="info" class="icon" width="16"
+            height="16"></i> About</button>
+        <button class="tab" onclick="showTab('help', event)"><i data-lucide="life-buoy" class="icon" width="16"
+            height="16"></i> Help</button>
       </div>
 
       <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
@@ -2060,6 +2113,78 @@
             </div>
             <button class="btn btn-danger" onclick="deleteAccount()"><i data-lucide="trash-2" class="icon" width="14"
                 height="14"></i> Delete My Account</button>
+          </div>
+        </div>
+
+        <div class="section" id="aboutSection">
+          <div class="form-card">
+            <h3><i data-lucide="info" class="icon" width="16" height="16"></i> About Acadia</h3>
+            <p class="static-copy">Acadia is a single dashboard for your semester — lectures, assignments, exams
+              and your CWA, all in one place, kept in sync with a Telegram bot so you find out about deadlines
+              before they sneak up on you.</p>
+          </div>
+
+          <div class="form-card">
+            <h3><i data-lucide="layout-dashboard" class="icon" width="16" height="16"></i> What it does</h3>
+            <ul class="about-list">
+              <li><i data-lucide="book-open" class="icon" width="15" height="15"></i> Tracks your weekly lecture
+                timetable and pings you the night before each class.</li>
+              <li><i data-lucide="clipboard-list" class="icon" width="15" height="15"></i> Keeps your assignments
+                and exams organized with escalating reminders as due dates approach.</li>
+              <li><i data-lucide="bar-chart-3" class="icon" width="15" height="15"></i> Calculates your CWA/CGPA
+                automatically from your grades, no spreadsheets required.</li>
+              <li><i data-lucide="users" class="icon" width="15" height="15"></i> Lets you share a class group with
+                coursemates, so one person's update reaches everyone.</li>
+              <li><i data-lucide="send" class="icon" width="15" height="15"></i> Everything you set up here is
+                reachable from the Telegram bot too — add, complete, or mute reminders from either place.</li>
+            </ul>
+          </div>
+
+          <div class="form-card">
+            <h3><i data-lucide="shield-check" class="icon" width="16" height="16"></i> Your data</h3>
+            <p class="static-copy">Your account is only used to run your dashboard and reminders — it isn't shared
+              or sold. You can update or delete it anytime from Settings.</p>
+          </div>
+        </div>
+
+        <div class="section" id="helpSection">
+          <div class="form-card">
+            <h3><i data-lucide="life-buoy" class="icon" width="16" height="16"></i> Getting started</h3>
+            <ul class="about-list">
+              <li><i data-lucide="book-open" class="icon" width="15" height="15"></i> Add your lectures first under
+                the <strong>Lectures</strong> tab — course code, day and time is all you need.</li>
+              <li><i data-lucide="clipboard-list" class="icon" width="15" height="15"></i> Add assignments and exams
+                as they're announced, and Acadia handles the reminder timing for you.</li>
+              <li><i data-lucide="send" class="icon" width="15" height="15"></i> Link your Telegram account from
+                <strong>Settings</strong> to get reminders and manage everything by chat, not just on the web.</li>
+              <li><i data-lucide="bell" class="icon" width="15" height="15"></i> Use the bell icon on any lecture,
+                assignment, or exam card to mute reminders for that item specifically.</li>
+            </ul>
+          </div>
+
+          <div class="form-card">
+            <h3><i data-lucide="help-circle" class="icon" width="16" height="16"></i> Frequently asked</h3>
+            <div class="faq-item">
+              <div class="faq-q">Why didn't I get a reminder?</div>
+              <div class="faq-a">Check that reminders are switched on for that item (the bell icon) and that
+                notifications are enabled under Settings → Notifications, and that your Telegram account is linked.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Can I use Acadia without Telegram?</div>
+              <div class="faq-a">Yes — everything works from the web dashboard alone. Telegram just adds reminders
+                and the ability to manage things by chat.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">I'm in a class group — who can see my data?</div>
+              <div class="faq-a">Class groups only share what a member explicitly posts as a class update. Your
+                personal lectures, assignments, CWA, and account details stay private to you.</div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h3><i data-lucide="mail" class="icon" width="16" height="16"></i> Still stuck?</h3>
+            <p class="static-copy">Reach out through the Telegram bot directly, or contact the person who set up
+              this instance of Acadia for you.</p>
           </div>
         </div>
 
@@ -2381,6 +2506,8 @@
       { tab: 'classes', label: 'Classes', keywords: ['class', 'classes', 'group'] },
       { tab: 'cwa', label: 'CWA', keywords: ['cwa', 'cgpa', 'grades', 'gpa'] },
       { tab: 'settings', label: 'Settings', keywords: ['setting', 'settings', 'account', 'preferences', 'profile'] },
+      { tab: 'about', label: 'About', keywords: ['about', 'what is this', 'info'] },
+      { tab: 'help', label: 'Help', keywords: ['help', 'faq', 'support', 'stuck'] },
     ];
 
     function handleGlobalSearch(query) {
