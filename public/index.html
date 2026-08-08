@@ -2090,7 +2090,7 @@
 
             <div id="whatifBody" style="display:none">
               <div class="formula-strip">
-                CWA = <strong>Σ (credit hours × score)</strong> ÷ <strong>number of courses</strong>
+                CWA = <strong>Σ (credit hours × score)</strong> ÷ <strong>total credit hours</strong>
               </div>
 
               <div class="whatif-col-headers">
@@ -2113,8 +2113,8 @@
                   <div class="value" id="whatifCwaOut">--</div>
                 </div>
                 <div class="whatif-result-item">
-                  <div class="label">Courses</div>
-                  <div class="value small" id="whatifCountOut">0</div>
+                  <div class="label">Total credit hours</div>
+                  <div class="value small" id="whatifCreditsOut">0</div>
                 </div>
                 <div class="whatif-result-item">
                   <div class="label">Sum of weighted marks</div>
@@ -3825,7 +3825,7 @@
     function calculateWhatIf() {
       const rows = document.querySelectorAll('#whatifList .whatif-row');
       let totalWeighted = 0;
-      let courseCount = 0;
+      let totalCredits = 0;
       const terms = [];
 
       rows.forEach(row => {
@@ -3834,20 +3834,20 @@
         const score = Number(inputs[2].value);
         if (Number.isFinite(credits) && credits > 0 && Number.isFinite(score) && inputs[2].value !== '') {
           totalWeighted += credits * score;
-          courseCount++;
+          totalCredits += credits;
           terms.push(`(${credits}×${score})`);
         }
       });
 
-      const cwa = courseCount > 0 ? totalWeighted / courseCount : 0;
-      document.getElementById('whatifCwaOut').textContent = courseCount > 0 ? cwa.toFixed(2) : '--';
-      document.getElementById('whatifCountOut').textContent = courseCount;
+      const cwa = totalCredits > 0 ? totalWeighted / totalCredits : 0;
+      document.getElementById('whatifCwaOut').textContent = totalCredits > 0 ? cwa.toFixed(2) : '--';
+      document.getElementById('whatifCreditsOut').textContent = totalCredits;
       document.getElementById('whatifSumOut').textContent = totalWeighted.toFixed(1);
 
       const workingEl = document.getElementById('whatifWorkingOut');
-      workingEl.textContent = courseCount === 0
+      workingEl.textContent = totalCredits === 0
         ? 'Add a course to see the calculation.'
-        : `${terms.join(' + ')} = ${totalWeighted.toFixed(1)}\n${totalWeighted.toFixed(1)} ÷ ${courseCount} course${courseCount === 1 ? '' : 's'} = ${cwa.toFixed(2)}`;
+        : `${terms.join(' + ')} = ${totalWeighted.toFixed(1)}\n${totalWeighted.toFixed(1)} ÷ ${totalCredits} credit hour${totalCredits === 1 ? '' : 's'} = ${cwa.toFixed(2)}`;
     }
 
     function loadToday() {
