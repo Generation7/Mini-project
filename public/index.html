@@ -98,6 +98,48 @@
       --shadow-brand: 0 1px 2px rgba(15, 118, 110, 0.12), 0 6px 18px rgba(20, 184, 166, 0.18);
     }
 
+    /* The auth screen always renders light, regardless of the app's
+       dark/light theme setting — theming only applies once you're in. */
+    #loginPage {
+      --bg: #f4f5fb;
+      --bg-gradient-start: #f4f5fb;
+      --bg-gradient-end: #e9eaf7;
+      --surface: #ffffff;
+      --surface-border: #e2e2ef;
+      --input-bg: #f4f5fb;
+      --input-border: #d8d9ea;
+      --text: #232336;
+      --text-muted: #6b6b80;
+      --accent: #475569;
+      --accent-light: #334155;
+      --accent-gradient: linear-gradient(135deg, #334155, #64748b);
+      --btn-gradient: linear-gradient(135deg, #334155, #64748b);
+      --brand: #0d9488;
+      --brand-light: #14b8a6;
+      --brand-dark: #0f766e;
+      --brand-gradient: linear-gradient(135deg, #0f766e, #14b8a6);
+      --brand-bg: #ecfdf9;
+      --badge-purple-bg: #f1f5f9;
+      --badge-purple-text: #475569;
+      --badge-green-bg: #dcfce7;
+      --badge-green-text: #16a34a;
+      --badge-red-bg: #fee2e2;
+      --badge-red-text: #dc2626;
+      --badge-yellow-bg: #fef9c3;
+      --badge-yellow-text: #a16207;
+      --shadow: rgba(0, 0, 0, 0.12);
+      --danger: #dc2626;
+      --danger-dark: #b91c1c;
+      --danger-gradient: linear-gradient(135deg, #b91c1c, #dc2626);
+      --success: #16a34a;
+      --success-dark: #15803d;
+      --success-gradient: linear-gradient(135deg, #15803d, #16a34a);
+      --shadow-elev-1: 0 1px 2px rgba(30, 41, 59, 0.06), 0 1px 1px rgba(30, 41, 59, 0.04);
+      --shadow-elev-2: 0 1px 2px rgba(30, 41, 59, 0.05), 0 8px 24px rgba(30, 41, 59, 0.08);
+      --shadow-elev-3: 0 2px 4px rgba(30, 41, 59, 0.06), 0 24px 64px rgba(30, 41, 59, 0.12);
+      --shadow-brand: 0 1px 2px rgba(15, 118, 110, 0.12), 0 6px 18px rgba(20, 184, 166, 0.18);
+    }
+
     @media (prefers-color-scheme: light) {
       :root:not([data-theme="dark"]) {
         --bg: #f4f5fb;
@@ -220,6 +262,24 @@
     }
 
     /* ── Left: visual/hero panel with real photography ── */
+    #loginPage .auth-bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(85%);
+      z-index: 0;
+    }
+
+    #loginPage .auth-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        linear-gradient(175deg, rgba(10, 14, 18, 0.86) 0%, rgba(11, 30, 28, 0.74) 42%, rgba(15, 118, 110, 0.42) 78%, rgba(10, 14, 18, 0.35) 100%);
+    }
+
     .auth-visual {
       position: relative;
       overflow: hidden;
@@ -229,33 +289,12 @@
       padding: 44px 48px;
       min-height: 100vh;
       color: #f4f6f8;
-    }
-
-    .auth-visual .auth-bg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: saturate(85%);
-    }
-
-    .auth-visual .auth-overlay {
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(175deg, rgba(10, 14, 18, 0.94) 0%, rgba(11, 30, 28, 0.86) 42%, rgba(15, 118, 110, 0.55) 100%);
+      z-index: 1;
     }
 
     .auth-visual>* {
       position: relative;
       z-index: 1;
-    }
-
-    .auth-brand-row,
-    .auth-hero-copy,
-    .auth-visual-footer {
-      z-index: 3;
     }
 
     .auth-brand-row {
@@ -358,7 +397,8 @@
       justify-content: center;
       position: relative;
       padding: 32px 24px;
-      background: var(--bg);
+      background: transparent;
+      z-index: 1;
     }
 
     .auth-form-panel .theme-toggle {
@@ -367,33 +407,36 @@
       right: 20px;
     }
 
-    .auth-tabs {
-      display: flex;
-      background: var(--input-bg);
-      border: 1px solid var(--input-border);
-      border-radius: 10px;
-      padding: 4px;
-      gap: 4px;
-      margin-bottom: 24px;
+    .auth-form-stack {
+      display: grid;
     }
 
-    .auth-tab-btn {
-      flex: 1;
-      padding: 10px;
-      border-radius: 7px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
+    .auth-form-pane {
+      grid-area: 1 / 1;
+      transition: opacity 0.2s ease;
+    }
+
+    .auth-form-pane.inactive {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .auth-switch-line {
+      margin-top: 18px;
+      text-align: center;
       font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
+      color: var(--text-muted);
     }
 
-    .auth-tab-btn.active {
-      background: var(--brand-gradient);
-      color: #fff;
-      box-shadow: var(--shadow-brand);
+    .auth-switch-line a {
+      color: var(--brand-light);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .auth-switch-line a:hover {
+      text-decoration: underline;
     }
 
     .field-label {
@@ -461,7 +504,7 @@
 
       .auth-form-panel {
         min-height: 100vh;
-        background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+        background: transparent;
       }
     }
 
@@ -1599,9 +1642,9 @@
 <body>
 
   <div id="loginPage">
+    <img class="auth-bg" src="https://images.unsplash.com/photo-1580537659466-0a9bfa916a54?auto=format&amp;fit=crop&amp;w=1920&amp;q=80" alt="" />
+    <div class="auth-overlay"></div>
     <div class="auth-visual">
-      <img class="auth-bg" src="https://images.unsplash.com/photo-1580537659466-0a9bfa916a54?auto=format&amp;fit=crop&amp;w=1600&amp;q=80" alt="" />
-      <div class="auth-overlay"></div>
       <div class="auth-brand-row">
         <i data-lucide="graduation-cap" width="26" height="26"></i>
         <span>Acadia</span>
@@ -1619,64 +1662,61 @@
     </div>
 
     <div class="auth-form-panel">
-      <button class="theme-toggle" id="loginThemeToggle" onclick="toggleTheme()" title="Toggle theme"><i data-lucide="moon" class="icon" width="16"
-          height="16"></i></button>
       <div class="login-card">
-        <div class="auth-tabs">
-          <button class="auth-tab-btn active" id="authTabLogin" onclick="switchAuthTab('login')">Log in</button>
-          <button class="auth-tab-btn" id="authTabRegister" onclick="switchAuthTab('register')">Sign up</button>
-        </div>
-
-        <div id="loginForm">
-          <h1>Welcome back</h1>
-          <p>Log in to continue to your dashboard.</p>
-          <label class="field-label" for="loginEmail">Email address</label>
-          <input type="email" id="loginEmail" placeholder="you@example.com" />
-          <label class="field-label" for="loginPassword">Password</label>
-          <div class="password-field">
-            <input type="password" id="loginPassword" placeholder="Password" />
-            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)"><i
-                data-lucide="eye" width="18" height="18"></i></button>
+        <div class="auth-form-stack">
+          <div id="loginForm" class="auth-form-pane">
+            <h1>Welcome back</h1>
+            <p>Log in to continue to your dashboard.</p>
+            <label class="field-label" for="loginEmail">Email address</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" />
+            <label class="field-label" for="loginPassword">Password</label>
+            <div class="password-field">
+              <input type="password" id="loginPassword" placeholder="Password" />
+              <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)"><i
+                  data-lucide="eye" width="18" height="18"></i></button>
+            </div>
+            <button class="btn" onclick="doLogin()" style="margin-top:20px">Log In</button>
+            <div class="auth-divider"><span>or</span></div>
+            <button type="button" class="btn-google" onclick="continueWithGoogle()">
+              <svg width="18" height="18" viewBox="0 0 48 48">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" />
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4c-7.5 0-14 4.2-17.7 10.7z" />
+                <path fill="#4CAF50" d="M24 44c5.3 0 10.2-2 13.9-5.3l-6.4-5.4C29.4 35 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.9 39.6 16.4 44 24 44z" />
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.4 5.4C40.9 36.6 44 30.9 44 24c0-1.2-.1-2.4-.4-3.5z" />
+              </svg>
+              Continue with Google
+            </button>
+            <p class="auth-switch-line">Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;">Create one</a></p>
           </div>
-          <button class="btn" onclick="doLogin()" style="margin-top:20px">Log In</button>
-          <div class="auth-divider"><span>or</span></div>
-          <button type="button" class="btn-google" onclick="continueWithGoogle()">
-            <svg width="18" height="18" viewBox="0 0 48 48">
-              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" />
-              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4c-7.5 0-14 4.2-17.7 10.7z" />
-              <path fill="#4CAF50" d="M24 44c5.3 0 10.2-2 13.9-5.3l-6.4-5.4C29.4 35 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.9 39.6 16.4 44 24 44z" />
-              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.4 5.4C40.9 36.6 44 30.9 44 24c0-1.2-.1-2.4-.4-3.5z" />
-            </svg>
-            Continue with Google
-          </button>
-        </div>
 
-        <div id="registerForm" style="display:none">
-          <h1>Create your account</h1>
-          <p>Takes less than a minute to get started.</p>
-          <label class="field-label" for="regName">Your name</label>
-          <input type="text" id="regName" placeholder="Your name" />
-          <label class="field-label" for="regEmail">Email address</label>
-          <input type="email" id="regEmail" placeholder="you@example.com" />
-          <label class="field-label" for="regPhone">Phone number (optional)</label>
-          <input type="tel" id="regPhone" placeholder="Phone number (optional)" />
-          <label class="field-label" for="regPassword">Password</label>
-          <div class="password-field">
-            <input type="password" id="regPassword" placeholder="Min 8 characters" />
-            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('regPassword', this)"><i
-                data-lucide="eye" width="18" height="18"></i></button>
+          <div id="registerForm" class="auth-form-pane inactive">
+            <h1>Create your account</h1>
+            <p>Takes less than a minute to get started.</p>
+            <label class="field-label" for="regName">Your name</label>
+            <input type="text" id="regName" placeholder="Your name" />
+            <label class="field-label" for="regEmail">Email address</label>
+            <input type="email" id="regEmail" placeholder="you@example.com" />
+            <label class="field-label" for="regPhone">Phone number (optional)</label>
+            <input type="tel" id="regPhone" placeholder="Phone number (optional)" />
+            <label class="field-label" for="regPassword">Password</label>
+            <div class="password-field">
+              <input type="password" id="regPassword" placeholder="Min 8 characters" />
+              <button type="button" class="password-toggle" onclick="togglePasswordVisibility('regPassword', this)"><i
+                  data-lucide="eye" width="18" height="18"></i></button>
+            </div>
+            <button class="btn" onclick="doRegister()" style="margin-top:20px">Create Account</button>
+            <div class="auth-divider"><span>or</span></div>
+            <button type="button" class="btn-google" onclick="continueWithGoogle()">
+              <svg width="18" height="18" viewBox="0 0 48 48">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" />
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4c-7.5 0-14 4.2-17.7 10.7z" />
+                <path fill="#4CAF50" d="M24 44c5.3 0 10.2-2 13.9-5.3l-6.4-5.4C29.4 35 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.9 39.6 16.4 44 24 44z" />
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.4 5.4C40.9 36.6 44 30.9 44 24c0-1.2-.1-2.4-.4-3.5z" />
+              </svg>
+              Continue with Google
+            </button>
+            <p class="auth-switch-line">Already have an account? <a href="#" onclick="switchAuthTab('login');return false;">Log in</a></p>
           </div>
-          <button class="btn" onclick="doRegister()" style="margin-top:20px">Create Account</button>
-          <div class="auth-divider"><span>or</span></div>
-          <button type="button" class="btn-google" onclick="continueWithGoogle()">
-            <svg width="18" height="18" viewBox="0 0 48 48">
-              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" />
-              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4c-7.5 0-14 4.2-17.7 10.7z" />
-              <path fill="#4CAF50" d="M24 44c5.3 0 10.2-2 13.9-5.3l-6.4-5.4C29.4 35 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.9 39.6 16.4 44 24 44z" />
-              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.4 5.4C40.9 36.6 44 30.9 44 24c0-1.2-.1-2.4-.4-3.5z" />
-            </svg>
-            Continue with Google
-          </button>
         </div>
       </div>
     </div>
@@ -2453,13 +2493,9 @@
     function switchAuthTab(mode) {
       const loginForm = document.getElementById('loginForm');
       const registerForm = document.getElementById('registerForm');
-      const loginTab = document.getElementById('authTabLogin');
-      const registerTab = document.getElementById('authTabRegister');
       const showLogin = mode === 'login';
-      loginForm.style.display = showLogin ? 'block' : 'none';
-      registerForm.style.display = showLogin ? 'none' : 'block';
-      if (loginTab) loginTab.classList.toggle('active', showLogin);
-      if (registerTab) registerTab.classList.toggle('active', !showLogin);
+      loginForm.classList.toggle('inactive', !showLogin);
+      registerForm.classList.toggle('inactive', showLogin);
     }
 
     function startSession(token, user) {
