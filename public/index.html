@@ -702,6 +702,9 @@
     .topbar-search i {
       position: absolute;
       left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
       color: var(--text-muted);
       pointer-events: none;
     }
@@ -866,7 +869,7 @@
       gap: 4px;
       padding: 16px 12px;
       border-right: 1px solid rgba(255, 255, 255, 0.07);
-      background: rgba(26, 29, 36, 0.55);
+      background: rgba(20, 23, 28, 0.88);
       backdrop-filter: blur(20px) saturate(150%);
       -webkit-backdrop-filter: blur(20px) saturate(150%);
       width: var(--sidebar-width, 200px);
@@ -883,7 +886,7 @@
     }
 
     [data-theme="light"] .tabs {
-      background: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.88);
       border-right-color: rgba(0, 0, 0, 0.08);
     }
 
@@ -999,6 +1002,10 @@
 
       .sidebar-resize-handle {
         display: none;
+      }
+
+      .sidebar-scrim {
+        display: none !important;
       }
     }
 
@@ -1649,6 +1656,7 @@
       </div>
 
       <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
+      <div class="sidebar-scrim" id="sidebarScrim" onclick="toggleSidebar()"></div>
 
       <div class="content">
 
@@ -2254,12 +2262,28 @@
       if (section) section.classList.add('active');
     }
 
+    const SEARCHABLE_SECTIONS = [
+      { tab: 'today', label: 'Today', keywords: ['today', 'home', 'overview', 'dashboard'] },
+      { tab: 'lectures', label: 'Lectures', keywords: ['lecture', 'lectures', 'timetable', 'schedule'] },
+      { tab: 'assignments', label: 'Assignments', keywords: ['assignment', 'assignments', 'homework'] },
+      { tab: 'exams', label: 'Exams', keywords: ['exam', 'exams', 'test'] },
+      { tab: 'classes', label: 'Classes', keywords: ['class', 'classes', 'group'] },
+      { tab: 'cwa', label: 'CWA', keywords: ['cwa', 'cgpa', 'grades', 'gpa'] },
+      { tab: 'settings', label: 'Settings', keywords: ['setting', 'settings', 'account', 'preferences', 'profile'] },
+    ];
+
     function handleGlobalSearch(query) {
       const box = document.getElementById('globalSearchResults');
       const q = query.trim().toLowerCase();
       if (!q) { box.classList.remove('open'); box.innerHTML = ''; return; }
 
       const results = [];
+
+      SEARCHABLE_SECTIONS.forEach(s => {
+        if (s.keywords.some(k => k.includes(q) || q.includes(k))) {
+          results.push({ type: 'Go to', tab: s.tab, label: s.label });
+        }
+      });
       (window._lectures || []).forEach(l => {
         if ((l.courseCode || '').toLowerCase().includes(q) || (l.courseName || '').toLowerCase().includes(q)) {
           results.push({ type: 'Lecture', tab: 'lectures', label: `${l.courseCode} — ${l.lectureDay} ${l.lectureTime}` });
@@ -2273,6 +2297,11 @@
       (window._exams || []).forEach(e => {
         if ((e.courseCode || '').toLowerCase().includes(q) || (e.title || '').toLowerCase().includes(q)) {
           results.push({ type: 'Exam', tab: 'exams', label: `${e.courseCode}${e.title ? ' — ' + e.title : ''}` });
+        }
+      });
+      (window._classes || []).forEach(c => {
+        if ((c.name || '').toLowerCase().includes(q)) {
+          results.push({ type: 'Class', tab: 'classes', label: c.name });
         }
       });
 
@@ -2793,6 +2822,7 @@
         const res = await authFetch(`${API}/classes`);
         const data = await res.json();
         const myClasses = data.classes || [];
+        window._classes = myClasses;
         const container = document.getElementById('classesList');
 
         if (!myClasses.length) {
