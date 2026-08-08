@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CWA Calculator — Acadia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #14161c;
+    --surface: #1a1d24;
+    --surface-2: #21242c;
+    --border: #2a2e38;
+    --text: #f0f1f3;
+    --text-muted: #8b8f99;
+    --brand: #2dd4bf;
+    --brand-light: #5eead4;
+    --brand-dark: #0f766e;
+    --brand-gradient: linear-gradient(135deg, #0f766e, #2dd4bf);
+    --danger: #f87171;
+  }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 20px 60px;
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--brand-light);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+
+  .formula-strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    font-family: 'SF Mono', 'Consolas', monospace;
+    line-height: 1.6;
+  }
+
+  .formula-strip strong { color: var(--brand-light); font-weight: 600; }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--brand-gradient);
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+  }
+
+  .result-item .label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .result-item .value {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--brand-light);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .result-item .value.small { font-size: 18px; }
+
+  .working {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'SF Mono', 'Consolas', monospace;
+    line-height: 1.7;
+    word-break: break-all;
+  }
+
+  .course-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .course-row {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px 90px auto;
+    gap: 8px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .course-row input {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .course-row input:focus { border-color: var(--brand); }
+  .course-row input::placeholder { color: var(--text-muted); }
+
+  .row-contrib {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .remove-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .remove-btn:hover { background: rgba(248,113,113,0.12); border-color: var(--danger); }
+
+  .actions { display: flex; gap: 10px; margin-top: 4px; }
+
+  .btn {
+    padding: 11px 18px;
+    border-radius: 9px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .btn:hover { transform: translateY(-1px); }
+
+  .btn-primary {
+    background: var(--brand-gradient);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(45,212,191,0.25);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .col-headers {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px 90px 30px;
+    gap: 8px;
+    padding: 0 10px;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  @media (max-width: 560px) {
+    .course-row { grid-template-columns: 1fr; }
+    .col-headers { display: none; }
+    .row-contrib { text-align: left; }
+  }
+
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 20px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Acadia</div>
+  <h1>CWA Calculator</h1>
+  <p class="subtitle">Add your courses below — this updates live using your school's exact formula.</p>
+
+  <div class="formula-strip">
+    CWA = <strong>Σ (credit hours × score)</strong> ÷ <strong>number of courses</strong>
+  </div>
+
+  <div class="result-card">
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="label">CWA</div>
+        <div class="value" id="cwaOut">--</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Courses</div>
+        <div class="value small" id="countOut">0</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Total credit hours</div>
+        <div class="value small" id="creditsOut">0</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Sum of weighted marks</div>
+        <div class="value small" id="sumOut">0</div>
+      </div>
+    </div>
+    <div class="working" id="workingOut">Add a course to see the calculation.</div>
+  </div>
+
+  <div class="col-headers">
+    <div>Course code</div>
+    <div>Credits</div>
+    <div>Score</div>
+    <div>Weighted</div>
+    <div></div>
+  </div>
+
+  <div class="course-list" id="courseList"></div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="addRow()">+ Add course</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear all</button>
+  </div>
+
+  <p class="note">This is a standalone preview so you can check the math yourself — it mirrors the exact formula now used in <code>courseService.js</code> on your backend. Nothing here is saved or sent anywhere.</p>
+</div>
+
+<script>
+let rowId = 0;
+
+function addRow(code = '', credits = '', score = '') {
+  rowId++;
+  const list = document.getElementById('courseList');
+  const row = document.createElement('div');
+  row.className = 'course-row';
+  row.dataset.id = rowId;
+  row.innerHTML = `
+    <input type="text" placeholder="e.g. CSM 388" value="${code}" oninput="calculate()" />
+    <input type="number" placeholder="Credits" min="1" step="1" value="${credits}" oninput="calculate()" />
+    <input type="number" placeholder="Score" min="0" max="100" step="0.1" value="${score}" oninput="calculate()" />
+    <div class="row-contrib" data-contrib>--</div>
+    <button class="remove-btn" onclick="removeRow(${rowId})" title="Remove course">&times;</button>
+  `;
+  list.appendChild(row);
+  calculate();
+}
+
+function removeRow(id) {
+  const row = document.querySelector(`.course-row[data-id="${id}"]`);
+  if (row) row.remove();
+  calculate();
+}
+
+function clearAll() {
+  document.getElementById('courseList').innerHTML = '';
+  calculate();
+}
+
+function calculate() {
+  const rows = document.querySelectorAll('.course-row');
+  let totalWeighted = 0;
+  let totalCredits = 0;
+  let courseCount = 0;
+  const terms = [];
+
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const credits = Number(inputs[1].value);
+    const score = Number(inputs[2].value);
+    const contribEl = row.querySelector('[data-contrib]');
+
+    if (Number.isFinite(credits) && credits > 0 && Number.isFinite(score) && inputs[2].value !== '') {
+      const weighted = credits * score;
+      totalWeighted += weighted;
+      totalCredits += credits;
+      courseCount++;
+      contribEl.textContent = weighted.toFixed(1);
+      terms.push(`(${credits}×${score})`);
+    } else {
+      contribEl.textContent = '--';
+    }
+  });
+
+  const cwa = courseCount > 0 ? totalWeighted / courseCount : 0;
+
+  document.getElementById('cwaOut').textContent = courseCount > 0 ? cwa.toFixed(2) : '--';
+  document.getElementById('countOut').textContent = courseCount;
+  document.getElementById('creditsOut').textContent = totalCredits;
+  document.getElementById('sumOut').textContent = totalWeighted.toFixed(1);
+
+  const workingEl = document.getElementById('workingOut');
+  if (courseCount === 0) {
+    workingEl.textContent = 'Add a course to see the calculation.';
+  } else {
+    workingEl.textContent =
+      `${terms.join(' + ')} = ${totalWeighted.toFixed(1)}\n` +
+      `${totalWeighted.toFixed(1)} ÷ ${courseCount} course${courseCount === 1 ? '' : 's'} = ${cwa.toFixed(2)}`;
+  }
+}
+
+// Seed with one empty row to start
+addRow();
+</script>
+</body>
+</html>
