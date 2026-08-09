@@ -63,10 +63,8 @@ function calculateCwa(userId) {
 
   const totalCredits = withGrades.reduce((sum, c) => sum + c.creditHours, 0);
   const totalWeightedMarks = withGrades.reduce((sum, c) => sum + c.weightedMark, 0);
-  const courseCount = withGrades.length;
-  // School-specific formula: sum(creditHours * score) divided by the NUMBER
-  // OF COURSES, not by total credit hours as most CWA systems do.
-  const cwa = courseCount > 0 ? totalWeightedMarks / courseCount : 0;
+  // CWA = sum(creditHours * score) divided by total credit hours.
+  const cwa = totalCredits > 0 ? totalWeightedMarks / totalCredits : 0;
 
   const groups = {};
   withGrades.forEach(c => {
@@ -78,7 +76,7 @@ function calculateCwa(userId) {
   const breakdown = Object.entries(groups).map(([label, list]) => {
     const credits = list.reduce((sum, c) => sum + c.creditHours, 0);
     const weighted = list.reduce((sum, c) => sum + c.weightedMark, 0);
-    const termCwa = list.length > 0 ? weighted / list.length : 0;
+    const termCwa = credits > 0 ? weighted / credits : 0;
     return {
       label,
       courses: list,
