@@ -400,6 +400,26 @@
       z-index: 1;
       overflow-y: auto;
       max-height: 100vh;
+      scrollbar-gutter: stable;
+    }
+
+    /* Keeps the reserved scrollbar gutter from looking like a stray bar
+       when the content doesn't actually need to scroll. */
+    .auth-form-panel::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .auth-form-panel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .auth-form-panel::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    [data-theme="light"] .auth-form-panel::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
     }
 
     .auth-form-panel .theme-toggle {
