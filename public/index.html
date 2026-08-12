@@ -187,10 +187,10 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      position: relative;
       transition: background 0.2s, color 0.2s;
     }
 
-<<<<<<< HEAD
     :focus-visible {
       outline: 2px solid var(--brand);
       outline-offset: 2px;
@@ -255,8 +255,6 @@
       }
     }
 
-=======
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     #loginPage {
       display: grid;
       grid-template-columns: 1.05fr 1fr;
@@ -533,7 +531,6 @@
     }
 
     .login-card {
-<<<<<<< HEAD
       margin: auto 0;
       background: rgba(255, 255, 255, 0.28);
       backdrop-filter: blur(22px) saturate(160%);
@@ -544,71 +541,6 @@
       max-width: 400px;
       box-shadow: var(--shadow-elev-3), 0 0 0 1px rgba(0, 0, 0, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.4);
-=======
-      background: rgba(14, 17, 22, 0.52);
-      backdrop-filter: blur(28px) saturate(180%);
-      -webkit-backdrop-filter: blur(28px) saturate(180%);
-      border-radius: 24px;
-      padding: 44px 40px;
-      width: 90%;
-      max-width: 420px;
-      text-align: center;
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.45),
-        0 1px 0 rgba(255, 255, 255, 0.12) inset;
-      border: 1px solid rgba(255, 255, 255, 0.13);
-      animation: cardFadeUp 0.6s ease-out both;
-    }
-
-    @keyframes cardFadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(24px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .login-card {
-        animation: none;
-      }
-    }
-
-    /* Override text colour on login card so it pops on the glass */
-    .login-card h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: #ffffff;
-      -webkit-text-fill-color: #ffffff;
-      background: none;
-      margin-bottom: 6px;
-    }
-
-    .login-card>p {
-      color: rgba(255, 255, 255, 0.65);
-      margin-bottom: 28px;
-      font-size: 14px;
-    }
-
-    /* Glass inputs inside the card */
-    #loginPage input {
-      background: rgba(255, 255, 255, 0.10);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-    }
-
-    #loginPage input::placeholder {
-      color: rgba(255, 255, 255, 0.45);
-    }
-
-    #loginPage input:focus {
-      border-color: var(--brand);
-      background: rgba(255, 255, 255, 0.14);
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     }
 
     .logo {
@@ -831,20 +763,23 @@
     }
 
     .topbar {
-      background: var(--surface);
+      background: rgba(26, 29, 36, 0.72);
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
       padding: 16px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-<<<<<<< HEAD
       border-bottom: 1px solid rgba(255, 255, 255, 0.07);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-=======
-      border-bottom: 1px solid var(--surface-border);
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
       position: sticky;
       top: 0;
       z-index: 100;
+    }
+
+    [data-theme="light"] .topbar {
+      background: rgba(255, 255, 255, 0.75);
+      border-bottom-color: rgba(0, 0, 0, 0.08);
     }
 
     .topbar-left {
@@ -1049,15 +984,10 @@
       flex-direction: column;
       gap: 4px;
       padding: 16px 12px;
-<<<<<<< HEAD
       border-right: 1px solid rgba(255, 255, 255, 0.07);
       background: rgba(20, 23, 28, 0.55);
       backdrop-filter: blur(20px) saturate(150%);
       -webkit-backdrop-filter: blur(20px) saturate(150%);
-=======
-      border-right: 1px solid var(--surface-border);
-      background: var(--surface);
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
       width: var(--sidebar-width, 200px);
       flex-shrink: 0;
       position: fixed;
@@ -1071,7 +1001,6 @@
       transition: transform 0.25s cubic-bezier(0.45, 0, 0.15, 1), opacity 0.2s ease;
     }
 
-<<<<<<< HEAD
     [data-theme="light"] .tabs {
       background: rgba(255, 255, 255, 0.55);
       border-right-color: rgba(0, 0, 0, 0.08);
@@ -1110,8 +1039,6 @@
       flex-shrink: 0;
     }
 
-=======
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     .sidebar-resize-handle {
       width: 6px;
       flex-shrink: 0;
@@ -1145,18 +1072,15 @@
     }
 
     .tab.active {
-      background: var(--input-bg);
-      color: var(--brand-light);
+      background: var(--brand-gradient);
+      color: #fff;
       font-weight: 600;
-<<<<<<< HEAD
       box-shadow: 0 2px 12px rgba(52, 211, 153, 0.25);
-=======
-      box-shadow: inset 3px 0 0 var(--brand);
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     }
 
     .tab:hover:not(.active) {
       color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .content {
@@ -1239,21 +1163,18 @@
     }
 
     .card {
-      background: var(--surface);
+      background: rgba(26, 29, 36, 0.55);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 12px;
-<<<<<<< HEAD
       border: 1px solid rgba(255, 255, 255, 0.07);
       box-shadow: var(--shadow-elev-1);
-=======
-      border: 1px solid var(--surface-border);
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-<<<<<<< HEAD
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
@@ -1266,8 +1187,6 @@
       transform: translateY(-2px);
       box-shadow: var(--shadow-elev-1), 0 8px 32px rgba(52, 211, 153, 0.12);
       border-color: rgba(52, 211, 153, 0.28);
-=======
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     }
 
     .card-info {
@@ -1438,11 +1357,12 @@
     }
 
     .form-card {
-      background: var(--surface);
+      background: rgba(26, 29, 36, 0.55);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
       border-radius: 14px;
       padding: 24px;
       margin-bottom: 24px;
-<<<<<<< HEAD
       border: 1px solid rgba(255, 255, 255, 0.07);
       box-shadow: var(--shadow-elev-1);
     }
@@ -1450,9 +1370,6 @@
     [data-theme="light"] .form-card {
       background: rgba(255, 255, 255, 0.58);
       border-color: rgba(0, 0, 0, 0.07);
-=======
-      border: 1px solid var(--surface-border);
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     }
 
     .form-card h3 {
@@ -1492,10 +1409,11 @@
     }
 
     .summary-card {
-      background: var(--surface);
+      background: rgba(26, 29, 36, 0.55);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
       border-radius: 14px;
       padding: 20px;
-<<<<<<< HEAD
       border: 1px solid rgba(255, 255, 255, 0.07);
       box-shadow: var(--shadow-elev-1);
       position: relative;
@@ -1522,9 +1440,6 @@
     .summary-card:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-elev-1), 0 8px 28px rgba(52, 211, 153, 0.14);
-=======
-      border: 1px solid var(--surface-border);
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     }
 
     .summary-card h3 {
@@ -1535,7 +1450,8 @@
 
     .summary-card .count {
       font-size: 36px;
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: -0.5px;
       color: var(--brand-light);
       font-variant-numeric: tabular-nums;
     }
@@ -1636,11 +1552,17 @@
     }
 
     .danger-zone {
-      background: var(--surface);
+      background: rgba(26, 29, 36, 0.55);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
       border-radius: 14px;
       padding: 24px;
       margin-bottom: 24px;
       border: 1px solid var(--badge-red-text);
+    }
+
+    [data-theme="light"] .danger-zone {
+      background: rgba(255, 255, 255, 0.65);
     }
 
     .danger-zone h3 {
@@ -1824,11 +1746,12 @@
     }
 
     .day-lectures {
-      background: var(--surface);
+      background: rgba(26, 29, 36, 0.55);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 12px;
-<<<<<<< HEAD
       border: 1px solid rgba(255, 255, 255, 0.07);
       box-shadow: var(--shadow-elev-1);
     }
@@ -1836,9 +1759,6 @@
     [data-theme="light"] .day-lectures {
       background: rgba(255, 255, 255, 0.58);
       border-color: rgba(0, 0, 0, 0.07);
-=======
-      border: 1px solid var(--surface-border);
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     }
 
     .day-title {
@@ -1871,33 +1791,47 @@
       font-weight: 600;
     }
 
+    .lecture-venue {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
     .toast {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: #22c55e;
-      color: white;
+      background: rgba(20, 22, 28, 0.88);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      color: var(--badge-green-text);
       padding: 12px 20px;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.3s, transform 0.3s;
+      transform: translateY(8px);
       z-index: 1000;
-<<<<<<< HEAD
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-left: 3px solid var(--badge-green-text);
       box-shadow: var(--shadow-elev-2);
-=======
->>>>>>> 0c0a0740487de77635890a8fcebb8dbb27290121
     }
 
     .toast.show {
       opacity: 1;
+      transform: translateY(0);
     }
 
     .toast.error {
-      background: #ef4444;
+      color: var(--badge-red-text);
+      border-left-color: var(--badge-red-text);
+    }
+
+    [data-theme="light"] .toast {
+      background: rgba(255, 255, 255, 0.88);
     }
   </style>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -3206,6 +3140,7 @@
               <div class="lecture-item">
                 <span class="lecture-time">${l.lectureTime}</span>
                 <span class="lecture-code">${l.courseCode}</span>
+                ${l.venue ? `<span class="lecture-venue"><i data-lucide="map-pin" class="icon" width="12" height="12"></i> ${l.venue}</span>` : ''}
                 <button class="btn-icon" style="margin-left:auto" onclick="toggleLectureReminder(${l.id})" title="${l.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
                   <i data-lucide="${l.remindersEnabled === false ? 'bell-off' : 'bell'}" class="icon" width="14" height="14"></i>
                 </button>
