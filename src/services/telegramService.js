@@ -543,9 +543,10 @@ For each lecture, capture:
 - courseCode (or course name if no code is shown)
 - lectureDay (the day of the week)
 - lectureTime (in 24-hour HH:MM format, using the start time of the slot)
+- venue (the room/hall/lab shown for that lecture, if any — e.g. "SF20", "TF1". Use null if no venue is shown.)
 
 Return ONLY a JSON array with no explanation, for example:
-[{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"10:30"},...]
+[{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"10:30","venue":"SF20"},...]
 
 If the timetable uses named time windows (e.g. "10:30 AM - 12:30 PM"), use the start time converted to 24-hour format (e.g. "10:30").
 
@@ -579,6 +580,7 @@ Be thorough - check every single cell in the timetable carefully.`
           courseName: lecture.courseCode,
           lectureDay: lecture.lectureDay,
           lectureTime: lecture.lectureTime,
+          venue: lecture.venue || null,
         });
         if (result.created) added++;
       }

@@ -17,7 +17,7 @@ function findDuplicate({ userId, courseCode, lectureDay, lectureTime }) {
     .get();
 }
 
-function createLecture({ userId, courseCode, courseName, lectureDay, lectureTime }) {
+function createLecture({ userId, courseCode, courseName, lectureDay, lectureTime, venue }) {
   const duplicate = findDuplicate({ userId, courseCode, lectureDay, lectureTime });
 
   if (duplicate) {
@@ -26,7 +26,7 @@ function createLecture({ userId, courseCode, courseName, lectureDay, lectureTime
 
   const lecture = db
     .insert(lectures)
-    .values({ userId, courseCode, courseName, lectureDay, lectureTime })
+    .values({ userId, courseCode, courseName, lectureDay, lectureTime, venue: venue || null })
     .returning()
     .get();
 
@@ -57,10 +57,12 @@ function getLecturesByUserId(userId) {
   return db.select().from(lectures).where(eq(lectures.userId, Number(userId))).all();
 }
 
-function updateLecture(id, { lectureDay, lectureTime }) {
+function updateLecture(id, { lectureDay, lectureTime, venue }) {
+  const patch = { lectureDay, lectureTime };
+  if (venue !== undefined) patch.venue = venue;
   return db
     .update(lectures)
-    .set({ lectureDay, lectureTime })
+    .set(patch)
     .where(eq(lectures.id, Number(id)))
     .run();
 }
