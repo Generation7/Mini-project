@@ -38,6 +38,7 @@ const lectures = sqliteTable('lectures', {
   courseName: text('course_name').notNull(),
   lectureDay: text('lecture_day').notNull(),
   lectureTime: text('lecture_time').notNull(),
+  venue: text('venue'),
   reminderSent: integer('reminder_sent', { mode: 'boolean' }).notNull().default(false),
   remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(true),
 });
