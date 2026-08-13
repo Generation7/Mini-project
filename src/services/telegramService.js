@@ -47,6 +47,40 @@ async function notifyClassMembers(klass, creator, item, message) {
   await classService.notifyMembers(bot, klass.id, creator.id, fullMessage);
 }
 
+// Parses Groq's raw text response into an array of action objects, or
+// returns null if it isn't action JSON at all (i.e. a plain English reply
+// that should be sent back to the user as-is).
+//
+// Handles three shapes:
+//   1. A single bare object: {"action":...}
+//   2. A proper JSON array (what we now ask the model for): [{"action":...},...]
+//   3. The malformed case Groq sometimes produces anyway - multiple bare
+//      objects on separate lines, which is NOT valid JSON as a whole and
+//      would previously make JSON.parse throw, dumping the raw text back
+//      to the user. Rescued here by pulling out each {...} chunk and
+//      parsing them individually.
+function parseActions(textResponse) {
+  try {
+    const parsed = JSON.parse(textResponse);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch (e) {
+    const matches = textResponse.match(/\{[^{}]*\}/g);
+    if (!matches || !matches.length) return null;
+
+    const objects = [];
+    for (const m of matches) {
+      try {
+        objects.push(JSON.parse(m));
+      } catch (_) {
+        // If any chunk isn't valid JSON either, this probably wasn't
+        // action JSON to begin with - bail out and treat it as plain text.
+        return null;
+      }
+    }
+    return objects;
+  }
+}
+
 // Runs one turn through Groq and returns the reply string. Pure - does not
 // touch conversation history storage itself, so it can be tested/reasoned
 // about independently of the save step in processMessage() below.
@@ -173,6 +207,10 @@ When a student asks about new updates/shares from their class(es) that they have
 When a student says "accept <number>" or otherwise clearly confirms they want to add a specific numbered class update to their own list, respond with ONLY this JSON:
 {"action":"ACCEPT_CLASS_ITEM","itemId":123}
 
+IMPORTANT — multiple items in one request: if the student asks you to add several items at once (e.g. several exams, lectures, or assignments in a single message), respond with ONLY a JSON ARRAY containing one action object per item, for example:
+[{"action":"ADD_EXAM","courseCode":"CSM 352","examDate":"2026-08-17","examTime":"12:00","venue":"Comp. lab"},{"action":"ADD_EXAM","courseCode":"CSM 354","examDate":"2026-08-19","examTime":"08:30","venue":"SF1"}]
+Do NOT return multiple separate JSON objects on separate lines — that is invalid and will break. Only return a single bare object (not wrapped in an array) when there is exactly one action to perform.
+
 For everything else, reply normally in plain friendly English.
 Today's date is ${todayDate}.`
         },
@@ -188,10 +226,14 @@ Today's date is ${todayDate}.`
     const textResponse = completion.choices[0]?.message?.content?.trim();
     console.log('Groq response:', textResponse);
 
-    try {
-      const parsed = JSON.parse(textResponse);
-      if (!user) return "Sorry, I'm having trouble accessing your account. Please try again.";
+    if (!user) return "Sorry, I'm having trouble accessing your account. Please try again.";
 
+    // Runs one action object through the switch below and returns the reply
+    // string for it, or null if the action isn't recognized (in which case
+    // the caller falls back to showing the model's raw text). Extracted into
+    // its own closure so a multi-action array response can call it once per
+    // action and combine the results into a single summary reply.
+    const executeAction = async (parsed) => {
       switch (parsed.action) {
         case 'ADD_LECTURE': {
           lectureService.createLecture({
@@ -425,11 +467,25 @@ Today's date is ${todayDate}.`
           return `✅ Added to your personal list!`;
         }
       }
-    } catch (e) {
-      return textResponse;
+      return null;
+    };
+
+    const actions = parseActions(textResponse);
+    if (!actions) return textResponse;
+
+    if (actions.length === 1) {
+      const result = await executeAction(actions[0]);
+      return result !== null ? result : textResponse;
     }
 
-    return textResponse;
+    // Multiple actions (e.g. several exams added at once) - run each one
+    // and combine the individual confirmations into a single reply.
+    const results = [];
+    for (const parsed of actions) {
+      const result = await executeAction(parsed);
+      results.push(result !== null ? result : `⚠️ Couldn't process one item from that batch.`);
+    }
+    return results.join('\n\n');
   } catch (err) {
     console.error('Groq error:', err.message);
     throw err;
