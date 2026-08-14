@@ -4,7 +4,7 @@ const requiredColumns = {
   users: ['id', 'name', 'email', 'password_hash', 'student_id', 'phone_number', 'telegram_chat_id', 'telegram_link_token', 'telegram_link_token_expires_at', 'calendar_token', 'weekly_digest_enabled', 'daily_summary_enabled', 'reminders_enabled', 'reminder_lead_minutes', 'created_at'],
   rules: ['id', 'user_id', 'trigger', 'condition', 'action', 'created_at'],
   events: ['id', 'type', 'data', 'created_at'],
-  lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'reminder_sent', 'reminders_enabled'],
+  lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'venue', 'reminder_sent', 'reminders_enabled'],
   reminders: ['id', 'lecture_id', 'event_id', 'reminder_date', 'created_at'],
   assignments: ['id', 'user_id', 'course_code', 'title', 'due_date', 'due_time', 'status', 'reminders_enabled', 'created_at'],
   exams: ['id', 'user_id', 'course_code', 'exam_date', 'exam_time', 'venue', 'status', 'reminders_enabled', 'created_at'],
@@ -71,6 +71,14 @@ function addMissingColumnsSafely() {
   addMissingColumns('lectures', remindersEnabledColumn);
   addMissingColumns('assignments', remindersEnabledColumn);
   addMissingColumns('exams', remindersEnabledColumn);
+
+  // venue was added to the lectures Drizzle schema for photo-import support,
+  // but this raw-SQL migration script was never updated to match - any
+  // lectures table created before this fix is missing the column entirely,
+  // which silently breaks every insert with "no such column: venue".
+  addMissingColumns('lectures', [
+    { name: 'venue', ddl: 'TEXT' },
+  ]);
 
   const existing = getTableColumns('users');
   if (existing.length === 0) return;
@@ -152,6 +160,7 @@ function createFreshDatabase() {
       course_name TEXT NOT NULL,
       lecture_day TEXT NOT NULL,
       lecture_time TEXT NOT NULL,
+      venue TEXT,
       reminder_sent INTEGER NOT NULL DEFAULT 0,
       reminders_enabled INTEGER NOT NULL DEFAULT 1,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
