@@ -1,5 +1,6 @@
 const userService = require('../services/userService');
 const { comparePassword, signToken, toPublicUser } = require('../utils/auth');
+const { getGoogleAuthUrl, exchangeCodeForProfile } = require('../services/googleAuthService');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -59,4 +60,44 @@ function me(req, res) {
   return res.status(200).json({ success: true, user: toPublicUser(user) });
 }
 
-module.exports = { register, login, me };
+// Kicks off Google sign-in by sending the browser to Google's consent screen.
+function googleRedirect(req, res) {
+  return res.redirect(getGoogleAuthUrl());
+}
+
+// Google redirects back here with ?code=... after the user approves.
+// Exchanges that code for their profile, finds or creates a matching
+// account by email, then hands back our own JWT the same way login/register
+// do - by redirecting to the frontend with the token in the URL, since this
+// is a full-page redirect flow rather than an API call the frontend made.
+async function googleCallback(req, res) {
+  try {
+    const { code, error } = req.query;
+
+    if (error) {
+      return res.redirect('/?error=google_auth_failed');
+    }
+    if (!code) {
+      return res.status(400).send('Missing authorization code from Google');
+    }
+
+    const profile = await exchangeCodeForProfile(code);
+
+    if (profile.email_verified === false) {
+      return res.redirect('/?error=google_email_unverified');
+    }
+
+    const user = await userService.findOrCreateGoogleUser({
+      name: profile.name,
+      email: profile.email,
+    });
+
+    const token = signToken(user);
+    return res.redirect(`/?token=${encodeURIComponent(token)}`);
+  } catch (err) {
+    console.error('Google OAuth error:', err.message);
+    return res.redirect('/?error=google_auth_failed');
+  }
+}
+
+module.exports = { register, login, me, googleRedirect, googleCallback };
