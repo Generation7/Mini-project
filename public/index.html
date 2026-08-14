@@ -2814,7 +2814,38 @@
     renderIcons();
     initHeroReveal();
 
-    window.onload = () => {
+    window.onload = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const googleToken = params.get('token');
+      const googleError = params.get('error');
+
+      if (googleToken) {
+        // Clean the token out of the visible URL immediately so it isn't
+        // sitting in the address bar or browser history.
+        window.history.replaceState({}, document.title, window.location.pathname);
+        try {
+          const res = await fetch(`${API}/auth/me`, {
+            headers: { Authorization: `Bearer ${googleToken}` }
+          });
+          const data = await res.json();
+          if (data.success) {
+            startSession(googleToken, data.user);
+            showToast('Signed in with Google!');
+          } else {
+            showToast('Google sign-in failed, please try again', true);
+          }
+        } catch (err) {
+          showToast('Google sign-in failed, please try again', true);
+        }
+        renderIcons();
+        return;
+      }
+
+      if (googleError) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        showToast('Google sign-in failed, please try again', true);
+      }
+
       const savedToken = localStorage.getItem('acadiaToken');
       const savedUser = localStorage.getItem('acadiaUser');
       if (savedToken && savedUser) {
@@ -3977,7 +4008,7 @@
     }
 
     function continueWithGoogle() {
-      showToast('Google sign-in isn\'t connected to a backend yet — this needs a Google OAuth client set up on your server first.', true);
+      window.location.href = `${API}/auth/google`;
     }
 
     function showToast(message, isError = false) {
