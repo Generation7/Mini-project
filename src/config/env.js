@@ -9,6 +9,9 @@ const env = {
   whatsappApiVersion: process.env.WHATSAPP_API_VERSION || 'v20.0',
   reminderPhone: process.env.REMINDER_PHONE || '',
   jwtSecret: process.env.JWT_SECRET || 'dev_only_insecure_secret_change_me',
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+  googleRedirectUri: process.env.GOOGLE_REDIRECT_URI || '',
 };
 
 if (process.env.NODE_ENV === 'production' && env.jwtSecret === 'dev_only_insecure_secret_change_me') {

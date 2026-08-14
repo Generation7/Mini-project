@@ -47,6 +47,28 @@ async function registerUser({ name, studentId, email, password, phoneNumber }) {
     .get();
 }
 
+// Used by Google sign-in. If an account with this email already exists
+// (e.g. they originally registered with a password), just log them into
+// that same account rather than creating a duplicate - this is why we only
+// match on email, not on any Google-specific ID. New accounts created here
+// get passwordHash: null, which comparePassword() already treats as "never
+// matches" if they later try a plain email/password login by mistake.
+function findOrCreateGoogleUser({ name, email }) {
+  const normalizedEmail = email.toLowerCase();
+  const existing = findByEmail(normalizedEmail);
+  if (existing) return existing;
+
+  return db
+    .insert(users)
+    .values({
+      name,
+      email: normalizedEmail,
+      passwordHash: null,
+    })
+    .returning()
+    .get();
+}
+
 function saveTelegramChatId(userId, chatId) {
   db.update(users)
     .set({ telegramChatId: String(chatId) })
@@ -157,6 +179,7 @@ module.exports = {
   findByStudentId,
   createUser,
   registerUser,
+  findOrCreateGoogleUser,
   findOrCreateByPhoneNumber,
   saveTelegramChatId,
   findByTelegramChatId,
