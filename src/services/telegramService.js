@@ -584,6 +584,16 @@ function startTelegramBot() {
       const file = await withTelegramRetry(() => bot.getFile(fileId), { label: `getFile(chat ${chatId})` });
       const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
 
+      // Caption is an optional hint from the user (e.g. "add this as my exam
+      // timetable") - if present we tell the model which type to expect
+      // instead of making it guess from image content alone.
+      const caption = (msg.caption || '').toLowerCase();
+      const captionHint = /exam/.test(caption)
+        ? 'The user has indicated this is an EXAM timetable.'
+        : /lecture|class/.test(caption)
+          ? 'The user has indicated this is a LECTURE timetable.'
+          : '';
+
       const visionCompletion = await groq.chat.completions.create({
         messages: [
           {
@@ -591,22 +601,30 @@ function startTelegramBot() {
             content: [
               {
                 type: 'text',
-                text: `This is a university lecture timetable. It may be laid out in different ways (rows, columns, a grid with days and time slots, etc).
+                text: `This is a photo of a university timetable. It could be either of two kinds:
 
-Go through the entire image carefully and extract EVERY lecture you can find, regardless of layout or grouping. Do not skip any entries and do not filter by group, cohort, or section — include all of them.
+1. A LECTURE timetable - a recurring weekly schedule with a day of the week (Monday, Tuesday, ...) and no specific calendar date.
+2. An EXAM timetable - one-off exams with specific calendar dates (e.g. "17 AUG 2026"), even if a weekday name is also shown alongside the date.
 
-For each lecture, capture:
-- courseCode (or course name if no code is shown)
-- lectureDay (the day of the week)
-- lectureTime (in 24-hour HH:MM format, using the start time of the slot)
-- venue (the room/hall/lab shown for that lecture, if any — e.g. "SF20", "TF1". Use null if no venue is shown.)
+${captionHint}
 
-Return ONLY a JSON array with no explanation, for example:
-[{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"10:30","venue":"SF20"},...]
+First decide which kind this image is. Then go through the ENTIRE image carefully and extract EVERY entry you can find, regardless of layout or grouping. Do not skip any entries and do not filter by group, cohort, or section.
 
-If the timetable uses named time windows (e.g. "10:30 AM - 12:30 PM"), use the start time converted to 24-hour format (e.g. "10:30").
+Return ONLY a JSON object with no explanation, in this exact shape:
 
-Be thorough - check every single cell in the timetable carefully.`
+If it's a LECTURE timetable:
+{"type":"lecture","items":[{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"10:30","venue":"SF20"},...]}
+
+If it's an EXAM timetable:
+{"type":"exam","items":[{"courseCode":"CSM388","examDate":"2026-08-17","examTime":"12:00","venue":"Comp. lab"},...]}
+
+Field rules:
+- courseCode: the course code, or course name if no code is shown.
+- lectureTime / examTime: 24-hour HH:MM format, using the start time of the slot (e.g. "10:30 AM - 12:30 PM" becomes "10:30").
+- examDate: ISO format YYYY-MM-DD. Convert any date format shown (e.g. "17 AUG 2026") into this format. Assume the year shown in the image; if no year is shown, use the current academic year.
+- venue: the room/hall/lab/examiner location shown, if any. Use null if none is shown.
+
+Be thorough - check every single row and cell carefully before answering.`
               },
               {
                 type: 'image_url',
@@ -621,30 +639,53 @@ Be thorough - check every single cell in the timetable carefully.`
       const visionResponse = visionCompletion.choices[0]?.message?.content?.trim();
       console.log('Vision response:', visionResponse);
 
-      const jsonMatch = visionResponse.match(/\[[\s\S]*\]/);
+      const jsonMatch = visionResponse.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         return await sendMessageWithRetry(bot, chatId, "Sorry, I couldn't read the timetable clearly. Try a clearer photo!");
       }
 
-      const lecturesList = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
+      const itemsList = Array.isArray(parsed.items) ? parsed.items : [];
       let added = 0;
 
-      for (const lecture of lecturesList) {
-        const result = lectureService.createLecture({
-          userId: user.id,
-          courseCode: lecture.courseCode,
-          courseName: lecture.courseCode,
-          lectureDay: lecture.lectureDay,
-          lectureTime: lecture.lectureTime,
-          venue: lecture.venue || null,
-        });
-        if (result.created) added++;
-      }
+      if (parsed.type === 'exam') {
+        for (const exam of itemsList) {
+          try {
+            examService.createExam({
+              userId: user.id,
+              courseCode: exam.courseCode,
+              examDate: exam.examDate,
+              examTime: exam.examTime,
+              venue: exam.venue || null,
+            });
+            added++;
+          } catch (err) {
+            logger.error(`Failed to save exam from photo for chat ${chatId}: ${err.message}`);
+          }
+        }
 
-      await sendMessageWithRetry(bot, chatId,
-        `✅ Done! I found *${lecturesList.length}* lectures and added *${added}* new ones to your timetable!\n\nSend "What lectures do I have?" to see them all.`,
-        { parse_mode: 'Markdown' }
-      );
+        await sendMessageWithRetry(bot, chatId,
+          `✅ Done! I found *${itemsList.length}* exams and added *${added}* to your exam schedule!\n\nSend "What exams do I have?" to see them all.`,
+          { parse_mode: 'Markdown' }
+        );
+      } else {
+        for (const lecture of itemsList) {
+          const result = lectureService.createLecture({
+            userId: user.id,
+            courseCode: lecture.courseCode,
+            courseName: lecture.courseCode,
+            lectureDay: lecture.lectureDay,
+            lectureTime: lecture.lectureTime,
+            venue: lecture.venue || null,
+          });
+          if (result.created) added++;
+        }
+
+        await sendMessageWithRetry(bot, chatId,
+          `✅ Done! I found *${itemsList.length}* lectures and added *${added}* new ones to your timetable!\n\nSend "What lectures do I have?" to see them all.`,
+          { parse_mode: 'Markdown' }
+        );
+      }
 
     } catch (err) {
       console.error('Photo error:', err.message);
