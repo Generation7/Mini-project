@@ -36,6 +36,19 @@ function logVolumeMountStatus(targetDir) {
 
 logVolumeMountStatus(dbDir);
 
+console.log(
+  `[DB] DATABASE_URL env var: ${process.env.DATABASE_URL ? `"${process.env.DATABASE_URL}"` : '(not set, using default)'} | ` +
+  `Resolved database file: ${dbPath} | ` +
+  `Directory being checked for persistence: ${dbDir}`
+);
+if (!path.isAbsolute(env.databaseUrl) || !dbPath.startsWith('/data' + path.sep)) {
+  console.log(
+    `[DB] WARNING: resolved database path "${dbPath}" is NOT inside the mounted volume at /data. ` +
+    `If a Railway volume is attached at /data, set the DATABASE_URL variable to an absolute path like ` +
+    `"/data/app.db" or this database will live on ephemeral storage and be wiped on redeploy.`
+  );
+}
+
 fs.mkdirSync(dbDir, { recursive: true });
 
 const sqlite = new Database(dbPath);
