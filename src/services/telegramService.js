@@ -634,6 +634,13 @@ Be thorough - check every single row and cell carefully before answering.`
           }
         ],
         model: 'qwen/qwen3.6-27b',
+        // No limit was set here before, so the model's response was being
+        // cut off by Groq's default max_tokens on longer timetables (e.g.
+        // an exam timetable with many rows and verbose venue/examiner
+        // text), producing truncated, unparseable JSON. Confirmed via a
+        // "Photo error: Expected ',' or ']' after array element..." log
+        // where the response was cut off mid-string inside a venue field.
+        max_tokens: 4096,
       });
 
       const visionResponse = visionCompletion.choices[0]?.message?.content?.trim();
