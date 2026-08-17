@@ -1,5 +1,6 @@
 const userService = require('../services/userService');
 const { comparePassword, toPublicUser } = require('../utils/auth');
+const logger = require('../utils/logger');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -26,6 +27,7 @@ function updateProfile(req, res) {
     const user = userService.updateProfile(req.userId, { name, email, studentId });
     return res.json({ success: true, user: toPublicUser(user) });
   } catch (err) {
+    logger.error('Failed to update profile', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -52,6 +54,7 @@ async function updatePassword(req, res) {
     await userService.updatePassword(req.userId, newPassword);
     return res.json({ success: true, message: 'Password updated' });
   } catch (err) {
+    logger.error('Failed to update password', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -75,6 +78,7 @@ function updateNotifications(req, res) {
     });
     return res.json({ success: true, user: toPublicUser(user) });
   } catch (err) {
+    logger.error('Failed to update notification settings', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -97,6 +101,7 @@ async function deleteAccount(req, res) {
     userService.deleteAccount(req.userId);
     return res.json({ success: true, message: 'Account deleted' });
   } catch (err) {
+    logger.error('Failed to delete account', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }

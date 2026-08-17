@@ -1,5 +1,6 @@
 const env = require('../config/env');
 const webhookService = require('../services/webhookService');
+const logger = require('../utils/logger');
 
 function verifyWebhook(req, res) {
   const mode = req.query['hub.mode'];
@@ -18,6 +19,7 @@ function receiveWebhook(req, res) {
     webhookService.handleIncomingWebhook(req.body);
     return res.sendStatus(200);
   } catch (error) {
+    logger.error('Failed to handle incoming webhook', { error: error.message, stack: error.stack });
     return res.status(500).json({ success: false, message: error.message });
   }
 }

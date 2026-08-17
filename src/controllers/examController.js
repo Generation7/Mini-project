@@ -1,4 +1,5 @@
 const examService = require('../services/examService');
+const logger = require('../utils/logger');
 
 function createExam(req, res) {
   try {
@@ -6,6 +7,7 @@ function createExam(req, res) {
     const exam = examService.createExam({ userId: req.userId, courseCode, examDate, examTime, venue });
     return res.status(201).json({ success: true, exam });
   } catch (err) {
+    logger.error('Failed to create exam', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -15,6 +17,7 @@ function listExams(req, res) {
     const exams = examService.getUpcomingExams(req.userId);
     return res.json({ success: true, exams });
   } catch (err) {
+    logger.error('Failed to list exams', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -26,6 +29,7 @@ function completeExam(req, res) {
     if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
     return res.json({ success: true, exam });
   } catch (err) {
+    logger.error('Failed to complete exam', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -37,6 +41,7 @@ function deleteExam(req, res) {
     if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
     return res.json({ success: true, exam });
   } catch (err) {
+    logger.error('Failed to delete exam', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -48,6 +53,7 @@ function toggleExamReminder(req, res) {
     if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
     return res.json({ success: true, exam });
   } catch (err) {
+    logger.error('Failed to toggle exam reminder', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }

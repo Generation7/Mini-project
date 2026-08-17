@@ -1,4 +1,5 @@
 const courseService = require('../services/courseService');
+const logger = require('../utils/logger');
 
 function addCourse(req, res) {
   try {
@@ -27,6 +28,7 @@ function addCourse(req, res) {
     });
     return res.status(201).json({ success: true, course });
   } catch (err) {
+    logger.error('Failed to add course', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -36,6 +38,7 @@ function listCourses(req, res) {
     const courses = courseService.getCoursesByUserId(req.userId);
     return res.json({ success: true, courses });
   } catch (err) {
+    logger.error('Failed to list courses', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -60,6 +63,7 @@ function updateCourse(req, res) {
     if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
     return res.json({ success: true, course });
   } catch (err) {
+    logger.error('Failed to update course', { userId: req.userId, courseId: req.params.id, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -71,6 +75,7 @@ function deleteCourse(req, res) {
     if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
     return res.json({ success: true, course });
   } catch (err) {
+    logger.error('Failed to delete course', { userId: req.userId, courseId: req.params.id, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -80,6 +85,7 @@ function getCwa(req, res) {
     const result = courseService.calculateCwa(req.userId);
     return res.json({ success: true, ...result });
   } catch (err) {
+    logger.error('Failed to calculate CWA', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }

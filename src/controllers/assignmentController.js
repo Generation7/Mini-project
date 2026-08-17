@@ -1,4 +1,5 @@
 const assignmentService = require('../services/assignmentService');
+const logger = require('../utils/logger');
 
 function createAssignment(req, res) {
   try {
@@ -6,6 +7,7 @@ function createAssignment(req, res) {
     const assignment = assignmentService.createAssignment({ userId: req.userId, courseCode, title, dueDate, dueTime });
     return res.status(201).json({ success: true, assignment });
   } catch (err) {
+    logger.error('Failed to create assignment', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -15,6 +17,7 @@ function listAssignments(req, res) {
     const assignments = assignmentService.getAssignmentsByUserId(req.userId);
     return res.json({ success: true, assignments });
   } catch (err) {
+    logger.error('Failed to list assignments', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -26,6 +29,7 @@ function completeAssignment(req, res) {
     if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
     return res.json({ success: true, assignment });
   } catch (err) {
+    logger.error('Failed to complete assignment', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -37,6 +41,7 @@ function deleteAssignment(req, res) {
     if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
     return res.json({ success: true, assignment });
   } catch (err) {
+    logger.error('Failed to delete assignment', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -48,6 +53,7 @@ function toggleAssignmentReminder(req, res) {
     if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
     return res.json({ success: true, assignment });
   } catch (err) {
+    logger.error('Failed to toggle assignment reminder', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }

@@ -1,6 +1,7 @@
 const userService = require('../services/userService');
 const { comparePassword, signToken, toPublicUser } = require('../utils/auth');
 const { getGoogleAuthUrl, exchangeCodeForProfile } = require('../services/googleAuthService');
+const logger = require('../utils/logger');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,6 +26,7 @@ async function register(req, res) {
     const token = signToken(user);
     return res.status(201).json({ success: true, token, user: toPublicUser(user) });
   } catch (err) {
+    logger.error('Failed to register user', { email: req.body && req.body.email, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -50,6 +52,7 @@ async function login(req, res) {
     const token = signToken(user);
     return res.status(200).json({ success: true, token, user: toPublicUser(user) });
   } catch (err) {
+    logger.error('Failed to log in user', { email: req.body && req.body.email, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });
   }
 }
@@ -95,7 +98,7 @@ async function googleCallback(req, res) {
     const token = signToken(user);
     return res.redirect(`/?token=${encodeURIComponent(token)}`);
   } catch (err) {
-    console.error('Google OAuth error:', err.message);
+    logger.error('Google OAuth error', { error: err.message, stack: err.stack });
     return res.redirect('/?error=google_auth_failed');
   }
 }
