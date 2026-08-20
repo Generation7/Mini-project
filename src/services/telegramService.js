@@ -236,14 +236,15 @@ Today's date is ${todayDate}.`
       // suggested replacements, and already proven working here for the
       // photo-import feature. It's a "thinking" model, so reasoning_format:
       // 'hidden' is required to get a clean final answer in message.content
-      // instead of the model's internal reasoning trace. max_tokens is set
-      // generously for the same reason the vision call needed it: reasoning
-      // tokens eat into the budget before the visible JSON/reply is written,
-      // and a cut-off response fails JSON.parse (or gets shown raw to the
-      // student for plain-English replies).
+      // instead of the model's internal reasoning trace. Groq's docs don't
+      // say whether hidden reasoning still counts against max_tokens, but
+      // the vision call (below) showed signs it does - the reasoning trace
+      // can eat the whole budget before the visible answer is ever written,
+      // leaving message.content empty. Set well above the old 4096 to leave
+      // headroom for that, short of the model's 16,384 output cap.
       model: 'qwen/qwen3.6-27b',
       reasoning_format: 'hidden',
-      max_tokens: 4096,
+      max_tokens: 8192,
     });
 
     const textResponse = completion.choices[0]?.message?.content?.trim();
@@ -677,13 +678,15 @@ Be thorough - check every single row and cell carefully before answering.`
         // Extraction:**...") instead of ever reaching the JSON object,
         // which produced the generic "trouble reading that image" error.
         reasoning_format: 'hidden',
-        // No limit was set here before, so the model's response was being
-        // cut off by Groq's default max_tokens on longer timetables (e.g.
-        // an exam timetable with many rows and verbose venue/examiner
-        // text), producing truncated, unparseable JSON. Confirmed via a
-        // "Photo error: Expected ',' or ']' after array element..." log
-        // where the response was cut off mid-string inside a venue field.
-        max_tokens: 4096,
+        // No limit was set here originally, so the model's response was
+        // being cut off by Groq's default max_tokens on longer timetables,
+        // producing truncated, unparseable JSON. 4096 fixed that truncation
+        // but the reasoning trace hidden above still counts against this
+        // same budget - on a busy image the model can spend all 4096 just
+        // thinking, leaving message.content empty and no JSON to find at
+        // all. Raised to the model's max output size so reasoning and the
+        // final JSON both have room.
+        max_tokens: 16384,
       });
 
       const visionResponse = visionCompletion.choices[0]?.message?.content?.trim();
