@@ -690,20 +690,38 @@ Be thorough - check every single row and cell carefully before answering.`
           { parse_mode: 'Markdown' }
         );
       } else {
+        let skipped = 0;
         for (const lecture of itemsList) {
-          const result = lectureService.createLecture({
-            userId: user.id,
-            courseCode: lecture.courseCode,
-            courseName: lecture.courseName || lecture.courseCode,
-            lectureDay: lecture.lectureDay,
-            lectureTime: lecture.lectureTime,
-            venue: lecture.venue || null,
-          });
-          if (result.created) added++;
+          // lectureDay/lectureTime/courseCode are NOT NULL columns - if the
+          // vision model couldn't confidently read one of these for a given
+          // row (e.g. a merged or ambiguous grid cell), skip just that row
+          // instead of letting the insert throw and killing the whole batch
+          // (which used to surface as a generic "trouble reading that image"
+          // error even when most rows parsed fine).
+          if (!lecture.courseCode || !lecture.lectureDay || !lecture.lectureTime) {
+            skipped++;
+            logger.error(`Skipped lecture from photo for chat ${chatId}: missing required field`, { lecture });
+            continue;
+          }
+          try {
+            const result = lectureService.createLecture({
+              userId: user.id,
+              courseCode: lecture.courseCode,
+              courseName: lecture.courseName || lecture.courseCode,
+              lectureDay: lecture.lectureDay,
+              lectureTime: lecture.lectureTime,
+              venue: lecture.venue || null,
+            });
+            if (result.created) added++;
+          } catch (err) {
+            skipped++;
+            logger.error(`Failed to save lecture from photo for chat ${chatId}: ${err.message}`, { lecture });
+          }
         }
 
+        const skippedNote = skipped ? `\n\n(${skipped} row${skipped === 1 ? '' : 's'} couldn't be read clearly and were skipped.)` : '';
         await sendMessageWithRetry(bot, chatId,
-          `✅ Done! I found *${itemsList.length}* lectures and added *${added}* new ones to your timetable!\n\nSend "What lectures do I have?" to see them all.`,
+          `✅ Done! I found *${itemsList.length}* lectures and added *${added}* new ones to your timetable!\n\nSend "What lectures do I have?" to see them all.${skippedNote}`,
           { parse_mode: 'Markdown' }
         );
       }
