@@ -3602,10 +3602,12 @@
       const lectureTime = document.getElementById('lTime').value;
       if (!courseCode || !lectureDay || !lectureTime) return showToast('Please fill all fields', true);
       try {
-        await authFetch(`${API}/lectures`, {
+        const res = await authFetch(`${API}/lectures`, {
           method: 'POST',
           body: JSON.stringify({ courseCode, courseName: courseName || courseCode, lectureDay, lectureTime })
         });
+        const data = await res.json();
+        if (!data.success) return showToast(data.message || 'That lecture is already on your timetable', true);
         showToast('Lecture added!');
         document.getElementById('lCourseCode').value = '';
         document.getElementById('lCourseName').value = '';
@@ -3684,10 +3686,12 @@
       const dueTime = document.getElementById('aDueTime').value || '23:59';
       if (!courseCode || !title || !dueDate) return showToast('Please fill all required fields', true);
       try {
-        await authFetch(`${API}/assignments`, {
+        const res = await authFetch(`${API}/assignments`, {
           method: 'POST',
           body: JSON.stringify({ courseCode, courseName: courseName || null, title, dueDate, dueTime })
         });
+        const data = await res.json();
+        if (!data.success) return showToast(data.message || 'That assignment is already on your list', true);
         showToast('Assignment added!');
         document.getElementById('aCourseCode').value = '';
         document.getElementById('aCourseName').value = '';
@@ -4009,10 +4013,12 @@
       const venue = document.getElementById('eVenue').value.trim();
       if (!courseCode || !examDate) return showToast('Please fill all required fields', true);
       try {
-        await authFetch(`${API}/exams`, {
+        const res = await authFetch(`${API}/exams`, {
           method: 'POST',
           body: JSON.stringify({ courseCode, courseName: courseName || null, examDate, examTime, venue })
         });
+        const data = await res.json();
+        if (!data.success) return showToast(data.message || 'That exam is already on your schedule', true);
         showToast('Exam added!');
         document.getElementById('eCourseCode').value = '';
         document.getElementById('eCourseName').value = '';

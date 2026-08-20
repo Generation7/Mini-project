@@ -4,8 +4,13 @@ const logger = require('../utils/logger');
 function createExam(req, res) {
   try {
     const { courseCode, courseName, examDate, examTime, venue } = req.body;
-    const exam = examService.createExam({ userId: req.userId, courseCode, courseName, examDate, examTime, venue });
-    return res.status(201).json({ success: true, exam });
+    const result = examService.createExam({ userId: req.userId, courseCode, courseName, examDate, examTime, venue });
+
+    if (!result.created) {
+      return res.status(409).json({ success: false, message: 'Exam already exists', exam: result.exam });
+    }
+
+    return res.status(201).json({ success: true, exam: result.exam });
   } catch (err) {
     logger.error('Failed to create exam', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });

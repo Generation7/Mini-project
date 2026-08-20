@@ -2,12 +2,34 @@ const { eq, and } = require('drizzle-orm');
 const { db } = require('../db/client');
 const { assignments } = require('../db/schema');
 
-function createAssignment({ userId, courseCode, courseName, title, dueDate, dueTime = '23:59' }) {
+function findDuplicate({ userId, courseCode, title, dueDate }) {
   return db
+    .select()
+    .from(assignments)
+    .where(
+      and(
+        eq(assignments.userId, userId),
+        eq(assignments.courseCode, courseCode),
+        eq(assignments.title, title),
+        eq(assignments.dueDate, dueDate)
+      )
+    )
+    .get();
+}
+
+function createAssignment({ userId, courseCode, courseName, title, dueDate, dueTime = '23:59' }) {
+  const duplicate = findDuplicate({ userId, courseCode, title, dueDate });
+  if (duplicate) {
+    return { assignment: duplicate, created: false };
+  }
+
+  const assignment = db
     .insert(assignments)
     .values({ userId, courseCode, courseName: courseName || null, title, dueDate, dueTime, status: 'pending' })
     .returning()
     .get();
+
+  return { assignment, created: true };
 }
 
 function getAssignmentsByUserId(userId) {
@@ -66,6 +88,7 @@ function getAllPendingAssignments() {
 
 module.exports = {
   createAssignment,
+  findDuplicate,
   getAssignmentsByUserId,
   getPendingAssignments,
   markAssignmentDone,

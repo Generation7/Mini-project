@@ -4,8 +4,13 @@ const logger = require('../utils/logger');
 function createAssignment(req, res) {
   try {
     const { courseCode, courseName, title, dueDate, dueTime } = req.body;
-    const assignment = assignmentService.createAssignment({ userId: req.userId, courseCode, courseName, title, dueDate, dueTime });
-    return res.status(201).json({ success: true, assignment });
+    const result = assignmentService.createAssignment({ userId: req.userId, courseCode, courseName, title, dueDate, dueTime });
+
+    if (!result.created) {
+      return res.status(409).json({ success: false, message: 'Assignment already exists', assignment: result.assignment });
+    }
+
+    return res.status(201).json({ success: true, assignment: result.assignment });
   } catch (err) {
     logger.error('Failed to create assignment', { userId: req.userId, error: err.message, stack: err.stack });
     return res.status(500).json({ success: false, message: err.message });

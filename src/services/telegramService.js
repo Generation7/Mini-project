@@ -246,13 +246,16 @@ Today's date is ${todayDate}.`
     const executeAction = async (parsed) => {
       switch (parsed.action) {
         case 'ADD_LECTURE': {
-          lectureService.createLecture({
+          const lectureResult = lectureService.createLecture({
             userId: user.id,
             courseCode: parsed.courseCode,
             courseName: parsed.courseName || parsed.courseCode,
             lectureDay: parsed.lectureDay,
             lectureTime: parsed.lectureTime,
           });
+          if (!lectureResult.created) {
+            return `📋 *${courseLabel(parsed.courseCode, parsed.courseName)}* on *${parsed.lectureDay}* at *${parsed.lectureTime}* is already on your timetable!`;
+          }
           return `✅ Added *${courseLabel(parsed.courseCode, parsed.courseName)}* on *${parsed.lectureDay}* at *${parsed.lectureTime}*! You'll get a reminder the day before.`;
         }
 
@@ -293,7 +296,7 @@ Today's date is ${todayDate}.`
         }
 
         case 'ADD_ASSIGNMENT': {
-          assignmentService.createAssignment({
+          const assignmentResult = assignmentService.createAssignment({
             userId: user.id,
             courseCode: parsed.courseCode,
             courseName: parsed.courseName,
@@ -301,6 +304,9 @@ Today's date is ${todayDate}.`
             dueDate: parsed.dueDate,
             dueTime: parsed.dueTime || '23:59',
           });
+          if (!assignmentResult.created) {
+            return `📋 *${parsed.title}* for *${courseLabel(parsed.courseCode, parsed.courseName)}* (due ${parsed.dueDate}) is already on your list!`;
+          }
           return `📝 Added assignment for *${courseLabel(parsed.courseCode, parsed.courseName)}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
         }
 
@@ -329,7 +335,7 @@ Today's date is ${todayDate}.`
         }
 
         case 'ADD_EXAM': {
-          examService.createExam({
+          const examResult = examService.createExam({
             userId: user.id,
             courseCode: parsed.courseCode,
             courseName: parsed.courseName,
@@ -337,6 +343,9 @@ Today's date is ${todayDate}.`
             examTime: parsed.examTime || '08:00',
             venue: parsed.venue || null,
           });
+          if (!examResult.created) {
+            return `📋 *${courseLabel(parsed.courseCode, parsed.courseName)}* on *${parsed.examDate}* is already on your exam schedule!`;
+          }
           const venueText = parsed.venue ? `\n📍 Venue: *${parsed.venue}*` : '';
           return `🎓 Added *${courseLabel(parsed.courseCode, parsed.courseName)}* exam!\n📅 Date: *${parsed.examDate}*\n⏰ Time: *${parsed.examTime || '08:00'}*${venueText}\n\nI'll remind you 7 days, 3 days, 1 day and 3 hours before!`;
         }
@@ -669,9 +678,16 @@ Be thorough - check every single row and cell carefully before answering.`
       let added = 0;
 
       if (parsed.type === 'exam') {
+        let duplicates = 0;
+        let skipped = 0;
         for (const exam of itemsList) {
+          if (!exam.courseCode || !exam.examDate) {
+            skipped++;
+            logger.error(`Skipped exam from photo for chat ${chatId}: missing required field`, { exam });
+            continue;
+          }
           try {
-            examService.createExam({
+            const result = examService.createExam({
               userId: user.id,
               courseCode: exam.courseCode,
               courseName: exam.courseName || null,
@@ -679,17 +695,31 @@ Be thorough - check every single row and cell carefully before answering.`
               examTime: exam.examTime,
               venue: exam.venue || null,
             });
-            added++;
+            if (result.created) added++;
+            else duplicates++;
           } catch (err) {
-            logger.error(`Failed to save exam from photo for chat ${chatId}: ${err.message}`);
+            skipped++;
+            logger.error(`Failed to save exam from photo for chat ${chatId}: ${err.message}`, { exam });
           }
         }
 
-        await sendMessageWithRetry(bot, chatId,
-          `✅ Done! I found *${itemsList.length}* exams and added *${added}* to your exam schedule!\n\nSend "What exams do I have?" to see them all.`,
-          { parse_mode: 'Markdown' }
-        );
+        // All items already existed - this is almost always the same photo
+        // sent twice, so say so plainly instead of a generic "0 added".
+        if (itemsList.length && added === 0 && duplicates === itemsList.length) {
+          await sendMessageWithRetry(bot, chatId,
+            `📋 That exam timetable is already added! I didn't find any new exams to add.\n\nSend "What exams do I have?" to see them all.`,
+            { parse_mode: 'Markdown' }
+          );
+        } else {
+          const dupNote = duplicates ? `\n(${duplicates} were already on your schedule.)` : '';
+          const skippedNote = skipped ? `\n(${skipped} row${skipped === 1 ? '' : 's'} couldn't be read clearly and were skipped.)` : '';
+          await sendMessageWithRetry(bot, chatId,
+            `✅ Done! I found *${itemsList.length}* exams and added *${added}* new ones to your exam schedule!${dupNote}${skippedNote}\n\nSend "What exams do I have?" to see them all.`,
+            { parse_mode: 'Markdown' }
+          );
+        }
       } else {
+        let duplicates = 0;
         let skipped = 0;
         for (const lecture of itemsList) {
           // lectureDay/lectureTime/courseCode are NOT NULL columns - if the
@@ -713,17 +743,28 @@ Be thorough - check every single row and cell carefully before answering.`
               venue: lecture.venue || null,
             });
             if (result.created) added++;
+            else duplicates++;
           } catch (err) {
             skipped++;
             logger.error(`Failed to save lecture from photo for chat ${chatId}: ${err.message}`, { lecture });
           }
         }
 
-        const skippedNote = skipped ? `\n\n(${skipped} row${skipped === 1 ? '' : 's'} couldn't be read clearly and were skipped.)` : '';
-        await sendMessageWithRetry(bot, chatId,
-          `✅ Done! I found *${itemsList.length}* lectures and added *${added}* new ones to your timetable!\n\nSend "What lectures do I have?" to see them all.${skippedNote}`,
-          { parse_mode: 'Markdown' }
-        );
+        // All items already existed - this is almost always the same photo
+        // sent twice, so say so plainly instead of a generic "0 added".
+        if (itemsList.length && added === 0 && duplicates === itemsList.length) {
+          await sendMessageWithRetry(bot, chatId,
+            `📋 That timetable is already added! I didn't find any new lectures to add.\n\nSend "What lectures do I have?" to see them all.`,
+            { parse_mode: 'Markdown' }
+          );
+        } else {
+          const dupNote = duplicates ? `\n(${duplicates} were already on your timetable.)` : '';
+          const skippedNote = skipped ? `\n(${skipped} row${skipped === 1 ? '' : 's'} couldn't be read clearly and were skipped.)` : '';
+          await sendMessageWithRetry(bot, chatId,
+            `✅ Done! I found *${itemsList.length}* lectures and added *${added}* new ones to your timetable!${dupNote}${skippedNote}\n\nSend "What lectures do I have?" to see them all.`,
+            { parse_mode: 'Markdown' }
+          );
+        }
       }
 
     } catch (err) {
