@@ -1703,6 +1703,28 @@
       color: var(--badge-red-text);
     }
 
+    /* CWA grid reuses the same 3-card layout as the Today grid, but wants
+       its own color order: Classification (2nd card, e.g. "Fail") reads as
+       a warning so it should be red, and Total Credits (3rd card) is a
+       neutral count so it takes the amber/yellow that Classification would
+       otherwise get. Scoped to #cwaSection so the Today grid keeps its own
+       amber/red order for Assignments/Exams. */
+    #cwaSection .summary-grid .summary-card:nth-child(2)::before {
+      background: linear-gradient(135deg, var(--badge-red-text), #fb7185);
+    }
+
+    #cwaSection .summary-grid .summary-card:nth-child(2) .count {
+      color: var(--badge-red-text);
+    }
+
+    #cwaSection .summary-grid .summary-card:nth-child(3)::before {
+      background: linear-gradient(135deg, var(--badge-yellow-text), #f59e0b);
+    }
+
+    #cwaSection .summary-grid .summary-card:nth-child(3) .count {
+      color: var(--badge-yellow-text);
+    }
+
     .summary-card:hover {
       transform: translateY(-3px) scale(1.01);
       box-shadow: var(--shadow-elev-1), 0 8px 28px rgba(20, 184, 166, 0.18);
