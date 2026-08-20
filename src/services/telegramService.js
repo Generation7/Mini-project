@@ -230,7 +230,20 @@ Today's date is ${todayDate}.`
           content: userMessage
         }
       ],
-      model: 'llama-3.3-70b-versatile',
+      // llama-3.3-70b-versatile was deprecated by Groq on 2026-08-16 and now
+      // returns a 404 model_not_found error, which broke every typed message
+      // to the bot. Switched to qwen/qwen3.6-27b - one of Groq's two
+      // suggested replacements, and already proven working here for the
+      // photo-import feature. It's a "thinking" model, so reasoning_format:
+      // 'hidden' is required to get a clean final answer in message.content
+      // instead of the model's internal reasoning trace. max_tokens is set
+      // generously for the same reason the vision call needed it: reasoning
+      // tokens eat into the budget before the visible JSON/reply is written,
+      // and a cut-off response fails JSON.parse (or gets shown raw to the
+      // student for plain-English replies).
+      model: 'qwen/qwen3.6-27b',
+      reasoning_format: 'hidden',
+      max_tokens: 4096,
     });
 
     const textResponse = completion.choices[0]?.message?.content?.trim();
@@ -656,6 +669,14 @@ Be thorough - check every single row and cell carefully before answering.`
           }
         ],
         model: 'qwen/qwen3.6-27b',
+        // qwen3.6-27b is a "thinking" model that writes an internal
+        // reasoning trace before its final answer. Without hiding it, that
+        // trace eats into max_tokens and can leave nothing left for the
+        // actual JSON on a busy image - confirmed via Railway logs showing
+        // the response still mid-reasoning ("**Refining Venue
+        // Extraction:**...") instead of ever reaching the JSON object,
+        // which produced the generic "trouble reading that image" error.
+        reasoning_format: 'hidden',
         // No limit was set here before, so the model's response was being
         // cut off by Groq's default max_tokens on longer timetables (e.g.
         // an exam timetable with many rows and verbose venue/examiner
