@@ -6,8 +6,8 @@ const requiredColumns = {
   events: ['id', 'type', 'data', 'created_at'],
   lectures: ['id', 'user_id', 'course_code', 'course_name', 'lecture_day', 'lecture_time', 'venue', 'reminder_sent', 'reminders_enabled'],
   reminders: ['id', 'lecture_id', 'event_id', 'reminder_date', 'created_at'],
-  assignments: ['id', 'user_id', 'course_code', 'title', 'due_date', 'due_time', 'status', 'reminders_enabled', 'created_at'],
-  exams: ['id', 'user_id', 'course_code', 'exam_date', 'exam_time', 'venue', 'status', 'reminders_enabled', 'created_at'],
+  assignments: ['id', 'user_id', 'course_code', 'course_name', 'title', 'due_date', 'due_time', 'status', 'reminders_enabled', 'created_at'],
+  exams: ['id', 'user_id', 'course_code', 'course_name', 'exam_date', 'exam_time', 'venue', 'status', 'reminders_enabled', 'created_at'],
   courses: ['id', 'user_id', 'course_code', 'course_name', 'credit_hours', 'score', 'academic_year', 'semester', 'created_at'],
   conversation_messages: ['id', 'user_id', 'role', 'content', 'created_at'],
   classes: ['id', 'name', 'join_code', 'creator_id', 'created_at'],
@@ -78,6 +78,17 @@ function addMissingColumnsSafely() {
   // which silently breaks every insert with "no such column: venue".
   addMissingColumns('lectures', [
     { name: 'venue', ddl: 'TEXT' },
+  ]);
+
+  // course_name was added to exams/assignments so the UI and bot can show
+  // the full course title (e.g. "Software Engineering") alongside the
+  // course code, not just the code. Nullable - existing rows without a
+  // name still display fine (falls back to code-only in the UI).
+  addMissingColumns('exams', [
+    { name: 'course_name', ddl: 'TEXT' },
+  ]);
+  addMissingColumns('assignments', [
+    { name: 'course_name', ddl: 'TEXT' },
   ]);
 
   const existing = getTableColumns('users');
@@ -181,6 +192,7 @@ function createFreshDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       course_code TEXT NOT NULL,
+      course_name TEXT,
       title TEXT NOT NULL,
       due_date TEXT NOT NULL,
       due_time TEXT NOT NULL DEFAULT '23:59',
@@ -194,6 +206,7 @@ function createFreshDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       course_code TEXT NOT NULL,
+      course_name TEXT,
       exam_date TEXT NOT NULL,
       exam_time TEXT NOT NULL DEFAULT '08:00',
       venue TEXT,

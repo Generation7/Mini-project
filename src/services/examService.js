@@ -2,10 +2,10 @@ const { eq, and } = require('drizzle-orm');
 const { db } = require('../db/client');
 const { exams } = require('../db/schema');
 
-function createExam({ userId, courseCode, examDate, examTime, venue }) {
+function createExam({ userId, courseCode, courseName, examDate, examTime, venue }) {
   return db
     .insert(exams)
-    .values({ userId, courseCode, examDate, examTime: examTime || '08:00', venue: venue || null, status: 'upcoming' })
+    .values({ userId, courseCode, courseName: courseName || null, examDate, examTime: examTime || '08:00', venue: venue || null, status: 'upcoming' })
     .returning()
     .get();
 }

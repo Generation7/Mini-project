@@ -2354,6 +2354,7 @@
             <h3><i data-lucide="plus" class="icon" width="16" height="16"></i> Add Lecture</h3>
             <div class="form-row">
               <input type="text" id="lCourseCode" placeholder="Course code (e.g. CSM388)" />
+              <input type="text" id="lCourseName" placeholder="Course name (optional)" />
               <select id="lDay">
                 <option value="">Select day</option>
                 <option>Monday</option>
@@ -2383,6 +2384,7 @@
             <h3><i data-lucide="plus" class="icon" width="16" height="16"></i> Add Assignment</h3>
             <div class="form-row">
               <input type="text" id="aCourseCode" placeholder="Course code" />
+              <input type="text" id="aCourseName" placeholder="Course name (optional)" />
               <input type="text" id="aTitle" placeholder="Assignment title" />
               <input type="date" id="aDueDate" />
               <input type="time" id="aDueTime" />
@@ -2405,6 +2407,7 @@
             <h3><i data-lucide="plus" class="icon" width="16" height="16"></i> Add Exam</h3>
             <div class="form-row">
               <input type="text" id="eCourseCode" placeholder="Course code" />
+              <input type="text" id="eCourseName" placeholder="Course name (optional)" />
               <input type="date" id="eDate" />
               <input type="time" id="eTime" />
               <input type="text" id="eVenue" placeholder="Venue (optional)" />
@@ -2813,6 +2816,16 @@
       if (window.lucide) window.lucide.createIcons();
     }
 
+    // Formats "CODE — Name" for list/card display, but only when there's an
+    // actual distinct name to show - falls back to the bare code when the
+    // name is missing, blank, or just a duplicate of the code (e.g. legacy
+    // lectures where courseName was defaulted to courseCode).
+    function courseLabel(code, name) {
+      const trimmedName = (name || '').trim();
+      if (!trimmedName || trimmedName.toLowerCase() === (code || '').trim().toLowerCase()) return code;
+      return `${code} — ${trimmedName}`;
+    }
+
     // ---- Calendar mode (Lectures / Assignments / Exams) ----------------
 
     const viewModes = {
@@ -2906,14 +2919,16 @@
     }
 
     function renderLectureChip(l) {
-      return `<div class="cal-chip cal-chip-lecture" title="${l.courseCode} at ${l.lectureTime}">${l.lectureTime} ${l.courseCode}</div>`;
+      // Chip text stays code-only (limited space in the calendar cell) but
+      // the hover tooltip shows the full course name when there is one.
+      return `<div class="cal-chip cal-chip-lecture" title="${courseLabel(l.courseCode, l.courseName)} at ${l.lectureTime}">${l.lectureTime} ${l.courseCode}</div>`;
     }
     function renderAssignmentChip(a) {
-      return `<div class="cal-chip cal-chip-assignment" title="${a.courseCode} — ${a.title}">${a.courseCode}</div>`;
+      return `<div class="cal-chip cal-chip-assignment" title="${courseLabel(a.courseCode, a.courseName)} — ${a.title}">${a.courseCode}</div>`;
     }
     function renderExamChip(e) {
       const detail = e.venue ? ` — ${e.venue}` : '';
-      return `<div class="cal-chip cal-chip-exam" title="${e.courseCode} exam at ${e.examTime || '08:00'}${detail}">${e.courseCode}</div>`;
+      return `<div class="cal-chip cal-chip-exam" title="${courseLabel(e.courseCode, e.courseName)} exam at ${e.examTime || '08:00'}${detail}">${e.courseCode}</div>`;
     }
 
     function renderSectionCalendar(section) {
@@ -3562,7 +3577,7 @@
             ${sorted.map(l => `
               <div class="lecture-item">
                 <span class="lecture-time">${l.lectureTime}</span>
-                <span class="lecture-code">${l.courseCode}</span>
+                <span class="lecture-code">${courseLabel(l.courseCode, l.courseName)}</span>
                 ${l.venue ? `<span class="lecture-venue"><i data-lucide="map-pin" class="icon" width="12" height="12"></i> ${l.venue}</span>` : ''}
                 <button class="btn-icon" style="margin-left:auto" onclick="toggleLectureReminder(${l.id})" title="${l.remindersEnabled === false ? 'Unmute reminders' : 'Mute reminders'}">
                   <i data-lucide="${l.remindersEnabled === false ? 'bell-off' : 'bell'}" class="icon" width="14" height="14"></i>
@@ -3582,16 +3597,18 @@
 
     async function addLecture() {
       const courseCode = document.getElementById('lCourseCode').value.trim();
+      const courseName = document.getElementById('lCourseName').value.trim();
       const lectureDay = document.getElementById('lDay').value;
       const lectureTime = document.getElementById('lTime').value;
       if (!courseCode || !lectureDay || !lectureTime) return showToast('Please fill all fields', true);
       try {
         await authFetch(`${API}/lectures`, {
           method: 'POST',
-          body: JSON.stringify({ courseCode, courseName: courseCode, lectureDay, lectureTime })
+          body: JSON.stringify({ courseCode, courseName: courseName || courseCode, lectureDay, lectureTime })
         });
         showToast('Lecture added!');
         document.getElementById('lCourseCode').value = '';
+        document.getElementById('lCourseName').value = '';
         document.getElementById('lDay').value = '';
         document.getElementById('lTime').value = '';
         loadLectures();
@@ -3639,7 +3656,7 @@
           return `
           <div class="card">
             <div class="card-info">
-              <div class="card-title">${a.courseCode} — ${a.title}</div>
+              <div class="card-title">${courseLabel(a.courseCode, a.courseName)} — ${a.title}</div>
               <div class="card-subtitle">Due: ${a.dueDate} at ${a.dueTime || '23:59'}</div>
             </div>
             <span class="card-badge ${badge}">${label}</span>
@@ -3661,6 +3678,7 @@
 
     async function addAssignment() {
       const courseCode = document.getElementById('aCourseCode').value.trim();
+      const courseName = document.getElementById('aCourseName').value.trim();
       const title = document.getElementById('aTitle').value.trim();
       const dueDate = document.getElementById('aDueDate').value;
       const dueTime = document.getElementById('aDueTime').value || '23:59';
@@ -3668,10 +3686,11 @@
       try {
         await authFetch(`${API}/assignments`, {
           method: 'POST',
-          body: JSON.stringify({ courseCode, title, dueDate, dueTime })
+          body: JSON.stringify({ courseCode, courseName: courseName || null, title, dueDate, dueTime })
         });
         showToast('Assignment added!');
         document.getElementById('aCourseCode').value = '';
+        document.getElementById('aCourseName').value = '';
         document.getElementById('aTitle').value = '';
         document.getElementById('aDueDate').value = '';
         document.getElementById('aDueTime').value = '';
@@ -3962,7 +3981,7 @@
           return `
           <div class="card">
             <div class="card-info">
-              <div class="card-title">${e.courseCode} Exam</div>
+              <div class="card-title">${courseLabel(e.courseCode, e.courseName)} Exam</div>
               <div class="card-subtitle"><i data-lucide="calendar" class="icon" width="13" height="13"></i> ${e.examDate} at ${e.examTime || '08:00'}${e.venue ? ` • <i data-lucide="map-pin" class="icon" width="13" height="13"></i> ${e.venue}` : ''}</div>
             </div>
             <span class="card-badge ${badge}">${label}</span>
@@ -3984,6 +4003,7 @@
 
     async function addExam() {
       const courseCode = document.getElementById('eCourseCode').value.trim();
+      const courseName = document.getElementById('eCourseName').value.trim();
       const examDate = document.getElementById('eDate').value;
       const examTime = document.getElementById('eTime').value || '08:00';
       const venue = document.getElementById('eVenue').value.trim();
@@ -3991,10 +4011,11 @@
       try {
         await authFetch(`${API}/exams`, {
           method: 'POST',
-          body: JSON.stringify({ courseCode, examDate, examTime, venue })
+          body: JSON.stringify({ courseCode, courseName: courseName || null, examDate, examTime, venue })
         });
         showToast('Exam added!');
         document.getElementById('eCourseCode').value = '';
+        document.getElementById('eCourseName').value = '';
         document.getElementById('eDate').value = '';
         document.getElementById('eTime').value = '';
         document.getElementById('eVenue').value = '';
@@ -4356,7 +4377,7 @@
           ${todayLectures.map(l => `
             <div class="lecture-item">
               <span class="lecture-time">${l.lectureTime}</span>
-              <span class="lecture-code">${l.courseCode}</span>
+              <span class="lecture-code">${courseLabel(l.courseCode, l.courseName)}</span>
             </div>
           `).join('')}
         </div>`;
@@ -4374,7 +4395,7 @@
           ${pending.map(a => `
             <div class="lecture-item">
               <span class="lecture-time">${a.dueDate}</span>
-              <span class="lecture-code">${a.courseCode} — ${a.title}</span>
+              <span class="lecture-code">${courseLabel(a.courseCode, a.courseName)} — ${a.title}</span>
             </div>
           `).join('')}
         </div>`;
@@ -4390,7 +4411,7 @@
           ${upcoming.map(e => `
             <div class="lecture-item">
               <span class="lecture-time">${e.examDate}</span>
-              <span class="lecture-code">${e.courseCode}</span>
+              <span class="lecture-code">${courseLabel(e.courseCode, e.courseName)}</span>
             </div>
           `).join('')}
         </div>`;

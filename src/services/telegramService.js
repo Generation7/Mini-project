@@ -12,6 +12,16 @@ const classService = require('./classService');
 let bot;
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Formats "CODE — Name" for messages, but only when we actually have a
+// distinct name - falls back to the bare code when the name is missing,
+// blank, or just a duplicate of the code (e.g. legacy rows where courseName
+// was defaulted to courseCode before this field existed).
+function courseLabel(code, name) {
+  const trimmedName = (name || '').trim();
+  if (!trimmedName || trimmedName.toLowerCase() === (code || '').trim().toLowerCase()) return code;
+  return `${code} — ${trimmedName}`;
+}
+
 // Best-effort typing indicator - not worth retrying, it's just a UI nicety
 // and the flaky network case is already covered by the retried sendMessage
 // call that follows it.
@@ -117,8 +127,8 @@ async function computeReply(chatId, userMessage, user, history) {
           content: `You are Acadia, a friendly AI assistant for students at KNUST Ghana.
 You help students manage lectures, assignments, exams and reminders.
 
-When a student wants to ADD a lecture, respond with ONLY this JSON:
-{"action":"ADD_LECTURE","courseCode":"X","lectureDay":"X","lectureTime":"HH:MM"}
+When a student wants to ADD a lecture, respond with ONLY this JSON. Include "courseName" with the full course title (e.g. "Software Engineering") ONLY if the student actually mentions it or you already know it from earlier in the conversation - omit the field entirely rather than guessing or repeating the course code as the name:
+{"action":"ADD_LECTURE","courseCode":"X","courseName":"X","lectureDay":"X","lectureTime":"HH:MM"}
 
 When a student wants to DELETE/REMOVE a lecture, respond with ONLY this JSON:
 {"action":"DELETE_LECTURE","courseCode":"X","lectureDay":"X"}
@@ -133,8 +143,8 @@ When a student asks about their lectures for a SPECIFIC day (e.g. "today", "tomo
 {"action":"LIST_LECTURES","day":"Monday"}
 Today is ${todayWeekday} (${todayDate}). Tomorrow is ${tomorrowWeekday} (${tomorrowDate}). Resolve relative day references against these before responding.
 
-When a student mentions an assignment or homework due on a date/time, respond with ONLY this JSON:
-{"action":"ADD_ASSIGNMENT","courseCode":"X","title":"X","dueDate":"YYYY-MM-DD","dueTime":"HH:MM"}
+When a student mentions an assignment or homework due on a date/time, respond with ONLY this JSON. Include "courseName" with the full course title ONLY if the student mentions it or you already know it - otherwise omit the field:
+{"action":"ADD_ASSIGNMENT","courseCode":"X","courseName":"X","title":"X","dueDate":"YYYY-MM-DD","dueTime":"HH:MM"}
 If no time is mentioned, use "23:59" as the default dueTime.
 
 When a student asks about ALL their assignments or what is due in general, respond with ONLY:
@@ -152,8 +162,8 @@ When a student says they submitted or completed an assignment, respond with ONLY
 When a student wants to delete/remove an assignment, respond with ONLY this JSON:
 {"action":"DELETE_ASSIGNMENT","courseCode":"X"}
 
-When a student mentions an exam on a date/time, respond with ONLY this JSON:
-{"action":"ADD_EXAM","courseCode":"X","examDate":"YYYY-MM-DD","examTime":"HH:MM","venue":"X"}
+When a student mentions an exam on a date/time, respond with ONLY this JSON. Include "courseName" with the full course title ONLY if the student mentions it or you already know it - otherwise omit the field:
+{"action":"ADD_EXAM","courseCode":"X","courseName":"X","examDate":"YYYY-MM-DD","examTime":"HH:MM","venue":"X"}
 If no time is mentioned use "08:00". If no venue is mentioned use null.
 
 When a student asks about ALL their exams in general, respond with ONLY:
@@ -239,11 +249,11 @@ Today's date is ${todayDate}.`
           lectureService.createLecture({
             userId: user.id,
             courseCode: parsed.courseCode,
-            courseName: parsed.courseCode,
+            courseName: parsed.courseName || parsed.courseCode,
             lectureDay: parsed.lectureDay,
             lectureTime: parsed.lectureTime,
           });
-          return `✅ Added *${parsed.courseCode}* on *${parsed.lectureDay}* at *${parsed.lectureTime}*! You'll get a reminder the day before.`;
+          return `✅ Added *${courseLabel(parsed.courseCode, parsed.courseName)}* on *${parsed.lectureDay}* at *${parsed.lectureTime}*! You'll get a reminder the day before.`;
         }
 
         case 'DELETE_LECTURE': {
@@ -279,18 +289,19 @@ Today's date is ${todayDate}.`
           if (day && !filtered.length) return `You have no lectures on *${day}*.`;
 
           const label = day ? `📚 *Your Lectures on ${day}:*` : `📚 *Your Lectures:*`;
-          return `${label}\n${filtered.map(l => `• ${l.courseCode} - ${l.lectureDay} at ${l.lectureTime}`).join('\n')}`;
+          return `${label}\n${filtered.map(l => `• ${courseLabel(l.courseCode, l.courseName)} - ${l.lectureDay} at ${l.lectureTime}`).join('\n')}`;
         }
 
         case 'ADD_ASSIGNMENT': {
           assignmentService.createAssignment({
             userId: user.id,
             courseCode: parsed.courseCode,
+            courseName: parsed.courseName,
             title: parsed.title,
             dueDate: parsed.dueDate,
             dueTime: parsed.dueTime || '23:59',
           });
-          return `📝 Added assignment for *${parsed.courseCode}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
+          return `📝 Added assignment for *${courseLabel(parsed.courseCode, parsed.courseName)}*!\n📌 *${parsed.title}*\n📅 Due: *${parsed.dueDate} at ${parsed.dueTime || '23:59'}*\n\nI'll remind you 2 days before, 1 day before, and 3 hours before the deadline!`;
         }
 
         case 'LIST_ASSIGNMENTS': {
@@ -302,7 +313,7 @@ Today's date is ${todayDate}.`
           if (window && !list.length) return `🎉 Nothing due on *${window.windowLabel}*.`;
 
           const label = window ? `📝 *Assignments Due (${window.windowLabel}):*` : `📝 *Your Pending Assignments:*`;
-          return `${label}\n${list.map(a => `• *${a.courseCode}* - ${a.title}\n  📅 Due: ${a.dueDate} at ${a.due_time || '23:59'}`).join('\n')}`;
+          return `${label}\n${list.map(a => `• *${courseLabel(a.courseCode, a.courseName)}* - ${a.title}\n  📅 Due: ${a.dueDate} at ${a.due_time || '23:59'}`).join('\n')}`;
         }
 
         case 'COMPLETE_ASSIGNMENT': {
@@ -321,12 +332,13 @@ Today's date is ${todayDate}.`
           examService.createExam({
             userId: user.id,
             courseCode: parsed.courseCode,
+            courseName: parsed.courseName,
             examDate: parsed.examDate,
             examTime: parsed.examTime || '08:00',
             venue: parsed.venue || null,
           });
           const venueText = parsed.venue ? `\n📍 Venue: *${parsed.venue}*` : '';
-          return `🎓 Added *${parsed.courseCode}* exam!\n📅 Date: *${parsed.examDate}*\n⏰ Time: *${parsed.examTime || '08:00'}*${venueText}\n\nI'll remind you 7 days, 3 days, 1 day and 3 hours before!`;
+          return `🎓 Added *${courseLabel(parsed.courseCode, parsed.courseName)}* exam!\n📅 Date: *${parsed.examDate}*\n⏰ Time: *${parsed.examTime || '08:00'}*${venueText}\n\nI'll remind you 7 days, 3 days, 1 day and 3 hours before!`;
         }
 
         case 'LIST_EXAMS': {
@@ -338,7 +350,7 @@ Today's date is ${todayDate}.`
           if (window && !list.length) return `🎉 No exams on *${window.windowLabel}*.`;
 
           const label = window ? `🎓 *Exams (${window.windowLabel}):*` : `🎓 *Your Upcoming Exams:*`;
-          return `${label}\n${list.map(e => `• *${e.courseCode}*\n  📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? `\n  📍 ${e.venue}` : ''}`).join('\n')}`;
+          return `${label}\n${list.map(e => `• *${courseLabel(e.courseCode, e.courseName)}*\n  📅 ${e.examDate} at ${e.exam_time || e.examTime || '08:00'}${e.venue ? `\n  📍 ${e.venue}` : ''}`).join('\n')}`;
         }
 
         case 'COMPLETE_EXAM': {
@@ -613,13 +625,14 @@ First decide which kind this image is. Then go through the ENTIRE image carefull
 Return ONLY a JSON object with no explanation, in this exact shape:
 
 If it's a LECTURE timetable:
-{"type":"lecture","items":[{"courseCode":"CSM388","lectureDay":"Monday","lectureTime":"10:30","venue":"SF20"},...]}
+{"type":"lecture","items":[{"courseCode":"CSM388","courseName":"Software Engineering","lectureDay":"Monday","lectureTime":"10:30","venue":"SF20"},...]}
 
 If it's an EXAM timetable:
-{"type":"exam","items":[{"courseCode":"CSM388","examDate":"2026-08-17","examTime":"12:00","venue":"Comp. lab"},...]}
+{"type":"exam","items":[{"courseCode":"CSM388","courseName":"Software Engineering","examDate":"2026-08-17","examTime":"12:00","venue":"Comp. lab"},...]}
 
 Field rules:
 - courseCode: the course code, or course name if no code is shown.
+- courseName: the full course title shown alongside the code (e.g. "Software Engineering"), if the image shows one. Use null if only a code is shown and no separate title/name is visible.
 - lectureTime / examTime: 24-hour HH:MM format, using the start time of the slot (e.g. "10:30 AM - 12:30 PM" becomes "10:30").
 - examDate: ISO format YYYY-MM-DD. Convert any date format shown (e.g. "17 AUG 2026") into this format. Assume the year shown in the image; if no year is shown, use the current academic year.
 - venue: the room/hall/lab/examiner location shown, if any. Use null if none is shown.
@@ -661,6 +674,7 @@ Be thorough - check every single row and cell carefully before answering.`
             examService.createExam({
               userId: user.id,
               courseCode: exam.courseCode,
+              courseName: exam.courseName || null,
               examDate: exam.examDate,
               examTime: exam.examTime,
               venue: exam.venue || null,
@@ -680,7 +694,7 @@ Be thorough - check every single row and cell carefully before answering.`
           const result = lectureService.createLecture({
             userId: user.id,
             courseCode: lecture.courseCode,
-            courseName: lecture.courseCode,
+            courseName: lecture.courseName || lecture.courseCode,
             lectureDay: lecture.lectureDay,
             lectureTime: lecture.lectureTime,
             venue: lecture.venue || null,
