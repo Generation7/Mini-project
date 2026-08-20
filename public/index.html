@@ -3378,6 +3378,17 @@
         if (btn) btn.classList.add('active');
       }
       document.getElementById(tab + 'Section').classList.add('active');
+
+      // Auto-close the sidebar drawer after navigating, so it doesn't sit
+      // open (with its dimming scrim) over the page you just switched to.
+      // Skipped below 640px, where the sidebar isn't an overlay drawer but
+      // collapses into the inline horizontal tab bar itself (see the
+      // @media (max-width: 640px) rules) - hiding it there would hide the
+      // nav you just used instead of dismissing an overlay.
+      const body = document.querySelector('.dashboard-body');
+      if (body && window.innerWidth > 640 && !body.classList.contains('sidebar-hidden')) {
+        toggleSidebar();
+      }
     }
 
     async function loadAll() {
