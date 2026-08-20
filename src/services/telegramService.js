@@ -234,17 +234,17 @@ Today's date is ${todayDate}.`
       // returns a 404 model_not_found error, which broke every typed message
       // to the bot. Switched to qwen/qwen3.6-27b - one of Groq's two
       // suggested replacements, and already proven working here for the
-      // photo-import feature. It's a "thinking" model, so reasoning_format:
-      // 'hidden' is required to get a clean final answer in message.content
-      // instead of the model's internal reasoning trace. Groq's docs don't
-      // say whether hidden reasoning still counts against max_tokens, but
-      // the vision call (below) showed signs it does - the reasoning trace
-      // can eat the whole budget before the visible answer is ever written,
-      // leaving message.content empty. Set well above the old 4096 to leave
-      // headroom for that, short of the model's 16,384 output cap.
+      // photo-import feature. It's a "thinking" model - reasoning_effort:
+      // 'none' turns off its internal reasoning step entirely (not just
+      // hides it), which both keeps replies fast/deterministic for a
+      // structured-JSON task like this and avoids the reasoning trace
+      // eating the token budget meant for the actual answer. This also
+      // keeps the request well under this account's 8,000 tokens/minute
+      // Groq rate limit, which a large max_tokens blew through (see the
+      // vision call below for the full story).
       model: 'qwen/qwen3.6-27b',
-      reasoning_format: 'hidden',
-      max_tokens: 8192,
+      reasoning_effort: 'none',
+      max_tokens: 4096,
     });
 
     const textResponse = completion.choices[0]?.message?.content?.trim();
@@ -670,23 +670,25 @@ Be thorough - check every single row and cell carefully before answering.`
           }
         ],
         model: 'qwen/qwen3.6-27b',
-        // qwen3.6-27b is a "thinking" model that writes an internal
-        // reasoning trace before its final answer. Without hiding it, that
-        // trace eats into max_tokens and can leave nothing left for the
-        // actual JSON on a busy image - confirmed via Railway logs showing
-        // the response still mid-reasoning ("**Refining Venue
-        // Extraction:**...") instead of ever reaching the JSON object,
-        // which produced the generic "trouble reading that image" error.
-        reasoning_format: 'hidden',
+        // qwen3.6-27b is a "thinking" model that, by default, writes an
+        // internal reasoning trace before its final answer - confirmed via
+        // Railway logs showing the response still mid-reasoning ("**Refining
+        // Venue Extraction:**...") instead of ever reaching the JSON object.
+        // Tried reasoning_format: 'hidden' first (suppresses the trace from
+        // the response) with a raised max_tokens to compensate for reasoning
+        // still eating the budget - but that made the request itself too
+        // large and tripped this account's 8,000 tokens/minute Groq rate
+        // limit (413 "Request too large... Requested 19287"). reasoning_effort:
+        // 'none' fixes it at the source: no reasoning step happens at all,
+        // so there's nothing to hide or budget for, and the request comfortably
+        // fits under the TPM cap even with an image attached.
+        reasoning_effort: 'none',
         // No limit was set here originally, so the model's response was
         // being cut off by Groq's default max_tokens on longer timetables,
-        // producing truncated, unparseable JSON. 4096 fixed that truncation
-        // but the reasoning trace hidden above still counts against this
-        // same budget - on a busy image the model can spend all 4096 just
-        // thinking, leaving message.content empty and no JSON to find at
-        // all. Raised to the model's max output size so reasoning and the
-        // final JSON both have room.
-        max_tokens: 16384,
+        // producing truncated, unparseable JSON. 4096 is enough once
+        // reasoning is disabled above - it only needs to cover the JSON
+        // answer itself, not a reasoning trace too.
+        max_tokens: 4096,
       });
 
       const visionResponse = visionCompletion.choices[0]?.message?.content?.trim();
