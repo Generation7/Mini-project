@@ -1328,28 +1328,14 @@
     }
 
     @media (max-width: 640px) {
-      .dashboard-body {
-        flex-direction: column;
-      }
-
+      /* Mobile keeps the same slide-in side panel as desktop (fixed drawer
+         + dimming scrim) instead of collapsing into a horizontal top bar -
+         just re-anchored to the shorter 56px mobile topbar and capped so a
+         wide desktop-resized drawer width doesn't cover the whole screen. */
       .tabs {
-        flex-direction: row;
-        width: 100% !important;
-        height: auto;
-        position: sticky;
         top: 56px;
-        z-index: 90;
-        overflow-x: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--surface-border);
-      }
-
-      .tab {
-        flex-shrink: 0;
-        width: auto;
-        padding: 10px 14px;
-        font-size: 13px;
-        white-space: nowrap;
+        height: calc(100vh - 56px);
+        width: min(var(--sidebar-width, 200px), 82vw) !important;
       }
 
       .sidebar-resize-handle {
@@ -1357,7 +1343,7 @@
       }
 
       .sidebar-scrim {
-        display: none !important;
+        inset: 56px 0 0 0;
       }
     }
 
@@ -3167,7 +3153,13 @@
     }
 
     function initSidebarVisibility() {
-      if (localStorage.getItem('acadiaSidebarHidden') === '1') {
+      const stored = localStorage.getItem('acadiaSidebarHidden');
+      // With no saved preference yet, default the drawer closed on mobile
+      // widths (so first load isn't covered by the panel, same as any
+      // hamburger menu) but keep it open on desktop, matching existing
+      // behavior there.
+      const shouldHide = stored === '1' || (stored === null && window.innerWidth <= 640);
+      if (shouldHide) {
         const body = document.querySelector('.dashboard-body');
         const btn = document.getElementById('sidebarToggleBtn');
         if (body) body.classList.add('sidebar-hidden');
@@ -3381,12 +3373,10 @@
 
       // Auto-close the sidebar drawer after navigating, so it doesn't sit
       // open (with its dimming scrim) over the page you just switched to.
-      // Skipped below 640px, where the sidebar isn't an overlay drawer but
-      // collapses into the inline horizontal tab bar itself (see the
-      // @media (max-width: 640px) rules) - hiding it there would hide the
-      // nav you just used instead of dismissing an overlay.
+      // Mobile now uses the same fixed drawer as desktop (no more inline
+      // horizontal tab bar), so this applies at every width.
       const body = document.querySelector('.dashboard-body');
-      if (body && window.innerWidth > 640 && !body.classList.contains('sidebar-hidden')) {
+      if (body && !body.classList.contains('sidebar-hidden')) {
         toggleSidebar();
       }
     }
