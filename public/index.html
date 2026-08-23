@@ -1672,6 +1672,40 @@
     .card-actions {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Mobile: the card's title/badge/action-buttons row doesn't have room
+       to stay on one line without actions running off the edge of the
+       screen, so it becomes a stack — full-width info row, then a wrapping
+       actions row below. Action chips also drop from full pill to a more
+       modest radius here, since a stadium shape reads oversized/cluttered
+       at this density on a narrow screen. */
+    @media (max-width: 640px) {
+      .card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+      }
+
+      .card-badge {
+        align-self: flex-start;
+        border-radius: 10px;
+      }
+
+      .card-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .card-actions .btn,
+      .card-actions .btn-icon {
+        border-radius: 12px;
+      }
+
+      .card-actions .btn-icon {
+        border-radius: 50%;
+      }
     }
 
     .form-card {
