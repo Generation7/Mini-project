@@ -19,43 +19,45 @@
     }
 
     :root {
-      --bg: #14161c;
-      --bg-gradient-start: #14161c;
-      --bg-gradient-end: #1c1f27;
-      --surface: #1a1d24;
-      --surface-border: #2a2e38;
-      --input-bg: #21242c;
-      --input-border: #333844;
-      --text: #f0f1f3;
-      --text-muted: #8b8f99;
-      --accent: #3b4252;
+      /* Hivedemia-inspired palette: near-black surface, mint-green brand,
+         contextual violet/gold/rose accents. See --badge-* for those. */
+      --bg: #08090b;
+      --bg-gradient-start: #08090b;
+      --bg-gradient-end: #0c0e11;
+      --surface: #121417;
+      --surface-border: #23262b;
+      --input-bg: #16181c;
+      --input-border: #262a30;
+      --text: #f5f6f7;
+      --text-muted: #9a9fa8;
+      --accent: #2a2d33;
       --accent-light: #d8dce3;
       --accent-gradient: linear-gradient(135deg, #d8dce3, #f0f1f3);
-      --btn-gradient: linear-gradient(135deg, #3b4252, #556074);
-      --brand: #0d9488;
-      --brand-light: #14b8a6;
-      --brand-dark: #0f766e;
-      --brand-gradient: #0d9488;
-      --brand-bg: #042f2e;
-      --badge-purple-bg: #23262e;
-      --badge-purple-text: #b4b8c2;
-      --badge-green-bg: #16281e;
-      --badge-green-text: #4ade80;
-      --badge-red-bg: #2e1a1a;
-      --badge-red-text: #fa8b8b;
-      --badge-yellow-bg: #2e2a16;
+      --btn-gradient: linear-gradient(135deg, #2a2d33, #3b3f47);
+      --brand: #10b981;
+      --brand-light: #6ee7b7;
+      --brand-dark: #059669;
+      --brand-gradient: #10b981;
+      --brand-bg: #06281d;
+      --badge-purple-bg: #1e1a2e;
+      --badge-purple-text: #a78bfa;
+      --badge-green-bg: #0f2a1f;
+      --badge-green-text: #6ee7b7;
+      --badge-red-bg: #2e161c;
+      --badge-red-text: #fb7185;
+      --badge-yellow-bg: #2e2410;
       --badge-yellow-text: #fbbf24;
-      --shadow: rgba(0, 0, 0, 0.5);
-      --danger: #f87171;
-      --danger-dark: #dc2626;
-      --danger-gradient: linear-gradient(135deg, #dc2626, #f87171);
-      --success: #4ade80;
-      --success-dark: #16a34a;
-      --success-gradient: linear-gradient(135deg, #16a34a, #4ade80);
+      --shadow: rgba(0, 0, 0, 0.6);
+      --danger: #fb7185;
+      --danger-dark: #e11d48;
+      --danger-gradient: linear-gradient(135deg, #e11d48, #fb7185);
+      --success: #6ee7b7;
+      --success-dark: #059669;
+      --success-gradient: linear-gradient(135deg, #059669, #6ee7b7);
       --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
       --shadow-elev-2: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
       --shadow-elev-3: 0 2px 4px rgba(0, 0, 0, 0.4), 0 24px 64px rgba(0, 0, 0, 0.45);
-      --shadow-brand: 0 1px 2px rgba(13, 148, 136, 0.3), 0 6px 18px rgba(45, 212, 191, 0.28);
+      --shadow-brand: 0 1px 2px rgba(16, 185, 129, 0.3), 0 6px 18px rgba(110, 231, 183, 0.28);
     }
 
     [data-theme="light"] {
@@ -72,15 +74,15 @@
       --accent-light: #334155;
       --accent-gradient: linear-gradient(135deg, #334155, #64748b);
       --btn-gradient: linear-gradient(135deg, #334155, #64748b);
-      --brand: #0d9488;
-      --brand-light: #0d9488;
-      --brand-dark: #0f766e;
-      --brand-gradient: #0d9488;
-      --brand-bg: #f0fdfa;
-      --badge-purple-bg: #f1f5f9;
-      --badge-purple-text: #475569;
+      --brand: #059669;
+      --brand-light: #10b981;
+      --brand-dark: #047857;
+      --brand-gradient: #059669;
+      --brand-bg: #ecfdf5;
+      --badge-purple-bg: #f0edfe;
+      --badge-purple-text: #7c3aed;
       --badge-green-bg: #dcfce7;
-      --badge-green-text: #16a34a;
+      --badge-green-text: #059669;
       --badge-red-bg: #fee2e2;
       --badge-red-text: #dc2626;
       --badge-yellow-bg: #fef9c3;
@@ -89,13 +91,13 @@
       --danger: #dc2626;
       --danger-dark: #b91c1c;
       --danger-gradient: linear-gradient(135deg, #b91c1c, #dc2626);
-      --success: #16a34a;
-      --success-dark: #15803d;
-      --success-gradient: linear-gradient(135deg, #15803d, #16a34a);
+      --success: #059669;
+      --success-dark: #047857;
+      --success-gradient: linear-gradient(135deg, #047857, #059669);
       --shadow-elev-1: 0 1px 2px rgba(30, 41, 59, 0.06), 0 1px 1px rgba(30, 41, 59, 0.04);
       --shadow-elev-2: 0 1px 2px rgba(30, 41, 59, 0.05), 0 8px 24px rgba(30, 41, 59, 0.08);
       --shadow-elev-3: 0 2px 4px rgba(30, 41, 59, 0.06), 0 24px 64px rgba(30, 41, 59, 0.12);
-      --shadow-brand: 0 1px 2px rgba(13, 148, 136, 0.12), 0 6px 18px rgba(20, 184, 166, 0.18);
+      --shadow-brand: 0 1px 2px rgba(5, 150, 105, 0.12), 0 6px 18px rgba(16, 185, 129, 0.18);
     }
 
     /* The auth screen always renders light, regardless of the app's
@@ -114,15 +116,15 @@
       --accent-light: #334155;
       --accent-gradient: linear-gradient(135deg, #334155, #64748b);
       --btn-gradient: linear-gradient(135deg, #334155, #64748b);
-      --brand: #0d9488;
-      --brand-light: #0d9488;
-      --brand-dark: #0f766e;
-      --brand-gradient: #0d9488;
-      --brand-bg: #f0fdfa;
-      --badge-purple-bg: #f1f5f9;
-      --badge-purple-text: #475569;
+      --brand: #059669;
+      --brand-light: #10b981;
+      --brand-dark: #047857;
+      --brand-gradient: #059669;
+      --brand-bg: #ecfdf5;
+      --badge-purple-bg: #f0edfe;
+      --badge-purple-text: #7c3aed;
       --badge-green-bg: #dcfce7;
-      --badge-green-text: #16a34a;
+      --badge-green-text: #059669;
       --badge-red-bg: #fee2e2;
       --badge-red-text: #dc2626;
       --badge-yellow-bg: #fef9c3;
@@ -131,13 +133,13 @@
       --danger: #dc2626;
       --danger-dark: #b91c1c;
       --danger-gradient: linear-gradient(135deg, #b91c1c, #dc2626);
-      --success: #16a34a;
-      --success-dark: #15803d;
-      --success-gradient: linear-gradient(135deg, #15803d, #16a34a);
+      --success: #059669;
+      --success-dark: #047857;
+      --success-gradient: linear-gradient(135deg, #047857, #059669);
       --shadow-elev-1: 0 1px 2px rgba(30, 41, 59, 0.06), 0 1px 1px rgba(30, 41, 59, 0.04);
       --shadow-elev-2: 0 1px 2px rgba(30, 41, 59, 0.05), 0 8px 24px rgba(30, 41, 59, 0.08);
       --shadow-elev-3: 0 2px 4px rgba(30, 41, 59, 0.06), 0 24px 64px rgba(30, 41, 59, 0.12);
-      --shadow-brand: 0 1px 2px rgba(13, 148, 136, 0.12), 0 6px 18px rgba(20, 184, 166, 0.18);
+      --shadow-brand: 0 1px 2px rgba(5, 150, 105, 0.12), 0 6px 18px rgba(16, 185, 129, 0.18);
     }
 
     @media (prefers-color-scheme: light) {
@@ -155,15 +157,15 @@
         --accent-light: #334155;
         --accent-gradient: linear-gradient(135deg, #334155, #64748b);
         --btn-gradient: linear-gradient(135deg, #334155, #64748b);
-        --brand: #0d9488;
-        --brand-light: #0d9488;
-        --brand-dark: #0f766e;
-        --brand-gradient: #0d9488;
-        --brand-bg: #f0fdfa;
-        --badge-purple-bg: #f1f5f9;
-        --badge-purple-text: #475569;
+        --brand: #059669;
+        --brand-light: #10b981;
+        --brand-dark: #047857;
+        --brand-gradient: #059669;
+        --brand-bg: #ecfdf5;
+        --badge-purple-bg: #f0edfe;
+        --badge-purple-text: #7c3aed;
         --badge-green-bg: #dcfce7;
-        --badge-green-text: #16a34a;
+        --badge-green-text: #059669;
         --badge-red-bg: #fee2e2;
         --badge-red-text: #dc2626;
         --badge-yellow-bg: #fef9c3;
@@ -172,13 +174,13 @@
         --danger: #dc2626;
         --danger-dark: #b91c1c;
         --danger-gradient: linear-gradient(135deg, #b91c1c, #dc2626);
-        --success: #16a34a;
-        --success-dark: #15803d;
-        --success-gradient: linear-gradient(135deg, #15803d, #16a34a);
+        --success: #059669;
+        --success-dark: #047857;
+        --success-gradient: linear-gradient(135deg, #047857, #059669);
         --shadow-elev-1: 0 1px 2px rgba(30, 41, 59, 0.06), 0 1px 1px rgba(30, 41, 59, 0.04);
         --shadow-elev-2: 0 1px 2px rgba(30, 41, 59, 0.05), 0 8px 24px rgba(30, 41, 59, 0.08);
         --shadow-elev-3: 0 2px 4px rgba(30, 41, 59, 0.06), 0 24px 64px rgba(30, 41, 59, 0.12);
-        --shadow-brand: 0 1px 2px rgba(13, 148, 136, 0.12), 0 6px 18px rgba(20, 184, 166, 0.18);
+        --shadow-brand: 0 1px 2px rgba(5, 150, 105, 0.12), 0 6px 18px rgba(16, 185, 129, 0.18);
       }
     }
 
@@ -204,9 +206,9 @@
       inset: -50%;
       z-index: -1;
       background:
-        radial-gradient(ellipse 55% 45% at 78% 12%, rgba(45, 212, 191, 0.16) 0%, transparent 55%),
-        radial-gradient(ellipse 45% 55% at 12% 82%, rgba(15, 118, 110, 0.22) 0%, transparent 55%),
-        radial-gradient(ellipse 38% 38% at 52% 52%, rgba(20, 184, 166, 0.08) 0%, transparent 65%),
+        radial-gradient(ellipse 55% 45% at 78% 12%, rgba(16, 185, 129, 0.10) 0%, transparent 55%),
+        radial-gradient(ellipse 45% 55% at 12% 82%, rgba(5, 150, 105, 0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 38% 38% at 52% 52%, rgba(110, 231, 183, 0.05) 0%, transparent 65%),
         var(--bg);
       will-change: transform;
       animation: meshDrift 25s ease-in-out infinite alternate;
@@ -329,6 +331,13 @@
       margin-bottom: 16px;
     }
 
+    .home-hero-accent {
+      background: var(--brand-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
     .home-hero p {
       font-size: 16px;
       line-height: 1.6;
@@ -360,7 +369,7 @@
       background: transparent;
       border: 1px solid var(--input-border);
       color: var(--text);
-      border-radius: 14px;
+      border-radius: 999px;
       font-size: 15px;
       font-weight: 600;
       font-family: inherit;
@@ -409,10 +418,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
+      border-radius: 16px;
       background: var(--brand-bg);
       color: var(--brand-light);
       margin: 0 auto 12px;
+    }
+
+    /* Contextual accent per card — mint / violet / gold — rather than one
+       flat color repeated three times. */
+    .home-feature-card:nth-child(2) .home-feature-icon {
+      background: rgba(167, 139, 250, 0.14);
+      color: var(--badge-purple-text);
+    }
+
+    .home-feature-card:nth-child(3) .home-feature-icon {
+      background: rgba(251, 191, 36, 0.14);
+      color: var(--badge-yellow-text);
     }
 
     .home-feature-card h3 {
@@ -723,7 +744,7 @@
       justify-content: center;
       gap: 10px;
       padding: 12px;
-      border-radius: 12px;
+      border-radius: 999px;
       border: 1px solid var(--input-border);
       background: var(--input-bg);
       color: var(--text);
@@ -845,7 +866,7 @@
       padding: 14px 16px;
       background: var(--input-bg);
       border: 1px solid var(--input-border);
-      border-radius: 12px;
+      border-radius: 999px;
       color: var(--text);
       font-size: 15px;
       margin-bottom: 12px;
@@ -889,7 +910,7 @@
       padding: 14px;
       background: var(--brand-gradient);
       border: none;
-      border-radius: 14px;
+      border-radius: 999px;
       color: white;
       font-size: 15px;
       font-weight: 600;
@@ -1045,7 +1066,7 @@
     .topbar-search input {
       width: 100%;
       padding: 9px 12px 9px 36px;
-      border-radius: 9px;
+      border-radius: 999px;
       border: 1px solid var(--input-border);
       background:
         var(--input-bg)
@@ -1210,140 +1231,199 @@
     }
 
     .dashboard-body {
-      display: flex;
-      align-items: flex-start;
+      display: block;
       position: relative;
     }
 
-    .tabs {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding: 16px 12px;
-      border-right: 1px solid rgba(255, 255, 255, 0.07);
-      background: rgba(20, 23, 28, 0.55);
-      backdrop-filter: blur(20px) saturate(150%);
-      -webkit-backdrop-filter: blur(20px) saturate(150%);
-      width: var(--sidebar-width, 200px);
-      flex-shrink: 0;
-      position: fixed;
-      left: 0;
-      top: 65px;
-      height: calc(100vh - 65px);
-      box-sizing: border-box;
-      overflow: hidden;
-      z-index: 260;
-      box-shadow: var(--shadow-elev-3);
-      transition: transform 0.25s cubic-bezier(0.45, 0, 0.15, 1), opacity 0.2s ease;
-    }
-
-    [data-theme="light"] .tabs {
-      background: rgba(255, 255, 255, 0.55);
-      border-right-color: rgba(0, 0, 0, 0.08);
-    }
-
-    /* Dims the rest of the app while the drawer is open, so focus stays on
-       the panel — same idea as Telegram's slide-in side panels. */
-    .sidebar-scrim {
-      position: fixed;
-      inset: 65px 0 0 0;
-      background: rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(1px);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 200;
-      transition: opacity 0.25s ease;
-    }
-
-    .dashboard-body:not(.sidebar-hidden) .sidebar-scrim {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .dashboard-body.sidebar-hidden .tabs {
-      transform: translateX(-100%);
-      opacity: 0;
-      pointer-events: none;
-      box-shadow: none;
-    }
-
-    .dashboard-body.sidebar-hidden .sidebar-resize-handle {
-      display: none;
-    }
-
-    .sidebar-toggle-btn {
-      flex-shrink: 0;
-    }
-
-    .sidebar-resize-handle {
-      width: 6px;
-      flex-shrink: 0;
-      cursor: col-resize;
-      position: sticky;
-      top: 65px;
-      height: calc(100vh - 65px);
-      background: transparent;
-      z-index: 10;
-    }
-
-    .sidebar-resize-handle:hover,
-    .sidebar-resize-handle.dragging {
-      background: var(--accent);
-    }
-
-    .tab {
+    /* Floating pill dock — fixed bottom-center, always visible, no
+       collapse/resize logic needed since it's compact by default. */
+    .dock-nav {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border-radius: 10px;
+      gap: 2px;
+      padding: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(18, 20, 23, 0.72);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      box-shadow: var(--shadow-elev-3), 0 8px 30px rgba(0, 0, 0, 0.35);
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      z-index: 260;
+    }
+
+    [data-theme="light"] .dock-nav {
+      background: rgba(255, 255, 255, 0.75);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .dock-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      width: 56px;
+      height: 52px;
+      border-radius: 999px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 10px;
+      font-weight: 600;
       color: var(--text-muted);
       border: none;
       background: transparent;
       transition: all 0.2s;
-      text-align: left;
-      width: 100%;
+      position: relative;
     }
 
-    .tab.active {
+    .dock-btn.active {
       background: var(--brand-gradient);
       color: #fff;
-      font-weight: 600;
-      box-shadow: 0 2px 12px rgba(20, 184, 166, 0.3);
+      box-shadow: var(--shadow-brand, 0 2px 12px rgba(16, 185, 129, 0.35));
     }
 
-    .tab:hover:not(.active) {
+    .dock-btn:hover:not(.active) {
       color: var(--text);
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .dock-btn .icon {
+      vertical-align: 0 !important;
+      margin: 0 !important;
+    }
+
+    /* Small dot shown on the More button when the active section lives
+       inside the overflow panel, so the dock still shows "you are here". */
+    .dock-btn .dock-dot {
+      display: none;
+      position: absolute;
+      top: 6px;
+      right: 12px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand-light);
+    }
+
+    .dock-btn.has-active .dock-dot {
+      display: block;
+    }
+
+    .dock-btn.active .dock-dot {
+      background: #fff;
+    }
+
+    .dock-btn.menu-open:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Dims the rest of the app while the overflow panel is open. */
+    .dock-scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(1px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 250;
+      transition: opacity 0.25s ease;
+    }
+
+    .dock-scrim.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .dock-more-panel {
+      position: fixed;
+      left: 50%;
+      bottom: 84px;
+      transform: translateX(-50%) translateY(12px);
+      width: min(320px, calc(100vw - 32px));
+      padding: 14px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(18, 20, 23, 0.92);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      box-shadow: var(--shadow-elev-3), 0 12px 40px rgba(0, 0, 0, 0.45);
+      z-index: 261;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    [data-theme="light"] .dock-more-panel {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .dock-more-panel.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .dock-more-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 14px 8px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border: none;
+      background: rgba(255, 255, 255, 0.04);
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    [data-theme="light"] .dock-more-item {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .dock-more-item.active {
+      background: var(--brand-gradient);
+      color: #fff;
+    }
+
+    .dock-more-item:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.09);
     }
 
     .content {
       padding: 24px;
+      padding-bottom: 108px;
       max-width: 900px;
       margin: 0 auto;
-      flex: 1;
       min-width: 0;
     }
 
     @media (max-width: 640px) {
-      /* Mobile keeps the same slide-in side panel as desktop (fixed drawer
-         + dimming scrim) instead of collapsing into a horizontal top bar -
-         just re-anchored to the shorter 56px mobile topbar and capped so a
-         wide desktop-resized drawer width doesn't cover the whole screen. */
-      .tabs {
-        top: 56px;
-        height: calc(100vh - 56px);
-        width: min(var(--sidebar-width, 200px), 82vw) !important;
+      .dock-nav {
+        bottom: 14px;
+        gap: 0;
       }
 
-      .sidebar-resize-handle {
-        display: none;
+      .dock-btn {
+        width: 50px;
       }
 
-      .sidebar-scrim {
-        inset: 56px 0 0 0;
+      .content {
+        padding: 16px;
+        padding-bottom: 100px;
       }
     }
 
@@ -1351,11 +1431,6 @@
       display: inline-block;
       vertical-align: -3px;
       stroke: currentColor;
-    }
-
-    .tab .icon {
-      vertical-align: -4px;
-      margin-right: 2px;
     }
 
     .section-header h2 .icon,
@@ -1568,7 +1643,7 @@
 
     .card-badge {
       padding: 5px 12px;
-      border-radius: 20px;
+      border-radius: 999px;
       font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.2px;
@@ -1634,7 +1709,7 @@
       padding: 14px 16px;
       background: var(--input-bg);
       border: 1px solid var(--input-border);
-      border-radius: 12px;
+      border-radius: 999px;
       color: var(--text);
       font-size: 15px;
       outline: none;
@@ -1730,10 +1805,45 @@
       box-shadow: var(--shadow-elev-1), 0 8px 28px rgba(20, 184, 166, 0.18);
     }
 
+    .summary-card-icon {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--brand-bg);
+      color: var(--brand-light);
+    }
+
+    .summary-grid .summary-card:nth-child(2) .summary-card-icon {
+      background: rgba(251, 191, 36, 0.14);
+      color: var(--badge-yellow-text);
+    }
+
+    .summary-grid .summary-card:nth-child(3) .summary-card-icon {
+      background: rgba(251, 113, 133, 0.14);
+      color: var(--badge-red-text);
+    }
+
+    #cwaSection .summary-grid .summary-card:nth-child(2) .summary-card-icon {
+      background: rgba(251, 113, 133, 0.14);
+      color: var(--badge-red-text);
+    }
+
+    #cwaSection .summary-grid .summary-card:nth-child(3) .summary-card-icon {
+      background: rgba(251, 191, 36, 0.14);
+      color: var(--badge-yellow-text);
+    }
+
     .summary-card h3 {
       font-size: 14px;
       color: var(--text-muted);
       margin-bottom: 8px;
+      max-width: calc(100% - 50px);
     }
 
     .summary-card .count {
@@ -2080,18 +2190,33 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--surface-border);
+      padding: 10px 12px;
+      border-radius: 14px;
+      margin-bottom: 6px;
+      transition: background 0.15s ease;
     }
 
     .lecture-item:last-child {
-      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .lecture-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    [data-theme="light"] .lecture-item:hover {
+      background: rgba(0, 0, 0, 0.03);
     }
 
     .lecture-time {
-      font-size: 13px;
-      color: var(--text-muted);
-      min-width: 50px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand-light);
+      background: var(--brand-bg);
+      padding: 5px 11px;
+      border-radius: 999px;
+      min-width: unset;
+      flex-shrink: 0;
     }
 
     .lecture-code {
@@ -2172,7 +2297,7 @@
 
     <div class="home-hero">
       <div class="home-hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Built for KNUST students</div>
-      <h1>Own your semester,<br />not the other way around.</h1>
+      <h1>Own your semester,<br /><span class="home-hero-accent">not the other way around.</span></h1>
       <p>Acadia keeps your lectures, assignments, exams and CWA in one place — synced with a Telegram bot that reminds you before you miss a deadline.</p>
       <div class="home-hero-actions">
         <button type="button" class="btn home-hero-btn" onclick="showLoginPage('register')">Get started — it's free</button>
@@ -2285,9 +2410,6 @@
   <div id="dashboard">
     <div class="topbar">
       <div class="topbar-left">
-        <button class="btn-icon sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Hide sidebar">
-          <i data-lucide="panel-left-close" width="16" height="16"></i>
-        </button>
         <div class="topbar-brand" onclick="goHome()" role="button" tabindex="0" title="Back to Today">
           <img
             src="data:image/png;base64,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"
@@ -2311,43 +2433,40 @@
     </div>
 
     <div class="dashboard-body">
-      <div class="tabs">
-        <button class="tab active" id="tabToday" onclick="showTab('today', event)"><i data-lucide="calendar-days" class="icon"
-            width="16" height="16"></i> Today</button>
-        <button class="tab" onclick="showTab('lectures', event)"><i data-lucide="book-open" class="icon" width="16"
-            height="16"></i> Lectures</button>
-        <button class="tab" onclick="showTab('assignments', event)"><i data-lucide="clipboard-list" class="icon"
-            width="16" height="16"></i> Assignments</button>
-        <button class="tab" onclick="showTab('exams', event)"><i data-lucide="graduation-cap" class="icon" width="16"
-            height="16"></i> Exams</button>
-        <button class="tab" onclick="showTab('classes', event)"><i data-lucide="users" class="icon" width="16"
-            height="16"></i> Classes</button>
-        <button class="tab" onclick="showTab('cwa', event)"><i data-lucide="bar-chart-3" class="icon" width="16"
-            height="16"></i> CWA</button>
-        <button class="tab" onclick="showTab('settings', event)"><i data-lucide="settings" class="icon" width="16"
-            height="16"></i> Settings</button>
-        <button class="tab" onclick="showTab('about', event)"><i data-lucide="info" class="icon" width="16"
-            height="16"></i> About</button>
-        <button class="tab" onclick="showTab('help', event)"><i data-lucide="life-buoy" class="icon" width="16"
-            height="16"></i> Help</button>
+      <div class="dock-scrim" id="dockScrim" onclick="closeDockMore()"></div>
+
+      <div class="dock-more-panel" id="dockMorePanel">
+        <button class="dock-more-item" data-tab="classes" onclick="showTab('classes', event)"><i data-lucide="users" width="20" height="20"></i> Classes</button>
+        <button class="dock-more-item" data-tab="cwa" onclick="showTab('cwa', event)"><i data-lucide="bar-chart-3" width="20" height="20"></i> CWA</button>
+        <button class="dock-more-item" data-tab="settings" onclick="showTab('settings', event)"><i data-lucide="settings" width="20" height="20"></i> Settings</button>
+        <button class="dock-more-item" data-tab="about" onclick="showTab('about', event)"><i data-lucide="info" width="20" height="20"></i> About</button>
+        <button class="dock-more-item" data-tab="help" onclick="showTab('help', event)"><i data-lucide="life-buoy" width="20" height="20"></i> Help</button>
       </div>
 
-      <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
-      <div class="sidebar-scrim" id="sidebarScrim" onclick="toggleSidebar()"></div>
+      <nav class="dock-nav" id="dockNav">
+        <button class="dock-btn active" id="tabToday" data-tab="today" onclick="showTab('today', event)"><i data-lucide="calendar-days" class="icon" width="20" height="20"></i> Today</button>
+        <button class="dock-btn" data-tab="lectures" onclick="showTab('lectures', event)"><i data-lucide="book-open" class="icon" width="20" height="20"></i> Lectures</button>
+        <button class="dock-btn" data-tab="assignments" onclick="showTab('assignments', event)"><i data-lucide="clipboard-list" class="icon" width="20" height="20"></i> Tasks</button>
+        <button class="dock-btn" data-tab="exams" onclick="showTab('exams', event)"><i data-lucide="graduation-cap" class="icon" width="20" height="20"></i> Exams</button>
+        <button class="dock-btn" id="dockMoreBtn" onclick="toggleDockMore(event)"><i data-lucide="more-horizontal" class="icon" width="20" height="20"></i> More<span class="dock-dot"></span></button>
+      </nav>
 
       <div class="content">
 
         <div class="section active" id="todaySection">
           <div class="summary-grid">
             <div class="summary-card">
+              <div class="summary-card-icon"><i data-lucide="book-open" width="18" height="18"></i></div>
               <h3>Today's Lectures</h3>
               <div class="count" id="todayLectureCount">0</div>
             </div>
             <div class="summary-card">
+              <div class="summary-card-icon"><i data-lucide="clipboard-list" width="18" height="18"></i></div>
               <h3>Pending Assignments</h3>
               <div class="count" id="pendingAssignmentCount">0</div>
             </div>
             <div class="summary-card">
+              <div class="summary-card-icon"><i data-lucide="graduation-cap" width="18" height="18"></i></div>
               <h3>Upcoming Exams</h3>
               <div class="count" id="upcomingExamCount">0</div>
             </div>
@@ -2465,14 +2584,17 @@
         <div class="section" id="cwaSection">
           <div class="summary-grid">
             <div class="summary-card">
+              <div class="summary-card-icon"><i data-lucide="bar-chart-3" width="18" height="18"></i></div>
               <h3>Current CWA</h3>
               <div class="count" id="cwaValue">--</div>
             </div>
             <div class="summary-card">
+              <div class="summary-card-icon"><i data-lucide="award" width="18" height="18"></i></div>
               <h3>Classification</h3>
               <div class="count" id="cwaClassification" style="font-size:18px">--</div>
             </div>
             <div class="summary-card">
+              <div class="summary-card-icon"><i data-lucide="layers" width="18" height="18"></i></div>
               <h3>Total Credits</h3>
               <div class="count" id="cwaCredits">0</div>
             </div>
@@ -3013,71 +3135,6 @@
       renderIcons();
     }
 
-    function initSidebarResize() {
-      const SIDEBAR_MIN = 140;
-      const SIDEBAR_MAX = 400;
-      const handle = document.getElementById('sidebarResizeHandle');
-      if (!handle) return;
-
-      const saved = localStorage.getItem('acadiaSidebarWidth');
-      if (saved) {
-        const width = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, parseInt(saved, 10)));
-        document.documentElement.style.setProperty('--sidebar-width', width + 'px');
-      }
-
-      let dragging = false;
-
-      handle.addEventListener('mousedown', (e) => {
-        dragging = true;
-        handle.classList.add('dragging');
-        document.body.style.userSelect = 'none';
-        document.body.style.cursor = 'col-resize';
-        e.preventDefault();
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (!dragging) return;
-        const dashboardBody = document.querySelector('.dashboard-body');
-        const left = dashboardBody.getBoundingClientRect().left;
-        let width = e.clientX - left;
-        width = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, width));
-        document.documentElement.style.setProperty('--sidebar-width', width + 'px');
-      });
-
-      window.addEventListener('mouseup', () => {
-        if (!dragging) return;
-        dragging = false;
-        handle.classList.remove('dragging');
-        document.body.style.userSelect = '';
-        document.body.style.cursor = '';
-        const current = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width').trim();
-        if (current) localStorage.setItem('acadiaSidebarWidth', parseInt(current, 10));
-      });
-
-      // Touch support
-      handle.addEventListener('touchstart', () => {
-        dragging = true;
-        handle.classList.add('dragging');
-      }, { passive: true });
-
-      window.addEventListener('touchmove', (e) => {
-        if (!dragging || !e.touches[0]) return;
-        const dashboardBody = document.querySelector('.dashboard-body');
-        const left = dashboardBody.getBoundingClientRect().left;
-        let width = e.touches[0].clientX - left;
-        width = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, width));
-        document.documentElement.style.setProperty('--sidebar-width', width + 'px');
-      }, { passive: true });
-
-      window.addEventListener('touchend', () => {
-        if (!dragging) return;
-        dragging = false;
-        handle.classList.remove('dragging');
-        const current = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width').trim();
-        if (current) localStorage.setItem('acadiaSidebarWidth', parseInt(current, 10));
-      });
-    }
-
     function initHeroReveal() {
       const heading = document.querySelector('.auth-hero-copy h1');
       if (!heading || heading.dataset.revealed) return;
@@ -3088,13 +3145,48 @@
         .join(' ');
     }
 
-    function activateTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const DOCK_MORE_TABS = ['classes', 'cwa', 'settings', 'about', 'help'];
+
+    function setActiveTab(tab) {
+      document.querySelectorAll('.dock-nav > .dock-btn[data-tab]').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.dock-more-item').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      const btn = document.querySelector(`.tab[onclick*="'${tab}'"]`);
-      if (btn) btn.classList.add('active');
+
+      const moreBtn = document.getElementById('dockMoreBtn');
+      if (DOCK_MORE_TABS.includes(tab)) {
+        if (moreBtn) moreBtn.classList.add('has-active');
+        const item = document.querySelector(`.dock-more-item[data-tab="${tab}"]`);
+        if (item) item.classList.add('active');
+      } else {
+        if (moreBtn) moreBtn.classList.remove('has-active');
+        const btn = document.querySelector(`.dock-nav > .dock-btn[data-tab="${tab}"]`);
+        if (btn) btn.classList.add('active');
+      }
+
       const section = document.getElementById(tab + 'Section');
       if (section) section.classList.add('active');
+    }
+
+    function activateTab(tab) {
+      setActiveTab(tab);
+      closeDockMore();
+    }
+
+    function toggleDockMore(evt) {
+      if (evt) evt.stopPropagation();
+      const panel = document.getElementById('dockMorePanel');
+      const scrim = document.getElementById('dockScrim');
+      const btn = document.getElementById('dockMoreBtn');
+      if (!panel || !scrim) return;
+      const isOpen = panel.classList.toggle('open');
+      scrim.classList.toggle('open', isOpen);
+      if (btn) btn.classList.toggle('menu-open', isOpen);
+    }
+
+    function closeDockMore() {
+      document.getElementById('dockMorePanel')?.classList.remove('open');
+      document.getElementById('dockScrim')?.classList.remove('open');
+      document.getElementById('dockMoreBtn')?.classList.remove('menu-open');
     }
 
     const SEARCHABLE_SECTIONS = [
@@ -3162,40 +3254,8 @@
       }
     });
 
-    function toggleSidebar() {
-      const body = document.querySelector('.dashboard-body');
-      const btn = document.getElementById('sidebarToggleBtn');
-      const hidden = body.classList.toggle('sidebar-hidden');
-      localStorage.setItem('acadiaSidebarHidden', hidden ? '1' : '0');
-      if (btn) {
-        btn.title = hidden ? 'Show sidebar' : 'Hide sidebar';
-        btn.innerHTML = `<i data-lucide="${hidden ? 'panel-left-open' : 'panel-left-close'}" width="16" height="16"></i>`;
-        renderIcons();
-      }
-    }
-
-    function initSidebarVisibility() {
-      const stored = localStorage.getItem('acadiaSidebarHidden');
-      // With no saved preference yet, default the drawer closed on mobile
-      // widths (so first load isn't covered by the panel, same as any
-      // hamburger menu) but keep it open on desktop, matching existing
-      // behavior there.
-      const shouldHide = stored === '1' || (stored === null && window.innerWidth <= 640);
-      if (shouldHide) {
-        const body = document.querySelector('.dashboard-body');
-        const btn = document.getElementById('sidebarToggleBtn');
-        if (body) body.classList.add('sidebar-hidden');
-        if (btn) {
-          btn.title = 'Show sidebar';
-          btn.innerHTML = '<i data-lucide="panel-left-open" width="16" height="16"></i>';
-        }
-      }
-    }
-
     initTheme();
     renderIcons();
-    initSidebarResize();
-    initSidebarVisibility();
     renderIcons();
     initHeroReveal();
 
@@ -3368,7 +3428,7 @@
     // who's already using the dashboard.
     function goHome() {
       if (currentUser) {
-        showTab('today', { target: document.getElementById('tabToday') });
+        showTab('today');
       } else {
         showHomePage();
       }
@@ -3385,22 +3445,11 @@
     }
 
     function showTab(tab, evt) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      if (evt) {
-        const btn = evt.target.closest('.tab');
-        if (btn) btn.classList.add('active');
-      }
-      document.getElementById(tab + 'Section').classList.add('active');
-
-      // Auto-close the sidebar drawer after navigating, so it doesn't sit
-      // open (with its dimming scrim) over the page you just switched to.
-      // Mobile now uses the same fixed drawer as desktop (no more inline
-      // horizontal tab bar), so this applies at every width.
-      const body = document.querySelector('.dashboard-body');
-      if (body && !body.classList.contains('sidebar-hidden')) {
-        toggleSidebar();
-      }
+      if (evt) evt.stopPropagation();
+      setActiveTab(tab);
+      // Close the overflow "more" panel after navigating, whether the tab
+      // picked was a primary dock button or one of the overflow items.
+      closeDockMore();
     }
 
     async function loadAll() {
